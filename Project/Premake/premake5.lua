@@ -15,8 +15,14 @@ project "LaziealGraphicsFramework" -- プロジェクト名
 
    -- プロジェクトに含むファイル
    files { 
-      "../**.cpp",
-      "../**.h",
+      "../*.cpp",
+
+      "../Core/**.cpp",
+      "../Core/**.h",
+      "../Graphics/**.cpp",
+      "../Graphics/**.h",
+      "../Math/**.cpp",
+      "../Math/**.h",
    }
    
    -- 追加のインクルードパス
@@ -25,7 +31,6 @@ project "LaziealGraphicsFramework" -- プロジェクト名
        "../Graphics",
        "../Graphics/DirectX",
        "../Externals",
-       "../Debug",
    }
 
    dependson { } -- 依存していることを指定
