@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include <d3d12.h>
@@ -16,8 +17,15 @@ namespace LGF {
 	/// </summary>
 	class ResourceFactory {
 	public:
-		ResourceFactory(Device* device);
-		~ResourceFactory();
+		// コンストラクタ
+		ResourceFactory(Device& device);
+		// デストラクタ
+		~ResourceFactory() = default;
+
+		ResourceFactory(const ResourceFactory&) = delete;
+		ResourceFactory& operator=(const ResourceFactory&) = delete;
+		ResourceFactory(ResourceFactory&&) = delete;
+		ResourceFactory& operator=(ResourceFactory&&) = delete;
 
 		// Uploadバッファリソースの作成
 		ComPtr<ID3D12Resource> CreateUploadBufferResource(size_t sizeInBytes);
@@ -37,8 +45,8 @@ namespace LGF {
 			DXGI_FORMAT format,
 			DXGI_FORMAT clearFormat);
 
-
 	private:
-		Device* device_ = nullptr;
+		// Device
+		Device& device_;
 	};
 }

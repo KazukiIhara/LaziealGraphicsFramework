@@ -1,7 +1,6 @@
 #include "Device.h"
 
 #include <array>
-#include <cassert>
 #include <format>
 
 #include "Logger/Logger.h"
@@ -31,12 +30,8 @@ Device::InitializeResult Device::Initialize() {
 		return InitializeResult::kDeviceCreateFailed;
 	}
 
-	// MeshShader対応を確認
-	InitializeResult result = CheckMeshShaderSupport();
-	if (result != InitializeResult::kSuccess) {
-		return result;
-	}
-
+	// MeshShader対応を記録
+	CheckMeshShaderSupport();
 	// InfoQueueを設定
 	SetupInfoQueue();
 
@@ -134,7 +129,11 @@ bool Device::CreateDevice() {
 	return false;
 }
 
-Device::InitializeResult Device::CheckMeshShaderSupport() {
+void Device::CheckMeshShaderSupport() {
+	// 対応機能を初期化
+	deviceCaps_.isMeshShaderSupported = false;
+	deviceCaps_.isDevice10Available = false;
+
 	// MeshShader対応状況を取得
 	D3D12_FEATURE_DATA_D3D12_OPTIONS7 options7{};
 	HRESULT hr = device_->CheckFeatureSupport(
@@ -144,28 +143,26 @@ Device::InitializeResult Device::CheckMeshShaderSupport() {
 
 	if (FAILED(hr)) {
 		Logger::Log("Failed to get D3D12_OPTIONS7.\n");
-		return InitializeResult::kMeshShaderNotSupported;
 	}
-
-	// MeshShaderTierを確認
-	if (options7.MeshShaderTier < D3D12_MESH_SHADER_TIER_1) {
+	else if (options7.MeshShaderTier < D3D12_MESH_SHADER_TIER_1) {
+		// MeshShaderTierを確認
 		Logger::Log("MeshShaderTier is not supported.\n");
-		return InitializeResult::kMeshShaderNotSupported;
 	}
-
-	Logger::Log("MeshShaderTier1 or higher is supported.\n");
+	else {
+		deviceCaps_.isMeshShaderSupported = true;
+		Logger::Log("MeshShaderTier1 or higher is supported.\n");
+	}
 
 	// Device10を取得
 	hr = device_->QueryInterface(IID_PPV_ARGS(&device10_));
 	if (FAILED(hr)) {
 		device10_ = nullptr;
 		Logger::Log("Failed to get ID3D12Device10.\n");
-		return InitializeResult::kDevice10NotAvailable;
+		return;
 	}
 
+	deviceCaps_.isDevice10Available = true;
 	Logger::Log("Device10 acquired.\n");
-
-	return InitializeResult::kSuccess;
 }
 
 void Device::SetupInfoQueue() {
@@ -205,35 +202,7 @@ void Device::SetupInfoQueue() {
 #endif // _DEBUG
 }
 
-ComPtr<ID3D12DescriptorHeap> Device::CreateDescriptorHeap(
-	D3D12_DESCRIPTOR_HEAP_TYPE heapType,
-	UINT numDescriptors,
-	bool shaderVisible) {
-
-	// ディスクリプタヒープ設定
-	D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc{};
-	descriptorHeapDesc.Type = heapType;
-	descriptorHeapDesc.NumDescriptors = numDescriptors;
-
-	// シェーダ可視設定
-	if (shaderVisible) {
-		descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	}
-	else {
-		descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	}
-
-	// ディスクリプタヒープを生成
-	ComPtr<ID3D12DescriptorHeap> descriptorHeap = nullptr;
-	HRESULT hr = device_->CreateDescriptorHeap(
-		&descriptorHeapDesc,
-		IID_PPV_ARGS(&descriptorHeap));
-	assert(SUCCEEDED(hr));
-
-	return descriptorHeap;
-}
-
-ID3D12Device* Device::GetDevice()const{
+ID3D12Device* Device::GetDevice()const {
 	return device_.Get();
 }
 
@@ -243,4 +212,8 @@ ID3D12Device10* Device::GetDevice10()const {
 
 IDXGIFactory7* Device::GetFactory()const {
 	return dxgiFactory_.Get();
+}
+
+const Device::DeviceCaps& Device::GetDeviceCaps()const {
+	return deviceCaps_;
 }
