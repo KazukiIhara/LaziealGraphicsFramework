@@ -1,4 +1,4 @@
-#include "DirectXDevice.h"
+#include "Device.h"
 
 #include <array>
 #include <cassert>
@@ -6,11 +6,11 @@
 
 #include "Logger/Logger.h"
 
-DirectXDevice::DirectXDevice() {
+Device::Device() {
 
 }
 
-DirectXDevice::InitializeResult DirectXDevice::Initialize() {
+Device::InitializeResult Device::Initialize() {
 	// デバッグレイヤーを有効化
 	EnableDebugLayer();
 
@@ -44,7 +44,7 @@ DirectXDevice::InitializeResult DirectXDevice::Initialize() {
 	return InitializeResult::kSuccess;
 }
 
-void DirectXDevice::EnableDebugLayer() {
+void Device::EnableDebugLayer() {
 #ifdef _DEBUG
 	ComPtr<ID3D12Debug1> debugController = nullptr;
 	HRESULT hr = D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
@@ -57,7 +57,7 @@ void DirectXDevice::EnableDebugLayer() {
 #endif // _DEBUG
 }
 
-bool DirectXDevice::CreateFactory() {
+bool Device::CreateFactory() {
 	// DXGIファクトリーを生成
 	HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory_));
 	if (FAILED(hr)) {
@@ -67,7 +67,7 @@ bool DirectXDevice::CreateFactory() {
 	return true;
 }
 
-bool DirectXDevice::SelectAdapter() {
+bool Device::SelectAdapter() {
 	// 高性能GPU順にアダプタを列挙
 	for (UINT i = 0; dxgiFactory_->EnumAdapterByGpuPreference(
 		i,
@@ -98,7 +98,7 @@ bool DirectXDevice::SelectAdapter() {
 	return false;
 }
 
-bool DirectXDevice::CreateDevice() {
+bool Device::CreateDevice() {
 	// 機能レベル候補
 	const std::array<D3D_FEATURE_LEVEL, 3> featureLevels = {
 		D3D_FEATURE_LEVEL_12_2,
@@ -132,7 +132,7 @@ bool DirectXDevice::CreateDevice() {
 	return false;
 }
 
-DirectXDevice::InitializeResult DirectXDevice::CheckMeshShaderSupport() {
+Device::InitializeResult Device::CheckMeshShaderSupport() {
 	// MeshShader対応状況を取得
 	D3D12_FEATURE_DATA_D3D12_OPTIONS7 options7{};
 	HRESULT hr = device_->CheckFeatureSupport(
@@ -166,7 +166,7 @@ DirectXDevice::InitializeResult DirectXDevice::CheckMeshShaderSupport() {
 	return InitializeResult::kSuccess;
 }
 
-void DirectXDevice::SetupInfoQueue() {
+void Device::SetupInfoQueue() {
 #ifdef _DEBUG
 	ComPtr<ID3D12InfoQueue> infoQueue = nullptr;
 	HRESULT hr = device_->QueryInterface(IID_PPV_ARGS(&infoQueue));
@@ -203,7 +203,7 @@ void DirectXDevice::SetupInfoQueue() {
 #endif // _DEBUG
 }
 
-ComPtr<ID3D12DescriptorHeap> DirectXDevice::CreateDescriptorHeap(
+ComPtr<ID3D12DescriptorHeap> Device::CreateDescriptorHeap(
 	D3D12_DESCRIPTOR_HEAP_TYPE heapType,
 	UINT numDescriptors,
 	bool shaderVisible) {
@@ -231,7 +231,7 @@ ComPtr<ID3D12DescriptorHeap> DirectXDevice::CreateDescriptorHeap(
 	return descriptorHeap;
 }
 
-ComPtr<ID3D12Resource> DirectXDevice::CreateUploadBufferResource(size_t sizeInBytes) {
+ComPtr<ID3D12Resource> Device::CreateUploadBufferResource(size_t sizeInBytes) {
 	// UploadHeap設定
 	D3D12_HEAP_PROPERTIES heapProperties{};
 	heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -260,7 +260,7 @@ ComPtr<ID3D12Resource> DirectXDevice::CreateUploadBufferResource(size_t sizeInBy
 	return resource;
 }
 
-ComPtr<ID3D12Resource> DirectXDevice::CreateUAVBufferResource(size_t sizeInBytes) {
+ComPtr<ID3D12Resource> Device::CreateUAVBufferResource(size_t sizeInBytes) {
 	// DefaultHeap設定
 	D3D12_HEAP_PROPERTIES heapProperties{};
 	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
@@ -290,7 +290,7 @@ ComPtr<ID3D12Resource> DirectXDevice::CreateUAVBufferResource(size_t sizeInBytes
 	return resource;
 }
 
-ComPtr<ID3D12Resource> DirectXDevice::CreateDepthStencilTextureResource(
+ComPtr<ID3D12Resource> Device::CreateDepthStencilTextureResource(
 	int32_t width,
 	int32_t height,
 	DXGI_FORMAT format) {
@@ -330,7 +330,7 @@ ComPtr<ID3D12Resource> DirectXDevice::CreateDepthStencilTextureResource(
 	return resource;
 }
 
-ComPtr<ID3D12Resource> DirectXDevice::CreateDepthStencilTextureResource(
+ComPtr<ID3D12Resource> Device::CreateDepthStencilTextureResource(
 	int32_t width,
 	int32_t height,
 	DXGI_FORMAT format,
@@ -371,14 +371,14 @@ ComPtr<ID3D12Resource> DirectXDevice::CreateDepthStencilTextureResource(
 	return resource;
 }
 
-ID3D12Device* DirectXDevice::GetDevice() {
+ID3D12Device* Device::GetDevice() {
 	return device_.Get();
 }
 
-ID3D12Device10* DirectXDevice::GetDevice10() {
+ID3D12Device10* Device::GetDevice10() {
 	return device10_.Get();
 }
 
-IDXGIFactory7* DirectXDevice::GetFactory() {
+IDXGIFactory7* Device::GetFactory() {
 	return dxgiFactory_.Get();
 }

@@ -22,10 +22,11 @@ project "LaziealGraphicsFramework" -- プロジェクト名
    -- 追加のインクルードパス
    includedirs { 
        "../Core",
-       "../DirectX",
+       "../Graphics",
+       "../Graphics/DirectX",
        "../Externals",
        "../Debug",
-   } 
+   }
 
    dependson { } -- 依存していることを指定
 

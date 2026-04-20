@@ -11,7 +11,7 @@
 /// <summary>
 /// DirectXデバイス管理
 /// </summary>
-class DirectXDevice {
+class Device {
 public:
 	// 初期化結果
 	enum class InitializeResult {
@@ -25,9 +25,9 @@ public:
 
 public:
 	// コンストラクタ
-	DirectXDevice();
+	Device();
 	// デストラクタ
-	~DirectXDevice() = default;
+	~Device() = default;
 
 	// 初期化
 	InitializeResult Initialize();

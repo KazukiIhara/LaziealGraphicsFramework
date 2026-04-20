@@ -1,14 +1,14 @@
-#include "WindowSystem.h"
+#include "Window.h"
 
-WindowSystem::WindowSystem(const WindowSystem::Setting& setting) {
+Window::Window(const Window::Setting& setting) {
 	Initialize(setting);
 }
 
-WindowSystem::~WindowSystem() {
+Window::~Window() {
 	Finalize();
 }
 
-bool WindowSystem::ProcessMessage() {
+bool Window::ProcessMessage() {
 	// メッセージ
 	MSG msg{};
 
@@ -27,19 +27,19 @@ bool WindowSystem::ProcessMessage() {
 	return true;
 }
 
-HWND WindowSystem::GetHwnd() const {
+HWND Window::GetHwnd() const {
 	return hwnd_;
 }
 
-WNDCLASS WindowSystem::GetWndClass() const {
+WNDCLASS Window::GetWndClass() const {
 	return wc_;
 }
 
-WindowSystem::Setting WindowSystem::GetWndSetting() const {
+Window::Setting Window::GetWndSetting() const {
 	return setting_;
 }
 
-void WindowSystem::ToggleFullScreen() {
+void Window::ToggleFullScreen() {
 	// 無効なウィンドウは処理しない
 	if (hwnd_ == nullptr) {
 		return;
@@ -96,7 +96,7 @@ void WindowSystem::ToggleFullScreen() {
 	}
 }
 
-bool WindowSystem::Initialize(const WindowSystem::Setting& setting) {
+bool Window::Initialize(const Window::Setting& setting) {
 	// 設定を取得
 	setting_ = setting;
 
@@ -139,7 +139,7 @@ bool WindowSystem::Initialize(const WindowSystem::Setting& setting) {
 	return true;
 }
 
-bool WindowSystem::Finalize() {
+bool Window::Finalize() {
 	// ウィンドウを破棄
 	if (hwnd_ != nullptr) {
 		DestroyWindow(hwnd_);
@@ -163,7 +163,7 @@ bool WindowSystem::Finalize() {
 	return true;
 }
 
-void WindowSystem::CreateGameWindow(int32_t clientWidth, int32_t clientHeight, const std::wstring& windowName, UINT windowStyle) {
+void Window::CreateGameWindow(int32_t clientWidth, int32_t clientHeight, const std::wstring& windowName, UINT windowStyle) {
 	// ウィンドウクラス情報を設定
 	wc_ = {};
 
@@ -216,7 +216,7 @@ void WindowSystem::CreateGameWindow(int32_t clientWidth, int32_t clientHeight, c
 
 }
 
-LRESULT WindowSystem::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+LRESULT Window::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	// メッセージに応じてゲーム固有の処理を行う
 	switch (msg) {
 		// ウィンドウが破棄された

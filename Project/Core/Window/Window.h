@@ -5,9 +5,10 @@
 #include <Windows.h>
 
 /// <summary>
-/// ウィンドウ管理クラス
+/// ウィンドウクラス　
 /// </summary>
-class WindowSystem {
+
+class Window {
 public:
 	struct WndSize {
 		uint32_t width{};
@@ -20,8 +21,8 @@ public:
 		bool isFullScreen = false;
 	};
 public:
-	WindowSystem(const WindowSystem::Setting& setting);
-	~WindowSystem();
+	Window(const Window::Setting& setting);
+	~Window();
 
 	// メッセージの処理
 	bool ProcessMessage();
@@ -31,13 +32,13 @@ public:
 	// ウィンドウクラスの取得
 	WNDCLASS GetWndClass() const;
 	// ウィンドウサイズの取得
-	WindowSystem::Setting GetWndSetting()const;
+	Window::Setting GetWndSetting()const;
 
 	// フルスクリーンモード切り替え
 	void ToggleFullScreen();
 
 private:
-	bool Initialize(const WindowSystem::Setting& setting);
+	bool Initialize(const Window::Setting& setting);
 	bool Finalize();
 
 	// ゲームウィンドウの作成
@@ -53,7 +54,7 @@ private:
 	// ウィンドウクラス
 	WNDCLASS wc_{};
 	// ウィンドウ設定
-	WindowSystem::Setting setting_;
+	Window::Setting setting_;
 	// ウィンドウモード時の位置とサイズ
 	RECT windowRect_{};
 	// Comの初期化判別フラグ
