@@ -6,12 +6,8 @@
 
 using namespace LGF;
 
-ResourceFactory::ResourceFactory(Device* device) {
-	assert(device);
-	device_ = device;
-}
-
-ResourceFactory::~ResourceFactory() {
+ResourceFactory::ResourceFactory(Device& device)
+	: device_(device) {
 }
 
 ComPtr<ID3D12Resource> ResourceFactory::CreateUploadBufferResource(size_t sizeInBytes) {
@@ -31,7 +27,7 @@ ComPtr<ID3D12Resource> ResourceFactory::CreateUploadBufferResource(size_t sizeIn
 
 	// リソースを生成
 	ComPtr<ID3D12Resource> resource = nullptr;
-	HRESULT hr = device_->GetDevice()->CreateCommittedResource(
+	HRESULT hr = device_.GetDevice()->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDesc,
@@ -61,7 +57,7 @@ ComPtr<ID3D12Resource> ResourceFactory::CreateUAVBufferResource(size_t sizeInByt
 
 	// リソースを生成
 	ComPtr<ID3D12Resource> resource = nullptr;
-	HRESULT hr = device_->GetDevice()->CreateCommittedResource(
+	HRESULT hr = device_.GetDevice()->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDesc,
@@ -73,7 +69,11 @@ ComPtr<ID3D12Resource> ResourceFactory::CreateUAVBufferResource(size_t sizeInByt
 	return resource;
 }
 
-ComPtr<ID3D12Resource> ResourceFactory::CreateDepthStencilTextureResource(int32_t width, int32_t height, DXGI_FORMAT format) {
+ComPtr<ID3D12Resource> ResourceFactory::CreateDepthStencilTextureResource(
+	int32_t width,
+	int32_t height,
+	DXGI_FORMAT format) {
+
 	// リソース設定
 	D3D12_RESOURCE_DESC resourceDesc{};
 	resourceDesc.Width = width;
@@ -97,7 +97,7 @@ ComPtr<ID3D12Resource> ResourceFactory::CreateDepthStencilTextureResource(int32_
 
 	// リソースを生成
 	ComPtr<ID3D12Resource> resource = nullptr;
-	HRESULT hr = device_->GetDevice()->CreateCommittedResource(
+	HRESULT hr = device_.GetDevice()->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDesc,
@@ -109,7 +109,12 @@ ComPtr<ID3D12Resource> ResourceFactory::CreateDepthStencilTextureResource(int32_
 	return resource;
 }
 
-ComPtr<ID3D12Resource> ResourceFactory::CreateDepthStencilTextureResource(int32_t width, int32_t height, DXGI_FORMAT format, DXGI_FORMAT clearFormat) {
+ComPtr<ID3D12Resource> ResourceFactory::CreateDepthStencilTextureResource(
+	int32_t width,
+	int32_t height,
+	DXGI_FORMAT format,
+	DXGI_FORMAT clearFormat) {
+
 	// リソース設定
 	D3D12_RESOURCE_DESC resourceDesc{};
 	resourceDesc.Width = width;
@@ -133,7 +138,7 @@ ComPtr<ID3D12Resource> ResourceFactory::CreateDepthStencilTextureResource(int32_
 
 	// リソースを生成
 	ComPtr<ID3D12Resource> resource = nullptr;
-	HRESULT hr = device_->GetDevice()->CreateCommittedResource(
+	HRESULT hr = device_.GetDevice()->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDesc,
