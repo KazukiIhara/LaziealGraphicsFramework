@@ -8,10 +8,13 @@ namespace LGF {
 
 	class Device;
 
+	/// <summary>
+	/// DirectXCommandクラス
+	/// </summary>
 	class Command {
 	public:
 		Command(Device& device);
-		~Command() = default;
+		~Command();
 
 		bool Initialize();
 

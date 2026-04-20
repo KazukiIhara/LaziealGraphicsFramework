@@ -10,27 +10,40 @@ Command::Command(Device& device)
 	: device_(device) {
 }
 
+Command::~Command() {
+}
+
 bool Command::Initialize() {
 	// コマンドキューを生成する
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
-	HRESULT hr = device_.GetDevice()->CreateCommandQueue(&commandQueueDesc,
-		IID_PPV_ARGS(&commandQueue_));
-	assert(SUCCEEDED(hr));
-
+	HRESULT hr = device_.GetDevice()->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&commandQueue_));
+	if (FAILED(hr)) {
+		assert(false);
+		return false;
+	}
 	// コマンドアロケータを生成する
 	hr = device_.GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator_));
-	assert(SUCCEEDED(hr));
-
+	if (FAILED(hr)) {
+		assert(false);
+		return false;
+	}
 	// コマンドリストを生成する
 	hr = device_.GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.Get(), nullptr, IID_PPV_ARGS(&commandList_));
-	assert(SUCCEEDED(hr));
-
+	if (FAILED(hr)) {
+		assert(false);
+		return false;
+	}
 	// メッシュシェーダーのサポートされているデバイスの場合
 	if (device_.GetDeviceCaps().isMeshShaderSupported) {
 		// MeshShader用：ID3D12GraphicsCommandList6 にキャスト
 		hr = commandList_->QueryInterface(IID_PPV_ARGS(&commandList6_));
-		assert(SUCCEEDED(hr));
+		if (FAILED(hr)) {
+			assert(false);
+			return false;
+		}
 	}
+
+	return true;
 
 }
 
