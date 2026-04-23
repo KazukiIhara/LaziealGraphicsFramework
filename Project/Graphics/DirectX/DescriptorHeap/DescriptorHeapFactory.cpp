@@ -1,4 +1,4 @@
-#include "DescriptorHeapManager.h"
+#include "DescriptorHeapFactory.h"
 
 #include <cassert>
 
@@ -6,11 +6,11 @@
 
 using namespace LGF;
 
-DescriptorHeapManager::DescriptorHeapManager(Device& device)
+DescriptorHeapFactory::DescriptorHeapFactory(Device& device)
 	: device_(device) {
 }
 
-ComPtr<ID3D12DescriptorHeap> DescriptorHeapManager::CreateDescriptorHeap(
+ComPtr<ID3D12DescriptorHeap> DescriptorHeapFactory::CreateDescriptorHeap(
 	D3D12_DESCRIPTOR_HEAP_TYPE heapType,
 	UINT numDescriptors,
 	bool shaderVisible) {

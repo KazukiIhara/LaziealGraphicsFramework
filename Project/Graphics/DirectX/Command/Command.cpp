@@ -14,28 +14,27 @@ Command::~Command() {
 }
 
 bool Command::Initialize() {
-	// コマンドキューを生成する
+	// コマンドキューを作成
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
 	HRESULT hr = device_.GetDevice()->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&commandQueue_));
 	if (FAILED(hr)) {
 		assert(false);
 		return false;
 	}
-	// コマンドアロケータを生成する
+	// コマンドアロケータを作成
 	hr = device_.GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator_));
 	if (FAILED(hr)) {
 		assert(false);
 		return false;
 	}
-	// コマンドリストを生成する
+	// コマンドリストを作成
 	hr = device_.GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.Get(), nullptr, IID_PPV_ARGS(&commandList_));
 	if (FAILED(hr)) {
 		assert(false);
 		return false;
 	}
-	// メッシュシェーダーのサポートされているデバイスの場合
+	// MeshShader対応デバイスならList6を取得
 	if (device_.GetDeviceCaps().isMeshShaderSupported) {
-		// MeshShader用：ID3D12GraphicsCommandList6 にキャスト
 		hr = commandList_->QueryInterface(IID_PPV_ARGS(&commandList6_));
 		if (FAILED(hr)) {
 			assert(false);
@@ -44,15 +43,14 @@ bool Command::Initialize() {
 	}
 
 	return true;
-
 }
 
 void Command::KickCommand() {
-	// 積んだコマンドをクローズ
+	// コマンドをクローズ
 	commandList_->Close();
-	// GPUにコマンドリストの実行を行わせる
-	ComPtr<ID3D12CommandList> commandLists[] = { commandList_.Get() };
-	commandQueue_->ExecuteCommandLists(1, commandLists->GetAddressOf());
+	// GPUにコマンドリストの実行を命令
+	ID3D12CommandList* commandLists[] = { commandList_.Get() };
+	commandQueue_->ExecuteCommandLists(1, commandLists);
 }
 
 void Command::ResetCommand() {
