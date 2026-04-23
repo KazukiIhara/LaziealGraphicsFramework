@@ -11,17 +11,17 @@ namespace LGF {
 	/// <summary>
 	/// DescriptorHeap管理クラス
 	/// </summary>
-	class DescriptorHeapManager {
+	class DescriptorHeapFactory {
 	public:
 		// コンストラクタ
-		DescriptorHeapManager(Device& device);
+		DescriptorHeapFactory(Device& device);
 		// デストラクタ
-		~DescriptorHeapManager() = default;
+		~DescriptorHeapFactory() = default;
 
-		DescriptorHeapManager(const DescriptorHeapManager&) = delete;
-		DescriptorHeapManager& operator=(const DescriptorHeapManager&) = delete;
-		DescriptorHeapManager(DescriptorHeapManager&&) = delete;
-		DescriptorHeapManager& operator=(DescriptorHeapManager&&) = delete;
+		DescriptorHeapFactory(const DescriptorHeapFactory&) = delete;
+		DescriptorHeapFactory& operator=(const DescriptorHeapFactory&) = delete;
+		DescriptorHeapFactory(DescriptorHeapFactory&&) = delete;
+		DescriptorHeapFactory& operator=(DescriptorHeapFactory&&) = delete;
 
 		// DescriptorHeapの作成
 		ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(
