@@ -6,6 +6,9 @@ namespace LGF {
 
 	class Command;
 
+	/// <summary>
+	/// シザー矩形
+	/// </summary>
 	class ScissorRect {
 	public:
 		ScissorRect(Command& cmd);

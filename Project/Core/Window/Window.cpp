@@ -1,5 +1,7 @@
 #include "Window.h"
 
+using namespace LGF;
+
 Window::Window(const Window::Setting& setting) {
 	Initialize(setting);
 }

@@ -6,6 +6,9 @@ namespace LGF {
 
 	class Command;
 
+	/// <summary>
+	/// ビューポート
+	/// </summary>
 	class Viewport {
 	public:
 		Viewport(Command& cmd);
