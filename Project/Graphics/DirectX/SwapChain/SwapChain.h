@@ -5,8 +5,6 @@ namespace LGF {
 	class Device;
 	class Command;
 	class RTVManager;
-	class Viewport;
-	class ScissorRect;
 
 	class SwapChain {
 	public:
