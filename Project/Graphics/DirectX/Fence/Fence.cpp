@@ -30,4 +30,16 @@ bool Fence::Initialize() {
 }
 
 void Fence::WaitGPU() {
+	// Fenceの値を更新し、GPUGPUがここまでたどり着いたときにFenceの値を指定した値に代入するようにSignalを送る
+	cmd_.GetQueue()->Signal(fence_.Get(), ++fenceValue_);
+	// Fenceの値が指定されたSignal値にたどり着いているか確認する
+	// GetCompletedValueの初期値はFence作成時に渡した初期値
+	if (fence_->GetCompletedValue() < fenceValue_) {
+		// FenceのSignalを待つためのイベントを作成する
+		HANDLE fenceEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+		// 指定したSignalにたどり着いていないので、たどり着くまで待つようにイベントを設定する
+		fence_->SetEventOnCompletion(fenceValue_, fenceEvent);
+		// イベントを待つ
+		WaitForSingleObject(fenceEvent, INFINITE);
+	}
 }
