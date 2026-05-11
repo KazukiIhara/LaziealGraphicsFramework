@@ -1,9 +1,8 @@
 #pragma once
 
+#include "Framework/Context/FrameworkContext.h"
 
 namespace LGF {
-
-	class FrameworkContext;
 
 	/// <summary>
 	/// フレームワークシステムのインターフェース
@@ -13,10 +12,10 @@ namespace LGF {
 		virtual ~IFrameworkSystem() = default;
 
 		virtual bool Initialize(FrameworkContext& context) = 0;
-		virtual void Finalize(FrameworkContext& context) = 0;
+		virtual bool Update(FrameworkContext& context) = 0;
+		virtual bool Finalize(FrameworkContext& context) = 0;
 
-		virtual void BeginFrame(FrameworkContext& context) {};
-		virtual void Update(FrameworkContext& context) {};
-		virtual void EndFrame(FrameworkContext& context) {};
+		virtual void BeginFrame([[maybe_unused]] FrameworkContext& context) {};
+		virtual void EndFrame([[maybe_unused]] FrameworkContext& context) {};
 	};
 }

@@ -2,6 +2,8 @@
 
 #include "Framework/System/IFrameworkSystem.h"
 
+#include "Window/Window.h"
+
 namespace LGF {
 	/// <summary>
 	/// ウィンドウ管理クラス
@@ -11,9 +13,13 @@ namespace LGF {
 		WindowSystem();
 		~WindowSystem()override = default;
 
-		bool Initialize();
+		bool Initialize(FrameworkContext& context)override;
+		bool Update(FrameworkContext& context)override;
+		bool Finalize(FrameworkContext& context)override;
+
+		Window& GetWindow();
 
 	private:
-
+		Window window_;
 	};
 }

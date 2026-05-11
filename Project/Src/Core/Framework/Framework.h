@@ -15,12 +15,11 @@ namespace LGF {
 	class Framework {
 	public:
 		Framework();
-		~Framework();
+		~Framework() = default;
 
 		bool Initialize();
-		void Finalize();
-
 		bool Update();
+		bool Finalize();
 
 	private:
 		// フレーム開始処理

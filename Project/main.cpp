@@ -16,7 +16,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ログ出力ファイル作成
 	Logger::Initialize();
 
+	LGF::Framework framework;
 
+	framework.Initialize();
+
+	while (framework.Update()) {
+
+	}
+
+	framework.Finalize();
 
 	// ログ終了
 	Logger::Finalize();
