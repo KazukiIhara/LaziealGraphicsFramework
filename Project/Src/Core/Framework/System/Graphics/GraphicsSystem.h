@@ -1,17 +1,24 @@
 #pragma once
 
+#include "Framework/System/IFrameworkSystem.h"
 
-class GraphicsSystem {
-public:
-	GraphicsSystem();
-	~GraphicsSystem();
+namespace LGF {
+	/// <summary>
+	/// グラフィックシステムクラス
+	/// </summary>
+	class GraphicsSystem :public IFrameworkSystem {
+	public:
+		GraphicsSystem();
+		~GraphicsSystem()override = default;
 
-private:
+		bool Initialize(FrameworkContext& context)override;
+		bool Update(FrameworkContext& context)override;
+		bool Finalize(FrameworkContext& context)override;
 
-};
+		void BeginFrame(FrameworkContext& context)override;
+		void EndFrame(FrameworkContext& context)override;
 
-GraphicsSystem::GraphicsSystem() {
-}
+	private:
 
-GraphicsSystem::~GraphicsSystem() {
+	};
 }

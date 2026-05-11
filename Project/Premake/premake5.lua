@@ -19,13 +19,18 @@ project "LaziealGraphicsFramework" -- プロジェクト名
 
       "../Src/**.cpp",
       "../Src/**.h",
+
+      "../Include/**.cpp",
+      "../Include/**.h",
    }
    
    -- 追加のインクルードパス
    includedirs { 
+       "../Src",
        "../Src/Core",
        "../Src/Graphics",
        "../Src/Graphics/DirectX",
+       "../Include",
        "../Externals",
    }
 
