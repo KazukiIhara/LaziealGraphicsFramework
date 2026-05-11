@@ -7,8 +7,8 @@
 
 using namespace LGF;
 
-SRVUAVManager::SRVUAVManager(Device& device, DescriptorHeapFactory& descriptorHeapManager)
-	: BaseViewManager(device, descriptorHeapManager), device_(device) {
+SRVUAVManager::SRVUAVManager(Device& device, DescriptorHeapFactory& descriptorHeapFactory)
+	: BaseViewManager(device, descriptorHeapFactory), device_(device) {
 }
 
 void SRVUAVManager::Initialize(uint32_t maxViewCount) {

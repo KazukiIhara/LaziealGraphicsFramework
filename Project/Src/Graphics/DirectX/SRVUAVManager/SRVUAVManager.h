@@ -18,7 +18,7 @@ namespace LGF {
 	class SRVUAVManager : public BaseViewManager {
 	public:
 		// コンストラクタ
-		SRVUAVManager(Device& device, DescriptorHeapFactory& descriptorHeapManager);
+		SRVUAVManager(Device& device, DescriptorHeapFactory& descriptorHeapFactory);
 		// デストラクタ
 		~SRVUAVManager() override = default;
 

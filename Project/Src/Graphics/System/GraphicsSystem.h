@@ -1,6 +1,10 @@
 #pragma once
 
+#include <memory>
+
 #include "Framework/System/IFrameworkSystem.h"
+
+#include "DirectX/Core/DirectXCore.h"
 
 namespace LGF {
 	/// <summary>
@@ -19,6 +23,7 @@ namespace LGF {
 		void EndFrame(FrameworkContext& context)override;
 
 	private:
+		std::unique_ptr<DirectXCore> directX_;
 
 	};
 }
