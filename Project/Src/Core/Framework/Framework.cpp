@@ -50,7 +50,13 @@ bool Framework::Finalize() {
 }
 
 void Framework::BeginFrame() {
+	for (const auto& system : std::views::reverse(systems_)) {
+		system->BeginFrame(context_);
+	}
 }
 
 void Framework::EndFrame() {
+	for (const auto& system : std::views::reverse(systems_)) {
+		system->EndFrame(context_);
+	}
 }
