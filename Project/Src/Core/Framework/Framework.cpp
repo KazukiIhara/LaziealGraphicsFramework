@@ -2,8 +2,8 @@
 
 #include <ranges>
 
-#include "Framework/System/Window/WindowSystem.h"
-#include "Framework/System/Graphics/GraphicsSystem.h"
+#include "Window/System/WindowSystem.h"
+#include "Graphics/System/GraphicsSystem.h"
 
 using namespace LGF;
 

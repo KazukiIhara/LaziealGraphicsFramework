@@ -6,7 +6,7 @@
 
 // Framework
 #include "Framework/System/IFrameworkSystem.h"
-#include "Framework/Context/FrameworkContext.h"
+#include "Framework/FrameworkContext.h"
 
 namespace LGF {
 	/// <summary>

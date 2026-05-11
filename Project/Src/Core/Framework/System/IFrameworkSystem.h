@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Framework/Context/FrameworkContext.h"
+#include "Framework/FrameworkContext.h"
 
 namespace LGF {
 
