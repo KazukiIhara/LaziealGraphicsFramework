@@ -22,8 +22,11 @@ namespace LGF {
 			bool isFullScreen = false;
 		};
 	public:
-		Window(const Window::Setting& setting);
+		Window();
 		~Window();
+
+		bool Initialize(const Window::Setting& setting);
+		bool Finalize();
 
 		// メッセージの処理
 		bool ProcessMessage();
@@ -39,9 +42,7 @@ namespace LGF {
 		void ToggleFullScreen();
 
 	private:
-		bool Initialize(const Window::Setting& setting);
-		bool Finalize();
-
+	
 		// ゲームウィンドウの作成
 		void CreateGameWindow(int32_t clientWidth = 1280, int32_t clientHeight = 720,
 			const std::wstring& windowName = L"LGF", UINT windowStyle = WS_OVERLAPPEDWINDOW);

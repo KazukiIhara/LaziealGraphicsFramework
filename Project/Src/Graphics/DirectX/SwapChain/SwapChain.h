@@ -33,8 +33,8 @@ namespace LGF {
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentBackBufferRTVHandle();
 
 	private:
-		void CreateSwapChain();
-		void CreateResources();
+		bool CreateSwapChain();
+		bool CreateResources();
 		void CreateRTV();
 
 	private:

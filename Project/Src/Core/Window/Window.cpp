@@ -2,12 +2,77 @@
 
 using namespace LGF;
 
-Window::Window(const Window::Setting& setting) {
-	Initialize(setting);
+Window::Window() {
 }
 
 Window::~Window() {
-	Finalize();
+}
+
+bool Window::Initialize(const Window::Setting& setting) {
+	// 設定を取得
+	setting_ = setting;
+
+	// COMを初期化
+	HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+	// 初期化失敗を確認
+	if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
+		return false;
+	}
+
+	// COM初期化成功を記録
+	if (SUCCEEDED(hr)) {
+		isCOMInitialized_ = true;
+	}
+
+	// システムタイマー分解能をあげる
+	timeBeginPeriod(1);
+
+	// ゲームウィンドウの作成
+	CreateGameWindow(
+		setting.wndSize.width,
+		setting.wndSize.height,
+		setting.wndName,
+		WS_OVERLAPPEDWINDOW
+	);
+
+	// ウィンドウ生成失敗を確認
+	if (hwnd_ == nullptr) {
+		timeEndPeriod(1);
+
+		if (isCOMInitialized_) {
+			CoUninitialize();
+			isCOMInitialized_ = false;
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+bool Window::Finalize() {
+	// ウィンドウを破棄
+	if (hwnd_ != nullptr) {
+		DestroyWindow(hwnd_);
+		hwnd_ = nullptr;
+	}
+
+	// ウィンドウクラスを登録解除
+	if (wc_.lpszClassName != nullptr && wc_.hInstance != nullptr) {
+		UnregisterClass(wc_.lpszClassName, wc_.hInstance);
+	}
+
+	// タイマー分解能を戻す
+	timeEndPeriod(1);
+
+	// COMを終了
+	if (isCOMInitialized_) {
+		CoUninitialize();
+		isCOMInitialized_ = false;
+	}
+
+	return true;
 }
 
 bool Window::ProcessMessage() {
@@ -96,73 +161,6 @@ void Window::ToggleFullScreen() {
 		// フルスクリーンフラグを解除
 		setting_.isFullScreen = false;
 	}
-}
-
-bool Window::Initialize(const Window::Setting& setting) {
-	// 設定を取得
-	setting_ = setting;
-
-	// COMを初期化
-	HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-
-	// 初期化失敗を確認
-	if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
-		return false;
-	}
-
-	// COM初期化成功を記録
-	if (SUCCEEDED(hr)) {
-		isCOMInitialized_ = true;
-	}
-
-	// システムタイマー分解能をあげる
-	timeBeginPeriod(1);
-
-	// ゲームウィンドウの作成
-	CreateGameWindow(
-		setting.wndSize.width,
-		setting.wndSize.height,
-		setting.wndName,
-		WS_OVERLAPPEDWINDOW
-	);
-
-	// ウィンドウ生成失敗を確認
-	if (hwnd_ == nullptr) {
-		timeEndPeriod(1);
-
-		if (isCOMInitialized_) {
-			CoUninitialize();
-			isCOMInitialized_ = false;
-		}
-
-		return false;
-	}
-
-	return true;
-}
-
-bool Window::Finalize() {
-	// ウィンドウを破棄
-	if (hwnd_ != nullptr) {
-		DestroyWindow(hwnd_);
-		hwnd_ = nullptr;
-	}
-
-	// ウィンドウクラスを登録解除
-	if (wc_.lpszClassName != nullptr && wc_.hInstance != nullptr) {
-		UnregisterClass(wc_.lpszClassName, wc_.hInstance);
-	}
-
-	// タイマー分解能を戻す
-	timeEndPeriod(1);
-
-	// COMを終了
-	if (isCOMInitialized_) {
-		CoUninitialize();
-		isCOMInitialized_ = false;
-	}
-
-	return true;
 }
 
 void Window::CreateGameWindow(int32_t clientWidth, int32_t clientHeight, const std::wstring& windowName, UINT windowStyle) {

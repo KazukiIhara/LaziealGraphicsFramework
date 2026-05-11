@@ -20,7 +20,14 @@ SwapChain::~SwapChain() {
 }
 
 bool SwapChain::Initialize() {
-	return false;
+	// スワップチェーン作成
+	bool checkFlag = CreateSwapChain();
+	// リソースを作成
+	checkFlag = CreateResources();
+	// RTVを作成
+	CreateRTV();
+
+	return checkFlag;
 }
 
 void SwapChain::Present() {
@@ -59,7 +66,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE SwapChain::GetCurrentBackBufferRTVHandle() {
 	return rtvMgr_.GetDescriptorHandleCPU(rtvIndex_[backBufferIndex_]);
 }
 
-void SwapChain::CreateSwapChain() {
+bool SwapChain::CreateSwapChain() {
 	// スワップチェーンの設定
 	swapChainDesc_.Width = win_.GetWndSetting().wndSize.width;			// 画面の幅、ウィンドウのクライアント領域を同じものにしておく
 	swapChainDesc_.Height = win_.GetWndSetting().wndSize.height;		// 画面の高さ、ウィンドウのクライアント領域を同じものしておく
@@ -70,16 +77,23 @@ void SwapChain::CreateSwapChain() {
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
 	HRESULT hr = device_.GetFactory()->CreateSwapChainForHwnd(cmd_.GetQueue(), win_.GetHwnd(), &swapChainDesc_,
 		nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain_.GetAddressOf()));
-	assert(SUCCEEDED(hr));
+
+	return SUCCEEDED(hr);
 }
 
-void SwapChain::CreateResources() {
+bool SwapChain::CreateResources() {
 	// スワップチェーンからリソースを引っ張ってくる
 	HRESULT hr = swapChain_->GetBuffer(0, IID_PPV_ARGS(&swapChainResources_[0]));
 	// うまく取得出来なければ起動できない
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr)) {
+		return false;
+	}
 	hr = swapChain_->GetBuffer(1, IID_PPV_ARGS(&swapChainResources_[1]));
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	return true;
 }
 
 void SwapChain::CreateRTV() {
