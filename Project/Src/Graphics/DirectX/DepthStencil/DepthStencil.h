@@ -18,14 +18,12 @@ namespace LGF {
 	class DepthStencil {
 	public:
 		// コンストラクタ
-		DepthStencil() = default;
+		DepthStencil(ResourceFactory& resourceFactory, DSVManager& dsvManager);
 		// デストラクタ
 		~DepthStencil() = default;
 
 		// 初期化
 		void Initialize(
-			ResourceFactory& resourceFactory,
-			DSVManager& dsvManager,
 			uint32_t width,
 			uint32_t height,
 			DXGI_FORMAT resourceFormat = DXGI_FORMAT_D24_UNORM_S8_UINT,
@@ -42,7 +40,9 @@ namespace LGF {
 		// Resource
 		ComPtr<ID3D12Resource> resource_ = nullptr;
 		// DSVManager
-		DSVManager* dsvManager_ = nullptr;
+		DSVManager& dsvManager_;
+		// ResourceFactory
+		ResourceFactory& resourceFactory_;
 		// DSVIndex
 		uint32_t dsvIndex_ = 0u;
 	};
