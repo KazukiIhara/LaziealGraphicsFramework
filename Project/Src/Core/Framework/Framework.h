@@ -23,9 +23,9 @@ namespace LGF {
 
 	private:
 		// フレーム開始処理
-		void BeginFrame();
+		void BeginCurrentFrame();
 		// フレーム終了処理
-		void EndFrame();
+		void CompletePreviousFrame();
 
 	private:
 		// フレームワークシステム
