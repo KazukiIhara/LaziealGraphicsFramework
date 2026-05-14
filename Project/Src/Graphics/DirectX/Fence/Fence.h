@@ -20,6 +20,7 @@ namespace LGF {
 		~Fence();
 
 		bool Initialize();
+		void EndFrame();
 		// GPUを待機
 		void WaitGPU();
 

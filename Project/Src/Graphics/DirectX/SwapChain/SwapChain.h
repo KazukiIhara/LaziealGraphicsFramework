@@ -24,6 +24,8 @@ namespace LGF {
 		~SwapChain();
 
 		bool Initialize();
+		void BeginFrame();
+		void EndFrame();
 		void Present();
 
 		void TransitionToRenderTarget();

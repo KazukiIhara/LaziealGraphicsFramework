@@ -17,6 +17,8 @@ namespace LGF {
 		~Command();
 
 		bool Initialize();
+		void BeginFrame();
+		void EndFrame();
 
 		// コマンドの実行
 		void KickCommand();

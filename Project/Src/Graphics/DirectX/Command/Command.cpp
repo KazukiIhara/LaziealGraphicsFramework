@@ -41,8 +41,21 @@ bool Command::Initialize() {
 			return false;
 		}
 	}
+	hr = commandList_->Close();
+	if (FAILED(hr)) {
+		assert(false);
+		return false;
+	}
 
 	return true;
+}
+
+void Command::BeginFrame() {
+	ResetCommand();
+}
+
+void Command::EndFrame() {
+	KickCommand();
 }
 
 void Command::KickCommand() {

@@ -11,6 +11,10 @@ ScissorRect::ScissorRect(Command& cmd)
 ScissorRect::~ScissorRect() {
 }
 
+void ScissorRect::BeginFrame(uint32_t width, uint32_t height) {
+	Resize(width, height);
+}
+
 void ScissorRect::Resize(uint32_t width, uint32_t height) {
 	// シザー矩形の設定
 	D3D12_RECT scissorRect{

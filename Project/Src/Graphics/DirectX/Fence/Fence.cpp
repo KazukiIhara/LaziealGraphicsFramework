@@ -15,7 +15,6 @@ Fence::~Fence() {
 }
 
 bool Fence::Initialize() {
-
 	// フェンスバリュー初期化
 	fenceValue_ = 0;
 
@@ -27,6 +26,10 @@ bool Fence::Initialize() {
 	}
 
 	return true;
+}
+
+void Fence::EndFrame() {
+	WaitGPU();
 }
 
 void Fence::WaitGPU() {
@@ -41,5 +44,6 @@ void Fence::WaitGPU() {
 		fence_->SetEventOnCompletion(fenceValue_, fenceEvent);
 		// イベントを待つ
 		WaitForSingleObject(fenceEvent, INFINITE);
+		CloseHandle(fenceEvent);
 	}
 }

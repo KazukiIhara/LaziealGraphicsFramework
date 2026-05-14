@@ -11,6 +11,10 @@ Viewport::Viewport(Command& cmd)
 Viewport::~Viewport() {
 }
 
+void Viewport::BeginFrame(uint32_t width, uint32_t height) {
+	Resize(width, height);
+}
+
 void Viewport::Resize(uint32_t width, uint32_t height) {
 	// ビューポートの設定
 	D3D12_VIEWPORT viewport{

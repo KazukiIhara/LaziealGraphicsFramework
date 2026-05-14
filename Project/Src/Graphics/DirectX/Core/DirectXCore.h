@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 
 #include <d3d12.h>
@@ -15,7 +16,7 @@ namespace LGF {
 	class SRVUAVManager;
 	class ResourceFactory;
 	class Viewport;
-	class ScissorRect; 
+	class ScissorRect;
 	class SwapChain;
 	class DepthStencil;
 	class Fence;
@@ -26,7 +27,7 @@ namespace LGF {
 	class DirectXCore {
 	public:
 		DirectXCore();
-		~DirectXCore() = default;
+		~DirectXCore();
 
 		bool Initialize(Window& window);
 		void Finalize();
@@ -38,6 +39,9 @@ namespace LGF {
 		ID3D12GraphicsCommandList* GetCommandList();
 
 	private:
+		uint32_t renderWidth_ = 0u;
+		uint32_t renderHeight_ = 0u;
+
 		std::unique_ptr<Device> device_;
 		std::unique_ptr<Command> command_;
 		std::unique_ptr<DescriptorHeapFactory> descriptorHeapFactory_;

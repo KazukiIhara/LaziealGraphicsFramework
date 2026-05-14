@@ -30,6 +30,15 @@ bool SwapChain::Initialize() {
 	return checkFlag;
 }
 
+void SwapChain::BeginFrame() {
+	backBufferIndex_ = swapChain_->GetCurrentBackBufferIndex();
+	TransitionToRenderTarget();
+}
+
+void SwapChain::EndFrame() {
+	TransitionToPresent();
+}
+
 void SwapChain::Present() {
 	swapChain_->Present(1, 0);
 }

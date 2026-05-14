@@ -14,6 +14,7 @@ namespace LGF {
 		Viewport(Command& cmd);
 		~Viewport();
 
+		void BeginFrame(uint32_t width, uint32_t height);
 		void Resize(uint32_t width, uint32_t height);
 
 	private:

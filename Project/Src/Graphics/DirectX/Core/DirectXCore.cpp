@@ -19,51 +19,90 @@ using namespace LGF;
 DirectXCore::DirectXCore() {
 }
 
+DirectXCore::~DirectXCore() = default;
+
 bool DirectXCore::Initialize(Window& window) {
+	renderWidth_ = window.GetWndSetting().wndSize.width;
+	renderHeight_ = window.GetWndSetting().wndSize.height;
+
 	device_ = std::make_unique<Device>();
-	command_ = std::make_unique<Command>(device_.get());
-	descriptorHeapFactory_ = std::make_unique<DescriptorHeapFactory>(device_.get());
-	rtvManager_ = std::make_unique<RTVManager>(device_.get(), descriptorHeapFactory_.get());
-	dsvManager_ = std::make_unique<DSVManager>(device_.get(), descriptorHeapFactory_.get());
-	srvUavManager_ = std::make_unique<SRVUAVManager>(device_.get(), descriptorHeapFactory_.get());
-	resourceFactory_ = std::make_unique<ResourceFactory>(device_.get());
-	viewport_ = std::make_unique<Viewport>(command_.get());
-	scissorRect_ = std::make_unique<ScissorRect>(command_.get());
-	swapChain_ = std::make_unique<SwapChain>(window, device_.get(), command_.get(), rtvManager_.get(), viewport_.get(), scissorRect_.get());
-	depthStencil_ = std::make_unique<DepthStencil>(resourceFactory_.get(), dsvManager_.get());
-	fence_ = std::make_unique<Fence>(device_.get(), command_.get());
 
 	if (Device::InitializeResult::kSuccess != device_->Initialize()) {
 		return false;
 	}
+
+	command_ = std::make_unique<Command>(*device_);
 	if (!command_->Initialize()) {
 		return false;
 	}
+
+	descriptorHeapFactory_ = std::make_unique<DescriptorHeapFactory>(*device_);
+	rtvManager_ = std::make_unique<RTVManager>(*device_, *descriptorHeapFactory_);
+	dsvManager_ = std::make_unique<DSVManager>(*device_, *descriptorHeapFactory_);
+	srvUavManager_ = std::make_unique<SRVUAVManager>(*device_, *descriptorHeapFactory_);
+	resourceFactory_ = std::make_unique<ResourceFactory>(*device_);
+	viewport_ = std::make_unique<Viewport>(*command_);
+	scissorRect_ = std::make_unique<ScissorRect>(*command_);
+	swapChain_ = std::make_unique<SwapChain>(window, *device_, *command_, *rtvManager_, *viewport_, *scissorRect_);
+	depthStencil_ = std::make_unique<DepthStencil>(*resourceFactory_, *dsvManager_);
+	fence_ = std::make_unique<Fence>(*device_, *command_);
+
 	rtvManager_->Initialize();
 	dsvManager_->Initialize();
 	srvUavManager_->Initialize();
 	if (!swapChain_->Initialize()) {
 		return false;
 	}
-	depthStencil_->Initialize(window.GetWndSetting().wndSize.width, window.GetWndSetting().wndSize.height);
-	fence_->Initialize();
+	depthStencil_->Initialize(renderWidth_, renderHeight_);
+	if (!fence_->Initialize()) {
+		return false;
+	}
 
 	return true;
 }
 
 void DirectXCore::Finalize() {
+	fence_.reset();
+	depthStencil_.reset();
+	swapChain_.reset();
+	scissorRect_.reset();
+	viewport_.reset();
+	resourceFactory_.reset();
+	srvUavManager_.reset();
+	dsvManager_.reset();
+	rtvManager_.reset();
+	descriptorHeapFactory_.reset();
+	command_.reset();
+	device_.reset();
 }
 
 void DirectXCore::BeginFrame() {
+	command_->BeginFrame();
+	swapChain_->BeginFrame();
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = swapChain_->GetCurrentBackBufferRTVHandle();
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = depthStencil_->GetDSVHandleCPU();
+	command_->GetList()->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+
+	constexpr float clearColor[] = { 0.1f, 0.25f, 0.5f, 1.0f };
+	command_->GetList()->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	command_->GetList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+	viewport_->BeginFrame(renderWidth_, renderHeight_);
+	scissorRect_->BeginFrame(renderWidth_, renderHeight_);
 }
 
 void DirectXCore::EndFrame() {
+	swapChain_->EndFrame();
+	command_->EndFrame();
+	swapChain_->Present();
+	fence_->EndFrame();
 }
 
 ID3D12Device* DirectXCore::GetDevice() {
-	return nullptr;
+	return device_->GetDevice();
 }
 
 ID3D12GraphicsCommandList* DirectXCore::GetCommandList() {
-	return nullptr;
+	return command_->GetList();
 }
