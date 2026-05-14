@@ -33,7 +33,7 @@ bool Framework::Initialize() {
 
 bool Framework::Update() {
 	if (isFrameStarted_) {
-		CompletePreviousFrame();
+		EndFrame();
 		isFrameStarted_ = false;
 	}
 	// 各システムを更新
@@ -43,7 +43,7 @@ bool Framework::Update() {
 		}
 	}
 
-	BeginCurrentFrame();
+	BeginFrame();
 	isFrameStarted_ = true;
 
 	return true;
@@ -51,7 +51,7 @@ bool Framework::Update() {
 
 bool Framework::Finalize() {
 	if (isFrameStarted_) {
-		CompletePreviousFrame();
+		EndFrame();
 		isFrameStarted_ = false;
 	}
 
@@ -65,13 +65,13 @@ bool Framework::Finalize() {
 	return true;
 }
 
-void Framework::BeginCurrentFrame() {
+void Framework::BeginFrame() {
 	for (const auto& system : std::views::reverse(systems_)) {
 		system->BeginFrame(context_);
 	}
 }
 
-void Framework::CompletePreviousFrame() {
+void Framework::EndFrame() {
 	for (const auto& system : std::views::reverse(systems_)) {
 		system->EndFrame(context_);
 	}
