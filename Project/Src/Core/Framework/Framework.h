@@ -32,6 +32,7 @@ namespace LGF {
 		std::vector<std::unique_ptr<IFrameworkSystem>> systems_;
 		// フレームワークシステムの参照用構造体
 		FrameworkContext context_;
+		bool isFrameStarted_ = false;
 	};
 }
 

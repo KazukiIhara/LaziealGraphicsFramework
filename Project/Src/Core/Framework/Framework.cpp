@@ -32,20 +32,29 @@ bool Framework::Initialize() {
 }
 
 bool Framework::Update() {
-	BeginFrame();
+	if (isFrameStarted_) {
+		EndFrame();
+		isFrameStarted_ = false;
+	}
 	// 各システムを更新
 	for (const auto& system : systems_) {
 		if (!system->Update(context_)) {
-			EndFrame();
 			return false;
 		}
 	}
 
-	EndFrame();
+	BeginFrame();
+	isFrameStarted_ = true;
+
 	return true;
 }
 
 bool Framework::Finalize() {
+	if (isFrameStarted_) {
+		EndFrame();
+		isFrameStarted_ = false;
+	}
+
 	// 各システムを逆順に終了
 	for (const auto& system : std::views::reverse(systems_)) {
 		if (!system->Finalize(context_)) {
