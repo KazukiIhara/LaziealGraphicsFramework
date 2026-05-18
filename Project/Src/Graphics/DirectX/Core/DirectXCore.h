@@ -20,6 +20,7 @@ namespace LGF {
 	class SwapChain;
 	class DepthStencil;
 	class Fence;
+	class ShaderCompiler;
 
 	/// <summary>
 	/// DirectXコアシステム
