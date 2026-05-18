@@ -38,6 +38,7 @@ namespace LGF {
 
 		ID3D12Device* GetDevice();
 		ID3D12GraphicsCommandList* GetCommandList();
+		ShaderCompiler& GetShaderCompiler();
 
 	private:
 		uint32_t renderWidth_ = 0u;
@@ -55,6 +56,7 @@ namespace LGF {
 		std::unique_ptr<SwapChain> swapChain_;
 		std::unique_ptr<DepthStencil> depthStencil_;
 		std::unique_ptr<Fence> fence_;
+		std::unique_ptr<ShaderCompiler> shaderCompiler_;
 	};
 
 }

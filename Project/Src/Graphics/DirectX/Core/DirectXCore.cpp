@@ -13,6 +13,7 @@
 #include "SwapChain/SwapChain.h"
 #include "DepthStencil/DepthStencil.h"
 #include "Fence/Fence.h"
+#include "ShaderCompiler/ShaderCompiler.h"
 
 using namespace LGF;
 
@@ -26,16 +27,7 @@ bool DirectXCore::Initialize(Window& window) {
 	renderHeight_ = window.GetWndSetting().wndSize.height;
 
 	device_ = std::make_unique<Device>();
-
-	if (Device::InitializeResult::kSuccess != device_->Initialize()) {
-		return false;
-	}
-
 	command_ = std::make_unique<Command>(*device_);
-	if (!command_->Initialize()) {
-		return false;
-	}
-
 	descriptorHeapFactory_ = std::make_unique<DescriptorHeapFactory>(*device_);
 	rtvManager_ = std::make_unique<RTVManager>(*device_, *descriptorHeapFactory_);
 	dsvManager_ = std::make_unique<DSVManager>(*device_, *descriptorHeapFactory_);
@@ -46,7 +38,14 @@ bool DirectXCore::Initialize(Window& window) {
 	swapChain_ = std::make_unique<SwapChain>(window, *device_, *command_, *rtvManager_, *viewport_, *scissorRect_);
 	depthStencil_ = std::make_unique<DepthStencil>(*resourceFactory_, *dsvManager_);
 	fence_ = std::make_unique<Fence>(*device_, *command_);
+	shaderCompiler_ = std::make_unique<ShaderCompiler>();
 
+	if (Device::InitializeResult::kSuccess != device_->Initialize()) {
+		return false;
+	}
+	if (!command_->Initialize()) {
+		return false;
+	}
 	rtvManager_->Initialize();
 	dsvManager_->Initialize();
 	srvUavManager_->Initialize();
@@ -57,11 +56,15 @@ bool DirectXCore::Initialize(Window& window) {
 	if (!fence_->Initialize()) {
 		return false;
 	}
+	if (!shaderCompiler_->Initialize()) {
+		return false;
+	}
 
 	return true;
 }
 
 void DirectXCore::Finalize() {
+	shaderCompiler_.reset();
 	fence_.reset();
 	depthStencil_.reset();
 	swapChain_.reset();
@@ -105,4 +108,8 @@ ID3D12Device* DirectXCore::GetDevice() {
 
 ID3D12GraphicsCommandList* DirectXCore::GetCommandList() {
 	return command_->GetList();
+}
+
+ShaderCompiler& DirectXCore::GetShaderCompiler() {
+	return *shaderCompiler_;
 }
