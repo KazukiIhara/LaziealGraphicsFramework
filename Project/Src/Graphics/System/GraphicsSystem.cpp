@@ -10,7 +10,19 @@ GraphicsSystem::GraphicsSystem() {
 
 bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	directX_ = std::make_unique<DirectXCore>();
-	return directX_->Initialize(context.window->GetWindow());
+	if (!directX_->Initialize(context.window->GetWindow())) {
+		return false;
+	}
+
+	triangleRenderer_ = std::make_unique<TriangleRenderer>();
+	if (!triangleRenderer_->Initialize(
+		directX_->GetDevice(),
+		directX_->GetShaderCompiler(),
+		"Assets/Pipelines/Triangle.pipeline.json")) {
+		return false;
+	}
+
+	return true;
 }
 
 bool GraphicsSystem::Update([[maybe_unused]] FrameworkContext& context) {
@@ -18,6 +30,7 @@ bool GraphicsSystem::Update([[maybe_unused]] FrameworkContext& context) {
 }
 
 bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
+	triangleRenderer_.reset();
 	directX_->Finalize();
 	directX_.reset();
 	return true;
@@ -28,5 +41,6 @@ void GraphicsSystem::BeginFrame([[maybe_unused]] FrameworkContext& context) {
 }
 
 void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
+	triangleRenderer_->Draw(directX_->GetCommandList());
 	directX_->EndFrame();
 }
