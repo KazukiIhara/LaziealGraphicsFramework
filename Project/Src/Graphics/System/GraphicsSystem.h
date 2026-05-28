@@ -5,7 +5,6 @@
 #include "Framework/System/IFrameworkSystem.h"
 
 #include "DirectX/Core/DirectXCore.h"
-#include "DirectX/Renderer/TriangleRenderer.h"
 
 namespace LGF {
 	/// <summary>
@@ -25,7 +24,6 @@ namespace LGF {
 
 	private:
 		std::unique_ptr<DirectXCore> directX_;
-		std::unique_ptr<TriangleRenderer> triangleRenderer_;
 
 	};
 }
