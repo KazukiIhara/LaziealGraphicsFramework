@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include <d3d12.h>
+#include <d3dcommon.h>
 
 #include "ComPtr/ComPtr.h"
 
