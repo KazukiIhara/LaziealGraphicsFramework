@@ -6,7 +6,7 @@
 
 namespace LGF {
 
-	class BasePipeline;
+	class Pipeline;
 
 	/// <summary>
 	/// パイプラインコンテナ
@@ -20,11 +20,11 @@ namespace LGF {
 
 		void Finalize();
 
-		BasePipeline* GetPipeline(const std::string& pipelineName);
+		Pipeline* GetPipeline(const std::string& pipelineName);
 
 	private:
 		// パイプラインリスト
-		std::map<std::string, std::unique_ptr<BasePipeline>> pipelines_;
+		std::map<std::string, std::unique_ptr<Pipeline>> pipelines_;
 	};
 
 }
