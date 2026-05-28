@@ -5,7 +5,7 @@
 #include <d3d12.h>
 #include <dxgi1_6.h>
 
-#include "BaseViewManager/BaseViewManager.h"
+#include "ViewManagers/BaseViewManager/BaseViewManager.h"
 
 namespace LGF {
 
