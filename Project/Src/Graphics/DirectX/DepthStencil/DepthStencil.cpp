@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "DSVManager/DSVManager.h"
+#include "ViewManagers/DSVManager/DSVManager.h"
 #include "ResourceFactory/ResourceFactory.h"
 
 using namespace LGF;
