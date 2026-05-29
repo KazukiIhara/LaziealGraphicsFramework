@@ -23,7 +23,6 @@ namespace LGF {
 
 		ComPtr<ID3DBlob> Compile(
 			const std::wstring& filePath,
-			const wchar_t* entryPoint,
 			const wchar_t* profile);
 
 	private:

@@ -29,16 +29,9 @@ bool ShaderCompiler::Initialize() {
 	return true;
 }
 
-ComPtr<ID3DBlob> ShaderCompiler::Compile(
-	const std::wstring& filePath,
-	const wchar_t* entryPoint,
-	const wchar_t* profile) {
+ComPtr<ID3DBlob> ShaderCompiler::Compile(const std::wstring& filePath, const wchar_t* profile) {
 	// ログ出力
-	Logger::Log(Logger::ConvertString(std::format(
-		L"Begin CompileShader, path:{}, entry:{}, profile:{}\n",
-		filePath,
-		entryPoint,
-		profile)));
+	Logger::Log(Logger::ConvertString(std::format(L"Begin CompileShader, path:{}, profile:{}\n", filePath, profile)));
 
 	// HLSLファイルの読み込み
 	ComPtr<IDxcBlobEncoding> shaderSource = nullptr;
@@ -53,7 +46,7 @@ ComPtr<ID3DBlob> ShaderCompiler::Compile(
 	// コンパイル引数の指定（Shader Model 6.6 + HLSL2021 + Bindless 対応）
 	std::vector<LPCWSTR> arguments = {
 		filePath.c_str(),               // 入力ファイル
-		L"-E", entryPoint,              // エントリポイント
+		L"-E", L"main",					// エントリポイント
 		L"-T", profile,                 // ターゲットプロファイル（例: vs_6_6）
 		L"-HV", L"2021",                // HLSL言語バージョン（2021=SM6.6）
 		L"-Zi", L"-Qembed_debug",       // デバッグ情報
@@ -84,11 +77,8 @@ ComPtr<ID3DBlob> ShaderCompiler::Compile(
 	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
 	assert(SUCCEEDED(hr));
 
-	Logger::Log(Logger::ConvertString(std::format(
-		L"Compile Succeeded, path:{}, entry:{}, profile:{}\n",
-		filePath,
-		entryPoint,
-		profile)));
+	// コンパイル終了ログ
+	Logger::Log(Logger::ConvertString(std::format(L"Compile Succeeded, path:{}, profile:{}\n", filePath, profile)));
 
 	return shaderBlob;
 }
