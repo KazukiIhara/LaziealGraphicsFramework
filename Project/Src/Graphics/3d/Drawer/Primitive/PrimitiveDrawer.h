@@ -1,16 +1,15 @@
 #pragma once
 
-#include <vector>
 
 namespace LGF {
 
 	/// <summary>
-	/// 三角形描画クラス
+	/// プリミティブ描画クラス
 	/// </summary>
-	class TriangleDrawer {
+	class PrimitiveDrawer {
 	public:
-		TriangleDrawer();
-		~TriangleDrawer() = default;
+		PrimitiveDrawer();
+		~PrimitiveDrawer() = default;
 
 		void Initialize();
 
@@ -21,5 +20,6 @@ namespace LGF {
 	private:
 
 	};
+
 }
 

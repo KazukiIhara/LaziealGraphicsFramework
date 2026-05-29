@@ -4,6 +4,8 @@
 #include <string>
 #include <memory>
 
+#include "Pipeline/Factory/PipelineFactory.h"
+
 namespace LGF {
 
 	class Pipeline;
@@ -11,10 +13,10 @@ namespace LGF {
 	/// <summary>
 	/// パイプラインコンテナ
 	/// </summary>
-	class PipelineStateContainer {
+	class PipelineManager {
 	public:
-		PipelineStateContainer();
-		~PipelineStateContainer() = default;
+		PipelineManager();
+		~PipelineManager() = default;
 
 		void Initialize();
 
@@ -23,6 +25,8 @@ namespace LGF {
 		Pipeline* GetPipeline(const std::string& pipelineName);
 
 	private:
+		// パイプラインファクトリー
+		std::unique_ptr<PipelineFactory> factory_;
 		// パイプラインリスト
 		std::map<std::string, std::unique_ptr<Pipeline>> pipelines_;
 	};
