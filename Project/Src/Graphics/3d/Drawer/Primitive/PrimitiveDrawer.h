@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 
 namespace LGF {
 
@@ -11,6 +12,8 @@ namespace LGF {
 		PrimitiveDrawer();
 		~PrimitiveDrawer() = default;
 
+		void AddPrimitive();
+
 		void Initialize();
 
 		void Update();
@@ -18,6 +21,12 @@ namespace LGF {
 		void Draw();
 
 	private:
+		// instancing描画のリソース
+
+		// instancing描画用のデータ
+
+
+		uint32_t
 
 	};
 

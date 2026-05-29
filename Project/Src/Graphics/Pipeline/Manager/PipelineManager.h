@@ -18,6 +18,7 @@ namespace LGF {
 		PipelineManager();
 		~PipelineManager() = default;
 
+		// アセット内のJsonを読み込んでパイプラインを生成する
 		void Initialize();
 
 		void Finalize();
