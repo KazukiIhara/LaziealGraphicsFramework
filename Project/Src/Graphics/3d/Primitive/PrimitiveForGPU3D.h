@@ -1,0 +1,18 @@
+#pragma once
+
+#include "Math/Types/Vector2.h"
+#include "Math/Types/Vector3.h"
+#include "Math/Types/Vector4.h"
+#include "Math/Types/Matrix2x2.h"
+#include "Math/Types/Matrix3x3.h"
+#include "Math/Types/Matrix4x4.h"
+#include "Math/Types/Quaternion.h"
+
+namespace LGF::PrimGPU3D {
+	struct Triangle {
+		Matrix4x4 worldMatrix;
+		Matrix4x4 worldInverseTranspose;
+		Vector4 Offsets[3];
+	};
+}
+

@@ -1,4 +1,4 @@
-#include "LGF/LGF.h"
+#include <LGF/LGF.h>
 
 void Main() {
     while (LGF::System::Update()) {
