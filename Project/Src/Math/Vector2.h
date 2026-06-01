@@ -1,7 +1,10 @@
 #pragma once
 
 namespace LGF {
-	struct Vector2 {
+	/// <summary>
+	/// 二次元ベクトル
+	/// </summary>
+	struct Vector2 final {
 		float x;
 		float y;
 	};
