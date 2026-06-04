@@ -8,8 +8,8 @@
 #include "Math/Types/Matrix4x4.h"
 #include "Math/Types/Quaternion.h"
 
-namespace LGF::PrimGPU3D {
-	struct Triangle {
+namespace LGF {
+	struct Triangle3DForGPU {
 		Matrix4x4 worldMatrix;
 		Matrix4x4 worldInverseTranspose;
 		Vector4 Offsets[3];

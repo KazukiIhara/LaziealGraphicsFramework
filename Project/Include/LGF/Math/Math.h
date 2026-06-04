@@ -1,12 +1,6 @@
 #pragma once
 
-#include "Math/Types/Vector2.h"
-#include "Math/Types/Vector3.h"
-#include "Math/Types/Vector4.h"
-#include "Math/Types/Matrix2x2.h"
-#include "Math/Types/Matrix3x3.h"
-#include "Math/Types/Matrix4x4.h"
-#include "Math/Types/Quaternion.h"
+#include "MathTypes.h"
 
 // 左手座標系
 // 行ベクトル
