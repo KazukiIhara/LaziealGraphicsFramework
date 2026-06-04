@@ -20,8 +20,6 @@ using namespace LGF;
 DirectXCore::DirectXCore() {
 }
 
-DirectXCore::~DirectXCore() = default;
-
 bool DirectXCore::Initialize(Window& window) {
 	renderWidth_ = window.GetWndSetting().wndSize.width;
 	renderHeight_ = window.GetWndSetting().wndSize.height;
@@ -110,6 +108,18 @@ ID3D12GraphicsCommandList* DirectXCore::GetCommandList() {
 	return command_->GetList();
 }
 
-ShaderCompiler& DirectXCore::GetShaderCompiler() {
-	return *shaderCompiler_;
+ID3D12GraphicsCommandList6* LGF::DirectXCore::GetCommandList6() {
+	return command_->GetList6();
+}
+
+DirectXCore::ResMgr DirectXCore::GetResMgr() {
+	return ResMgr(rtvManager_.get(), dsvManager_.get(), srvUavManager_.get());
+}
+
+ResourceFactory* LGF::DirectXCore::GetResourceFactory() {
+	return resourceFactory_.get();
+}
+
+ShaderCompiler* DirectXCore::GetShaderCompiler() {
+	return shaderCompiler_.get();
 }

@@ -9,6 +9,9 @@
 #include "Math/Types/Quaternion.h"
 
 namespace LGF {
+	/// <summary>
+	/// GPUに送る3D三角形データ
+	/// </summary>
 	struct Triangle3DForGPU {
 		Matrix4x4 worldMatrix;
 		Matrix4x4 worldInverseTranspose;

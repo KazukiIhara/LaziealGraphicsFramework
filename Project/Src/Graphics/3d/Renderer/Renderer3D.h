@@ -1,28 +1,32 @@
 #pragma once
 
+#include <string>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 namespace LGF {
 
-	class IDrawer3D;
+	class BaseDrawer3D;
+	class PipelineManager;
 
 	/// <summary>
 	/// 全3D描画をするクラス
 	/// </summary>
 	class Renderer3D {
 	public:
-		Renderer3D();
+		Renderer3D(PipelineManager* pipelineMgr);
 		~Renderer3D() = default;
 
 		void Initialize();
 
-		void BeginFrame();
-
-		void EndFrame();
+		void ThrowDrawCommand();
 
 	private:
-		std::vector<std::unique_ptr<IDrawer3D>> drawers_;
+		std::unordered_map<std::string, BaseDrawer3D> drawerMap_;
+		std::vector<BaseDrawer3D*> drawerList_;
+
+		PipelineManager* pipelineMgr_;
 	};
 
 }

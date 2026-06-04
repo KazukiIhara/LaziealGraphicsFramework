@@ -1,15 +1,19 @@
 #pragma once
 
-#include "3d/IDrawer3D.h"
+#include "3d/BaseDrawer/BaseDrawer3D.h"
+#include "3d/PrimitiveForGPU3D.h"
+#include "3d/"
 
 namespace LGF {
+
+	class DirectXCore;
 
 	/// <summary>
 	/// 3D三角形描画クラス
 	/// </summary>
-	class TriangleDrawer3D :public IDrawer3D {
+	class TriangleDrawer3D :public BaseDrawer3D {
 	public:
-		TriangleDrawer3D();
+		TriangleDrawer3D(DirectXCore* directXCore);
 		~TriangleDrawer3D()override = default;
 
 		void Initialize()override;
@@ -19,6 +23,8 @@ namespace LGF {
 		void EndFrame()override;
 
 	private:
+		Triangle3DForGPU* instData_[Graphics::kBlendModeNum];
+
 
 	};
 

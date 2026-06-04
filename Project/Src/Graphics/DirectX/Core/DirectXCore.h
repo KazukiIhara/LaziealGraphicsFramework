@@ -27,8 +27,14 @@ namespace LGF {
 	/// </summary>
 	class DirectXCore {
 	public:
+		struct ResMgr {
+			RTVManager* rtv;
+			DSVManager* dsv;
+			SRVUAVManager* srvuav;
+		};
+	public:
 		DirectXCore();
-		~DirectXCore();
+		~DirectXCore() = default;
 
 		bool Initialize(Window& window);
 		void Finalize();
@@ -38,7 +44,12 @@ namespace LGF {
 
 		ID3D12Device* GetDevice();
 		ID3D12GraphicsCommandList* GetCommandList();
-		ShaderCompiler& GetShaderCompiler();
+		ID3D12GraphicsCommandList6* GetCommandList6();
+
+		ResourceFactory* GetResourceFactory();
+		ShaderCompiler* GetShaderCompiler();
+
+		ResMgr GetResMgr();
 
 	private:
 		uint32_t renderWidth_ = 0u;
