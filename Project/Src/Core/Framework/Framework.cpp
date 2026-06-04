@@ -15,7 +15,7 @@ bool Framework::Initialize() {
 	std::unique_ptr<WindowSystem> windowSys = std::make_unique<WindowSystem>();
 	context_.window = windowSys.get();
 	systems_.push_back(std::move(windowSys));
-	
+
 	// グラフィックシステム
 	std::unique_ptr<GraphicsSystem> graphicsSys = std::make_unique<GraphicsSystem>();
 	context_.graphics = graphicsSys.get();
@@ -32,10 +32,14 @@ bool Framework::Initialize() {
 }
 
 bool Framework::Update() {
+	// 前フレームに積んだコマンドの実行
 	if (isFrameStarted_) {
 		EndFrame();
 		isFrameStarted_ = false;
 	}
+
+	// フレーム開始処理
+	BeginFrame();
 
 	// 各システムを更新
 	for (const auto& system : systems_) {
@@ -44,7 +48,6 @@ bool Framework::Update() {
 		}
 	}
 
-	BeginFrame();
 	isFrameStarted_ = true;
 
 	return true;

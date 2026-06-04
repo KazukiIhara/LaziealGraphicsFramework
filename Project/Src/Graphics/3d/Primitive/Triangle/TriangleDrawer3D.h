@@ -14,9 +14,9 @@ namespace LGF {
 
 		void Initialize()override;
 
-		void Update()override;
+		void BeginFrame()override;
 
-		void Draw()override;
+		void EndFrame()override;
 
 	private:
 

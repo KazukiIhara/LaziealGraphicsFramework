@@ -23,7 +23,12 @@ namespace LGF {
 		void EndFrame(FrameworkContext& context)override;
 
 	private:
+		// DirectXSystem
 		std::unique_ptr<DirectXCore> directX_;
+
+		// 2D描画クラス
+
+		// 3D描画クラス
 
 	};
 }
