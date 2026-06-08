@@ -59,13 +59,9 @@ namespace LGF {
 	protected:
 		// インスタンシング描画用のリソース
 		ComPtr<ID3D12Resource> instanceResource_{};
-		// マテリアルのリソース
-		ComPtr<ID3D12Resource> materialResource_{};
 
 		// インスタンスリソースのsrvインデックス
 		uint32_t instanceSrvIndex_{};
-		// マテリアルリソースのsrvインデックス
-		uint32_t materialSrvIndex_{};
 
 		// インスタンスのカウント
 		uint32_t instanceCount_{};

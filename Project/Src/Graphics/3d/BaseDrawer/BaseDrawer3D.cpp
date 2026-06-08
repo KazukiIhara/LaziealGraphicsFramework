@@ -17,10 +17,8 @@ void BaseDrawer3D::Initialize(InitParam param) {
 	// インスタンスの最大数を取得
 	numMaxInstance_ = param.numMaxInstance;
 
-	// 形状インスタンスリソース作成
+	// インスタンスリソース作成
 	CreateInstanceResource(param.instResSize, param.instData, instanceResource_, instanceSrvIndex_);
-	// マテリアル用インスタンスリソース作成
-	CreateInstanceResource(param.matResSize, param.matData, materialResource_, materialSrvIndex_);
 
 	// 各変数をリセット
 	currentIndex_ = 0;
@@ -36,9 +34,7 @@ DirectXCore* BaseDrawer3D::GetDirectX() {
 	return directX_;
 }
 
-void BaseDrawer3D::CreateInstanceResource(unsigned long long resSize, void** data,
-	ComPtr<ID3D12Resource>& res, uint32_t& srvIdx) {
-
+void BaseDrawer3D::CreateInstanceResource(unsigned long long resSize, void** data, ComPtr<ID3D12Resource>& res, uint32_t& srvIdx) {
 	// インスタンスリソース作成
 	res = GetDirectX()->GetResourceFactory()->CreateUploadBufferResource(static_cast<size_t>(resSize * numMaxInstance_));
 
