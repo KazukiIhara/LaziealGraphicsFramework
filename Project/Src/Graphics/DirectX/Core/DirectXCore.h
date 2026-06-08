@@ -34,7 +34,7 @@ namespace LGF {
 		};
 	public:
 		DirectXCore();
-		~DirectXCore() = default;
+		~DirectXCore();
 
 		bool Initialize(Window& window);
 		void Finalize();

@@ -23,7 +23,6 @@ namespace LGF {
 		void ThrowDrawCommand();
 
 	private:
-		std::unordered_map<std::string, BaseDrawer3D> drawerMap_;
 		std::vector<BaseDrawer3D*> drawerList_;
 
 		PipelineManager* pipelineMgr_;

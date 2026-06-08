@@ -4,16 +4,17 @@
 
 #include "Framework/System/IFrameworkSystem.h"
 
-#include "DirectX/Core/DirectXCore.h"
-
 namespace LGF {
+
+	class DirectXCore;
+
 	/// <summary>
 	/// グラフィックシステムクラス
 	/// </summary>
 	class GraphicsSystem :public IFrameworkSystem {
 	public:
 		GraphicsSystem();
-		~GraphicsSystem()override = default;
+		~GraphicsSystem()override;
 
 		bool Initialize(FrameworkContext& context)override;
 		bool Update(FrameworkContext& context)override;

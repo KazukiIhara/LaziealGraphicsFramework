@@ -2,11 +2,14 @@
 
 #include "Framework/FrameworkContext.h"
 #include "Window/System/WindowSystem.h"
+#include "DirectX/Core/DirectXCore.h"
 
 using namespace LGF;
 
 GraphicsSystem::GraphicsSystem() {
 }
+
+GraphicsSystem::~GraphicsSystem() = default;
 
 bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	directX_ = std::make_unique<DirectXCore>();
