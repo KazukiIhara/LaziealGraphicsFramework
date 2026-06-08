@@ -16,13 +16,14 @@ namespace LGF {
 	class Renderer3D {
 	public:
 		Renderer3D(PipelineManager* pipelineMgr);
-		~Renderer3D() = default;
+		~Renderer3D();
 
 		void Initialize();
 
-		void ThrowDrawCommand();
+		void Render();
 
 	private:
+		std::unordered_map<std::string, std::unique_ptr<BaseDrawer3D>> drawerMap_;
 		std::vector<BaseDrawer3D*> drawerList_;
 
 		PipelineManager* pipelineMgr_;

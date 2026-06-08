@@ -2,7 +2,6 @@
 
 #include "3d/BaseDrawer/BaseDrawer3D.h"
 #include "3d/PrimitiveForGPU3D.h"
-#include "3d/"
 
 namespace LGF {
 
@@ -18,12 +17,11 @@ namespace LGF {
 
 		void Initialize()override;
 
-		void BeginFrame()override;
+		void ThrowDrawCommand()override;
 
-		void EndFrame()override;
 
 	private:
-		Triangle3DForGPU* instData_[Graphics::kBlendModeNum];
+		Triangle3DForGPU* instData_;
 
 
 	};

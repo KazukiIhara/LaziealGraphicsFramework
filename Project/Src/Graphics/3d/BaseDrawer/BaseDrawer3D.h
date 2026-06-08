@@ -25,7 +25,7 @@ namespace LGF {
 		};
 	public:
 		BaseDrawer3D(DirectXCore* directx);
-		virtual ~BaseDrawer3D() = default;
+		virtual ~BaseDrawer3D();
 
 		/// <summary>
 		/// 描画クラス固有の初期化処理

@@ -12,6 +12,7 @@ namespace LGF {
 	enum class PipelineType {
 		Graphics,
 		Compute,
+		PostEffect,
 	};
 
 	class PipelineFactory;
