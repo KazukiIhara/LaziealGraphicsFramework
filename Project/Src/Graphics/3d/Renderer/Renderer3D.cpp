@@ -7,15 +7,16 @@ using namespace LGF;
 
 Renderer3D::Renderer3D(PipelineManager* pipelineMgr) :
 	pipelineMgr_(pipelineMgr) {
-	// レンダラーを作成
-
-	// 更新用リストに追加
-
 }
 
 Renderer3D::~Renderer3D() = default;
 
 void Renderer3D::Initialize() {
+	// レンダラーを作成
+
+	// パイプラインを生成してレンダラーにセット
+
+	// 更新用リストに追加
 
 }
 

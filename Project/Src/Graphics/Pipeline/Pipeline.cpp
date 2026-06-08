@@ -5,7 +5,9 @@ using namespace LGF;
 Pipeline::Pipeline() {
 }
 
-const std::string& Pipeline::GetName() const {
+Pipeline::~Pipeline() = default;
+
+const std::string & Pipeline::GetName() const {
 	return name_;
 }
 

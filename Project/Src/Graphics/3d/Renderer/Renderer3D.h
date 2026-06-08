@@ -1,14 +1,13 @@
 #pragma once
 
-#include <string>
 #include <memory>
 #include <vector>
-#include <unordered_map>
 
 namespace LGF {
 
-	class BaseDrawer3D;
+	class IDrawer3D;
 	class PipelineManager;
+
 
 	/// <summary>
 	/// 全3D描画をするクラス
@@ -22,9 +21,14 @@ namespace LGF {
 
 		void Render();
 
+		// 各Drawerに描画コマンドを積む関数群
+
+
 	private:
-		std::unordered_map<std::string, std::unique_ptr<BaseDrawer3D>> drawerMap_;
-		std::vector<BaseDrawer3D*> drawerList_;
+		// 全更新用リスト
+		std::vector<IDrawer3D*> drawerList_;
+
+		// 描画クラス群
 
 		PipelineManager* pipelineMgr_;
 	};

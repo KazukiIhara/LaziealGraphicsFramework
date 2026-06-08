@@ -23,7 +23,7 @@ namespace LGF {
 	class Pipeline {
 	public:
 		Pipeline();
-		~Pipeline() = default;
+		~Pipeline();
 
 		const std::string& GetName() const;
 		PipelineType GetType() const;
