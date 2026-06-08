@@ -16,6 +16,6 @@ void TriangleDrawer3D::ThrowDrawCommand() {
 
 }
 
-void TriangleDrawer3D::AddTriangle(const Graphics3D::Triangle& tri, const Graphics3D::Material& mat) {
+void TriangleDrawer3D::AddTriangle(const Triangle3DForGPU& data) {
 
 }

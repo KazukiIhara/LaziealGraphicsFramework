@@ -15,7 +15,8 @@ namespace LGF {
 	struct Triangle3DForGPU {
 		Matrix4x4 worldMatrix;
 		Matrix4x4 worldInverseTranspose;
-		Vector4 Offsets[3];
+		Vector4 color;
+		Vector4 Offsets[2];
 	};
 }
 

@@ -2,8 +2,6 @@
 
 #include "3d/BaseDrawer/BaseDrawer3D.h"
 #include "3d/PrimitiveForGPU3D.h"
-#include "LGF/Graphics/Primitive.h"
-#include "LGF/Graphics/Material.h"
 
 namespace LGF {
 
@@ -21,7 +19,7 @@ namespace LGF {
 
 		void ThrowDrawCommand()override;
 
-		void AddTriangle(const Graphics3D::Triangle& tri, const Graphics3D::Material& mat);
+		void AddTriangle(const Triangle3DForGPU& data);
 
 	private:
 		Triangle3DForGPU* instData_ = nullptr;
