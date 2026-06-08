@@ -1,6 +1,6 @@
 #include "Renderer3D.h"
 
-#include "3d/BaseDrawer/BaseDrawer3D.h"
+#include "3d/Drawer/BaseDrawer/BaseDrawer3D.h"
 #include "Pipeline/Manager/PipelineManager.h"
 
 using namespace LGF;

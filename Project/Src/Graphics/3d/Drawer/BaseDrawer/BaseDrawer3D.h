@@ -4,7 +4,7 @@
 #include <string>
 #include <d3d12.h>
 #include "ComPtr/ComPtr.h"
-#include "3d/IDrawer3D.h"
+#include "3d/Drawer/IDrawer3D.h"
 
 namespace LGF {
 

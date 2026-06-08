@@ -1,6 +1,6 @@
 #pragma once
 
-#include "3d/BaseDrawer/BaseDrawer3D.h"
+#include "3d/Drawer/BaseDrawer/BaseDrawer3D.h"
 #include "3d/PrimitiveForGPU3D.h"
 
 namespace LGF {
