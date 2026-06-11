@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LGF/Math/MathConstants.h"
 #include "LGF/Math/MathTypes.h"
 
 namespace LGF {
@@ -11,6 +12,8 @@ namespace LGF {
 	public:
 		Camera3D();
 		~Camera3D();
+
+		void Initialize();
 
 		void Update();
 
@@ -30,6 +33,11 @@ namespace LGF {
 
 		Matrix4x4 viewMatrix_{};
 		Matrix4x4 projectionMatrix_{};
+
+		float fovY_ = 45.0f * Math::DEG_TO_RAD;
+		float aspectRatio_ = 16.0f / 9.0f;
+		float nearClip_ = 0.1f;
+		float farClip_ = 1000.0f;
 	};
 
 }
