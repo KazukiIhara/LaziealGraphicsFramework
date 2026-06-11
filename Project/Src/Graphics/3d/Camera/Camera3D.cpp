@@ -1,6 +1,6 @@
 #include "Camera3D.h"
 
-#include "LGF/Math/MathUtilities.h"
+#include "LGF/Math/MathUtils.h"
 
 using namespace LGF;
 

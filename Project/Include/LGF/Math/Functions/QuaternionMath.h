@@ -1,1 +1,45 @@
 #pragma once
+
+#include "Math/Types/Quaternion.h"
+#include "Math/Types/Vector3.h"
+#include "Math/Types/Matrix4x4.h"
+
+namespace LGF::Math {
+
+	// 長さ
+	float Length(const Quaternion& q);
+
+	// 長さの二乗
+	float LengthSq(const Quaternion& q);
+
+	// 正規化
+	Quaternion Normalize(const Quaternion& q);
+
+	// 共役
+	Quaternion Conjugate(const Quaternion& q);
+
+	// 逆
+	Quaternion Inverse(const Quaternion& q);
+
+	// 内積
+	float Dot(const Quaternion& q1, const Quaternion& q2);
+
+	// 軸角
+	Quaternion MakeRotateAxisAngle(
+		const Vector3& axis,
+		float rad);
+
+	// Euler→Quaternion
+	Quaternion EulerToQuaternionXYZ(
+		const Vector3& euler);
+
+	Quaternion EulerToQuaternionYXZ(
+		const Vector3& euler);
+
+	// 補間
+	Quaternion Slerp(
+		const Quaternion& q1,
+		const Quaternion& q2,
+		float t);
+
+}
