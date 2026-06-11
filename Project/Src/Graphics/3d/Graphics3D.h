@@ -10,13 +10,20 @@
 
 namespace LGF {
 	/// <summary>
+	/// インスタンシング描画用の構造体
+	/// </summary>
+	struct InstanceData3D {
+		Matrix4x4 worldMatrix;
+		Matrix4x4 worldInverseTranspose;
+		Vector4 baseColor;
+	};
+
+	/// <summary>
 	/// GPUに送る3D三角形データ
 	/// </summary>
 	struct Triangle3DForGPU {
-		Matrix4x4 worldMatrix;
-		Matrix4x4 worldInverseTranspose;
-		Vector4 color;
-		Vector4 Offsets[2];
+		InstanceData3D instance;
+		Vector4 vertexOffsets[3];
 	};
 }
 

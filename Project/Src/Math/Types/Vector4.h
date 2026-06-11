@@ -1,7 +1,7 @@
 #pragma once
 
-
 namespace LGF {
+
 	/// <summary>
 	/// 四次元ベクトル
 	/// </summary>
@@ -11,30 +11,27 @@ namespace LGF {
 		float z = 0.0f;
 		float w = 0.0f;
 
-		Vector4& operator+=(const Vector4& v) {
-			x += v.x; y += v.y; z += v.z; w += v.w;
-			return *this;
-		}
-		Vector4& operator-=(const Vector4& v) {
-			x -= v.x; y -= v.y; z -= v.z; w -= v.w;
-			return *this;
-		}
-		Vector4& operator*=(const Vector4& v) {
-			x *= v.x; y *= v.y; z *= v.z; w *= v.w;
-			return *this;
-		}
-		Vector4& operator/=(const Vector4& v) {
-			x /= v.x; y /= v.y; z /= v.z; w /= v.w;
-			return *this;
-		}
+		Vector4& operator+=(const Vector4& v);
+		Vector4& operator-=(const Vector4& v);
+		Vector4& operator*=(const Vector4& v);
+		Vector4& operator/=(const Vector4& v);
 
-		Vector4& operator*=(float s) {
-			x *= s; y *= s; z *= s; w *= s;
-			return *this;
-		}
-		Vector4& operator/=(float s) {
-			x /= s; y /= s; z /= s; w /= s;
-			return *this;
-		}
+		Vector4& operator*=(float s);
+		Vector4& operator/=(float s);
 	};
+
+	Vector4 operator-(const Vector4& v);
+	Vector4 operator+(const Vector4& v);
+
+	Vector4 operator+(const Vector4& v1, const Vector4& v2);
+	Vector4 operator-(const Vector4& v1, const Vector4& v2);
+	Vector4 operator*(const Vector4& v1, const Vector4& v2);
+	Vector4 operator/(const Vector4& v1, const Vector4& v2);
+
+	Vector4 operator*(const Vector4& v, float s);
+	Vector4 operator*(float s, const Vector4& v);
+	Vector4 operator/(const Vector4& v, float s);
+
+	bool operator==(const Vector4& v1, const Vector4& v2);
+	bool operator!=(const Vector4& v1, const Vector4& v2);
 }

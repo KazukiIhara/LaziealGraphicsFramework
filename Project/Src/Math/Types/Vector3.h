@@ -1,6 +1,7 @@
 #pragma once
 
 namespace LGF {
+
 	/// <summary>
 	/// 三次元ベクトル
 	/// </summary>
@@ -9,30 +10,27 @@ namespace LGF {
 		float y = 0.0f;
 		float z = 0.0f;
 
-		Vector3& operator+=(const Vector3& v) {
-			x += v.x; y += v.y; z += v.z;
-			return *this;
-		}
-		Vector3& operator-=(const Vector3& v) {
-			x -= v.x; y -= v.y; z -= v.z;
-			return *this;
-		}
-		Vector3& operator*=(const Vector3& v) {
-			x *= v.x; y *= v.y; z *= v.z;
-			return *this;
-		}
-		Vector3& operator/=(const Vector3& v) {
-			x -= v.x; y -= v.y; z -= v.z;
-			return *this;
-		}
+		Vector3& operator+=(const Vector3& v);
+		Vector3& operator-=(const Vector3& v);
+		Vector3& operator*=(const Vector3& v);
+		Vector3& operator/=(const Vector3& v);
 
-		Vector3& operator*=(float s) {
-			x *= s; y *= s; z *= s;
-			return *this;
-		}
-		Vector3& operator/=(float s) {
-			x /= s; y /= s; z /= s;
-			return *this;
-		}
+		Vector3& operator*=(float s);
+		Vector3& operator/=(float s);
 	};
+
+	Vector3 operator-(const Vector3& v);
+	Vector3 operator+(const Vector3& v);
+
+	Vector3 operator+(const Vector3& v1, const Vector3& v2);
+	Vector3 operator-(const Vector3& v1, const Vector3& v2);
+	Vector3 operator*(const Vector3& v1, const Vector3& v2);
+	Vector3 operator/(const Vector3& v1, const Vector3& v2);
+
+	Vector3 operator*(const Vector3& v, float s);
+	Vector3 operator*(float s, const Vector3& v);
+	Vector3 operator/(const Vector3& v, float s);
+
+	bool operator==(const Vector3& v1, const Vector3& v2);
+	bool operator!=(const Vector3& v1, const Vector3& v2);
 }
