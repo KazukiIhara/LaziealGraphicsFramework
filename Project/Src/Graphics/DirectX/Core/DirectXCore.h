@@ -5,6 +5,8 @@
 
 #include <d3d12.h>
 
+#include "Graphics/System/IGraphicsSubsystem.h"
+
 namespace LGF {
 
 	class Window;
@@ -25,7 +27,7 @@ namespace LGF {
 	/// <summary>
 	/// DirectXコアシステム
 	/// </summary>
-	class DirectXCore {
+	class DirectXCore :public IGraphicsSubsystem {
 	public:
 		struct ResMgr {
 			RTVManager* rtv;
@@ -33,14 +35,13 @@ namespace LGF {
 			SRVUAVManager* srvuav;
 		};
 	public:
-		DirectXCore();
+		DirectXCore(Window& window);
 		~DirectXCore();
 
-		bool Initialize(Window& window);
-		void Finalize();
-
+		bool Initialize();
 		void BeginFrame();
 		void EndFrame();
+		void Finalize();
 
 		ID3D12Device* GetDevice();
 		ID3D12GraphicsCommandList* GetCommandList();
@@ -68,6 +69,8 @@ namespace LGF {
 		std::unique_ptr<DepthStencil> depthStencil_;
 		std::unique_ptr<Fence> fence_;
 		std::unique_ptr<ShaderCompiler> shaderCompiler_;
+
+		Window& window_;
 	};
 
 }

@@ -15,12 +15,16 @@ GraphicsSystem::~GraphicsSystem() = default;
 
 bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	// DirectX初期化
-	directX_ = std::make_unique<DirectXCore>();
-	if (!directX_->Initialize(context.window->GetWindow())) {
+	directX_ = std::make_unique<DirectXCore>(context.window->GetWindow());
+	if (!directX_->Initialize()) {
 		return false;
 	}
 
+	// パイプラインマネージャ初期化
+	
+
 	// 3Dレンダラークラス初期化
+	renderer3D_ = std::make_unique<Renderer3D>();
 	renderer3D_->Initialize();
 
 	return true;

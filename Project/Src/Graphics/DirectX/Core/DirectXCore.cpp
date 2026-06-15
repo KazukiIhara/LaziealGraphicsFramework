@@ -17,14 +17,15 @@
 
 using namespace LGF;
 
-DirectXCore::DirectXCore() {
+DirectXCore::DirectXCore(Window& window) :
+	window_(window) {
 }
 
 DirectXCore::~DirectXCore() = default;
 
-bool DirectXCore::Initialize(Window& window) {
-	renderWidth_ = window.GetWndSetting().wndSize.width;
-	renderHeight_ = window.GetWndSetting().wndSize.height;
+bool DirectXCore::Initialize() {
+	renderWidth_ = window_.GetWndSetting().wndSize.width;
+	renderHeight_ = window_.GetWndSetting().wndSize.height;
 
 	device_ = std::make_unique<Device>();
 	command_ = std::make_unique<Command>(*device_);
@@ -35,7 +36,7 @@ bool DirectXCore::Initialize(Window& window) {
 	resourceFactory_ = std::make_unique<ResourceFactory>(*device_);
 	viewport_ = std::make_unique<Viewport>(*command_);
 	scissorRect_ = std::make_unique<ScissorRect>(*command_);
-	swapChain_ = std::make_unique<SwapChain>(window, *device_, *command_, *rtvManager_, *viewport_, *scissorRect_);
+	swapChain_ = std::make_unique<SwapChain>(window_, *device_, *command_, *rtvManager_, *viewport_, *scissorRect_);
 	depthStencil_ = std::make_unique<DepthStencil>(*resourceFactory_, *dsvManager_);
 	fence_ = std::make_unique<Fence>(*device_, *command_);
 	shaderCompiler_ = std::make_unique<ShaderCompiler>();
@@ -63,22 +64,6 @@ bool DirectXCore::Initialize(Window& window) {
 	return true;
 }
 
-void DirectXCore::Finalize() {
-	shaderCompiler_.reset();
-	fence_.reset();
-	depthStencil_.reset();
-	swapChain_.reset();
-	scissorRect_.reset();
-	viewport_.reset();
-	resourceFactory_.reset();
-	srvUavManager_.reset();
-	dsvManager_.reset();
-	rtvManager_.reset();
-	descriptorHeapFactory_.reset();
-	command_.reset();
-	device_.reset();
-}
-
 void DirectXCore::BeginFrame() {
 	command_->BeginFrame();
 	swapChain_->BeginFrame();
@@ -100,6 +85,22 @@ void DirectXCore::EndFrame() {
 	command_->EndFrame();
 	swapChain_->Present();
 	fence_->EndFrame();
+}
+
+void DirectXCore::Finalize() {
+	shaderCompiler_.reset();
+	fence_.reset();
+	depthStencil_.reset();
+	swapChain_.reset();
+	scissorRect_.reset();
+	viewport_.reset();
+	resourceFactory_.reset();
+	srvUavManager_.reset();
+	dsvManager_.reset();
+	rtvManager_.reset();
+	descriptorHeapFactory_.reset();
+	command_.reset();
+	device_.reset();
 }
 
 ID3D12Device* DirectXCore::GetDevice() {
