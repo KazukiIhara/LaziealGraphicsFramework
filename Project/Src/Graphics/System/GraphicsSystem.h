@@ -36,12 +36,10 @@ namespace LGF {
 		std::unique_ptr<DirectXCore> directX_;
 
 		// パイプラインマネージャ
-		std::unique_ptr<PipelineManager> pipelineMgr_;
+		std::unique_ptr<PipelineManager> pipelineManager_;
 
 		// 3D描画クラス
 		std::unique_ptr<Renderer3D> renderer3D_;
-
-		// 2D描画クラス
 
 	};
 }

@@ -10,6 +10,8 @@ using namespace LGF;
 Framework::Framework() {
 }
 
+Framework::~Framework() = default;
+
 bool Framework::Initialize() {
 	// ウィンドウシステム
 	std::unique_ptr<WindowSystem> windowSys = std::make_unique<WindowSystem>();

@@ -7,7 +7,21 @@ Pipeline::Pipeline() {
 
 Pipeline::~Pipeline() = default;
 
-const std::string & Pipeline::GetName() const {
+void Pipeline::Initialize(
+	const std::string& name,
+	const PipelineType& type,
+	ComPtr<ID3D12PipelineState> state,
+	ComPtr<ID3D12RootSignature> rootSignature,
+	std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs
+) {
+	name_ = name;
+	type_ = type;
+	pipelineState_ = state;
+	rootSignature_ = rootSignature;
+	shaderBlobs_ = shaderBlobs;
+}
+
+const std::string& Pipeline::GetName() const {
 	return name_;
 }
 
@@ -34,24 +48,4 @@ ID3DBlob* Pipeline::GetShaderBlob(const std::string& shaderName) const {
 
 bool Pipeline::IsValid() const {
 	return pipelineState_ != nullptr && rootSignature_ != nullptr;
-}
-
-void Pipeline::SetName(const std::string& name) {
-	name_ = name;
-}
-
-void Pipeline::SetType(PipelineType type) {
-	type_ = type;
-}
-
-void Pipeline::SetPipelineState(ComPtr<ID3D12PipelineState> pipelineState) {
-	pipelineState_ = pipelineState;
-}
-
-void Pipeline::SetRootSignature(ComPtr<ID3D12RootSignature> rootSignature) {
-	rootSignature_ = rootSignature;
-}
-
-void Pipeline::AddShaderBlob(const std::string& shaderName, ComPtr<ID3DBlob> shaderBlob) {
-	shaderBlobs_[shaderName] = shaderBlob;
 }

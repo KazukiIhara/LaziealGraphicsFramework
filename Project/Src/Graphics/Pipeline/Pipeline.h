@@ -25,6 +25,13 @@ namespace LGF {
 		Pipeline();
 		~Pipeline();
 
+		void Initialize(
+			const std::string& name,
+			const PipelineType& type,
+			ComPtr<ID3D12PipelineState> state,
+			ComPtr<ID3D12RootSignature> rootSignature,
+			std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs);
+
 		const std::string& GetName() const;
 		PipelineType GetType() const;
 
@@ -36,14 +43,6 @@ namespace LGF {
 		bool IsValid() const;
 
 	private:
-		void SetName(const std::string& name);
-		void SetType(PipelineType type);
-
-		void SetPipelineState(ComPtr<ID3D12PipelineState> pipelineState);
-		void SetRootSignature(ComPtr<ID3D12RootSignature> rootSignature);
-		void AddShaderBlob(const std::string& shaderName, ComPtr<ID3DBlob> shaderBlob);
-
-	private:
 		std::string name_;
 		PipelineType type_ = PipelineType::Render;
 
@@ -52,7 +51,6 @@ namespace LGF {
 
 		std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs_;
 
-		friend class PipelineFactory;
 	};
 }
 

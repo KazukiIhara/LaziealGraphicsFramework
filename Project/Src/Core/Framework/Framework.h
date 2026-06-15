@@ -15,7 +15,7 @@ namespace LGF {
 	class Framework {
 	public:
 		Framework();
-		~Framework() = default;
+		~Framework() ;
 
 		bool Initialize();
 		bool Update();

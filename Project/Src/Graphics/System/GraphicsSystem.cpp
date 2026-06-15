@@ -2,10 +2,9 @@
 
 #include "Framework/FrameworkContext.h"
 #include "Window/System/WindowSystem.h"
+
 #include "DirectX/Core/DirectXCore.h"
-
 #include "Pipeline/Manager/PipelineManager.h"
-
 #include "3d/Renderer/Renderer3D.h"
 
 using namespace LGF;
@@ -23,11 +22,14 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	}
 
 	// パイプラインマネージャ初期化
-	pipelineMgr_ = std::make_unique<PipelineManager>(*directX_);
+	pipelineManager_ = std::make_unique<PipelineManager>(*directX_);
+	pipelineManager_->Initialize();
 
 	// 3Dレンダラークラス初期化
-	renderer3D_ = std::make_unique<Renderer3D>(*pipelineMgr_);
+	renderer3D_ = std::make_unique<Renderer3D>(*pipelineManager_);
 	renderer3D_->Initialize();
+	// サブシステムリストに追加
+	subsystems_.push_back(renderer3D_.get());
 
 	return true;
 }
@@ -37,16 +39,28 @@ bool GraphicsSystem::Update([[maybe_unused]] FrameworkContext& context) {
 }
 
 bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
+	for (auto& subSys : subsystems_) {
+		subSys->Finalize();
+	}
+	pipelineManager_->Finalize();
 	directX_->Finalize();
+
+	renderer3D_.reset();
+	pipelineManager_.reset();
 	directX_.reset();
 	return true;
 }
 
 void GraphicsSystem::BeginFrame([[maybe_unused]] FrameworkContext& context) {
 	directX_->BeginFrame();
+	for (auto& subSys : subsystems_) {
+		subSys->BeginFrame();
+	}
 }
 
 void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
-	renderer3D_->EndFrame();
+	for (auto& subSys : subsystems_) {
+		subSys->EndFrame();
+	}
 	directX_->EndFrame();
 }

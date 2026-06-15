@@ -19,18 +19,22 @@ namespace LGF::Detail {
 	Framework& GetFramework();
 }
 
-
+/// <summary>
+/// エントリーポイント
+/// </summary>
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-    Logger::Initialize();
+	// ログシステムの初期化
+	Logger::Initialize();
 
-    auto& framework = LGF::Detail::GetFramework();
+	// フレームワーク初期化、ループ開始
+	auto& framework = LGF::Detail::GetFramework();
+	if (framework.Initialize()) {
+		Main();
+		framework.Finalize();
+	}
 
-    if (framework.Initialize()) {
-        Main();
-        framework.Finalize();
-    }
+	// ログ終了
+	Logger::Finalize();
 
-    Logger::Finalize();
-
-    return 0;
+	return 0;
 }
