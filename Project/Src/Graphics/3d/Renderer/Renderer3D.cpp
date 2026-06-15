@@ -5,7 +5,7 @@
 
 using namespace LGF;
 
-Renderer3D::Renderer3D(PipelineManager* pipelineMgr) :
+Renderer3D::Renderer3D(PipelineManager& pipelineMgr) :
 	pipelineMgr_(pipelineMgr) {
 }
 
@@ -20,6 +20,6 @@ void Renderer3D::Initialize() {
 
 }
 
-void Renderer3D::Render() {
+void Renderer3D::EndFrame() {
 
 }

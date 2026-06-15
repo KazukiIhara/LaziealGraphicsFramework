@@ -4,6 +4,8 @@
 #include "Window/System/WindowSystem.h"
 #include "DirectX/Core/DirectXCore.h"
 
+#include "3d/Renderer/Renderer3D.h"
+
 using namespace LGF;
 
 GraphicsSystem::GraphicsSystem() {
@@ -12,11 +14,14 @@ GraphicsSystem::GraphicsSystem() {
 GraphicsSystem::~GraphicsSystem() = default;
 
 bool GraphicsSystem::Initialize(FrameworkContext& context) {
+	// DirectX初期化
 	directX_ = std::make_unique<DirectXCore>();
 	if (!directX_->Initialize(context.window->GetWindow())) {
 		return false;
 	}
 
+	// 3Dレンダラークラス初期化
+	renderer3D_->Initialize();
 
 	return true;
 }
@@ -36,5 +41,6 @@ void GraphicsSystem::BeginFrame([[maybe_unused]] FrameworkContext& context) {
 }
 
 void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
+	renderer3D_->EndFrame();
 	directX_->EndFrame();
 }
