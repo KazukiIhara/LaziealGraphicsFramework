@@ -10,7 +10,7 @@
 
 namespace LGF {
 	enum class PipelineType {
-		Graphics,
+		Render,
 		Compute,
 		PostEffect,
 	};
@@ -45,7 +45,7 @@ namespace LGF {
 
 	private:
 		std::string name_;
-		PipelineType type_ = PipelineType::Graphics;
+		PipelineType type_ = PipelineType::Render;
 
 		ComPtr<ID3D12PipelineState> pipelineState_;
 		ComPtr<ID3D12RootSignature> rootSignature_;

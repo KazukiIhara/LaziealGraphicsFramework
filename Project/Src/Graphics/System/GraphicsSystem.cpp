@@ -4,6 +4,8 @@
 #include "Window/System/WindowSystem.h"
 #include "DirectX/Core/DirectXCore.h"
 
+#include "Pipeline/Manager/PipelineManager.h"
+
 #include "3d/Renderer/Renderer3D.h"
 
 using namespace LGF;
@@ -21,10 +23,10 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	}
 
 	// パイプラインマネージャ初期化
-	
+	pipelineMgr_ = std::make_unique<PipelineManager>(*directX_);
 
 	// 3Dレンダラークラス初期化
-	renderer3D_ = std::make_unique<Renderer3D>();
+	renderer3D_ = std::make_unique<Renderer3D>(*pipelineMgr_);
 	renderer3D_->Initialize();
 
 	return true;

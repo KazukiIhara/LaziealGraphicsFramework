@@ -47,7 +47,7 @@ namespace LGF {
 		/// <summary>
 		/// CPUで積んだコマンドをGPUに投げる
 		/// </summary>
-		virtual void ThrowDrawCommand()override = 0;
+		virtual void EndFrame()override = 0;
 
 		/// <summary>
 		/// パイプラインをセット

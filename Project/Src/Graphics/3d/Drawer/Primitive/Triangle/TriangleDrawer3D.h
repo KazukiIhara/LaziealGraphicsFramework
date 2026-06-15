@@ -26,7 +26,7 @@ namespace LGF {
 
 		void Initialize()override;
 
-		void ThrowDrawCommand()override;
+		void EndFrame()override;
 
 		void AddTriangle(const Triangle3DForGPU& data);
 

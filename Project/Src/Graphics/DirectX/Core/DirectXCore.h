@@ -5,8 +5,6 @@
 
 #include <d3d12.h>
 
-#include "Graphics/System/IGraphicsSubsystem.h"
-
 namespace LGF {
 
 	class Window;
@@ -27,7 +25,7 @@ namespace LGF {
 	/// <summary>
 	/// DirectXコアシステム
 	/// </summary>
-	class DirectXCore :public IGraphicsSubsystem {
+	class DirectXCore {
 	public:
 		struct ResMgr {
 			RTVManager* rtv;

@@ -16,7 +16,7 @@ Renderer3D::~Renderer3D() = default;
 bool Renderer3D::Initialize() {
 	// レンダラーを作成
 
-	// パイプラインを生成してレンダラーにセット
+	// パイプラインをレンダラーにセット
 
 	// 更新用リストに追加
 

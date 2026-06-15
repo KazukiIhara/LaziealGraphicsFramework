@@ -12,7 +12,7 @@ void TriangleDrawer3D::Initialize() {
 
 }
 
-void TriangleDrawer3D::ThrowDrawCommand() {
+void TriangleDrawer3D::EndFrame() {
 
 }
 

@@ -8,17 +8,17 @@
 
 namespace LGF {
 
+	class DirectXCore;
 	class Pipeline;
 
 	/// <summary>
-	/// パイプラインコンテナ
+	/// パイプラインマネージャ
 	/// </summary>
 	class PipelineManager {
 	public:
-		PipelineManager();
-		~PipelineManager() = default;
+		PipelineManager(DirectXCore& directX);
+		~PipelineManager();
 
-		// アセット内のJsonを読み込んでパイプラインを生成する
 		void Initialize();
 
 		void Finalize();

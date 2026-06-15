@@ -7,8 +7,7 @@
 
 namespace LGF {
 
-	class Device;
-	class ShaderCompiler;
+	class DirectXCore;
 	class Pipeline;
 
 	/// <summary>
@@ -16,14 +15,13 @@ namespace LGF {
 	/// </summary>
 	class PipelineFactory {
 	public:
-		PipelineFactory(Device& device, ShaderCompiler& shaderCompiler);
-		~PipelineFactory() = default;
+		PipelineFactory(DirectXCore& directX);
+		~PipelineFactory();
 
 		std::unique_ptr<Pipeline> CreatePipeline(const std::string& jsonPath);
 
 	private:
-		Device& device_;
-		ShaderCompiler& shaderCompiler_;
+		DirectXCore& directX_;
 	};
 
 }

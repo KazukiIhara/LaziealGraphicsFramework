@@ -2,16 +2,18 @@
 
 #include <cassert>
 
-#include "Graphics/DirectX/Device/Device.h"
-#include "Graphics/DirectX/ShaderCompiler/ShaderCompiler.h"
-#include "Graphics/Pipeline/Pipeline.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Pipeline/JsonLoader/PipelineJsonLoader.h"
+
+#include "Graphics/Pipeline/Pipeline.h"
 
 using namespace LGF;
 
-PipelineFactory::PipelineFactory(Device& device, ShaderCompiler& shaderCompiler)
-	: device_(device), shaderCompiler_(shaderCompiler) {
+PipelineFactory::PipelineFactory(DirectXCore& directX)
+	: directX_(directX) {
 }
+
+PipelineFactory::~PipelineFactory() = default;
 
 std::unique_ptr<Pipeline> PipelineFactory::CreatePipeline(const std::string& jsonPath) {
 	return nullptr;

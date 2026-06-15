@@ -9,6 +9,6 @@ namespace LGF {
 	public:
 		virtual ~IDrawer3D() = default;
 		virtual void Initialize() = 0;
-		virtual void ThrowDrawCommand() = 0;
+		virtual void EndFrame() = 0;
 	};
 }
