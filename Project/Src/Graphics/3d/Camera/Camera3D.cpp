@@ -52,10 +52,14 @@ void Camera3D::SetPitch(float pitch) {
 	pitch_ = pitch;
 }
 
-const Matrix4x4 LGF::Camera3D::GetViewMatrix() const {
+const Matrix4x4 Camera3D::GetViewMatrix() const {
 	return viewMatrix_;
 }
 
-const Matrix4x4 LGF::Camera3D::GetProjectionMatrix() const {
+const Matrix4x4 Camera3D::GetProjectionMatrix() const {
 	return projectionMatrix_;
+}
+
+const Vector3 Camera3D::GetTranslation() const {
+	return translation_;
 }

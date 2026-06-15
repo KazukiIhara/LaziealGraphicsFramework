@@ -4,8 +4,8 @@
 
 #include "MathTypes.h"
 
-#include "Functions/VectorMath.h"
-#include "Functions/MatrixMath.h"
-#include "Functions/QuaternionMath.h"
-#include "Functions/TransformMath.h"
-#include "Functions/ProjectionMath.h"
+#include "Math/Functions/VectorMath.h"
+#include "Math/Functions/MatrixMath.h"
+#include "Math/Functions/QuaternionMath.h"
+#include "Math/Functions/TransformMath.h"
+#include "Math/Functions/ProjectionMath.h"

@@ -1,4 +1,4 @@
-#include "LGF/Math/Functions/ProjectionMath.h"
+#include "ProjectionMath.h"
 
 #include "LGF/Math/MathConstants.h"
 

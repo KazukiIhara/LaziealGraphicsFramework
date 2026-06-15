@@ -84,6 +84,21 @@ namespace LGF {
 		return result;
 	}
 
+	Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) {
+		Matrix4x4 result{};
+
+		// 行列積
+		for (uint32_t row = 0; row < 4; ++row) {
+			for (uint32_t col = 0; col < 4; ++col) {
+				for (uint32_t k = 0; k < 4; ++k) {
+					result.m[row][col] += m1.m[row][k] * m2.m[k][col];
+				}
+			}
+		}
+
+		return result;
+	}
+
 	Matrix4x4 operator*(const Matrix4x4& mat, float s) {
 		Matrix4x4 result{};
 

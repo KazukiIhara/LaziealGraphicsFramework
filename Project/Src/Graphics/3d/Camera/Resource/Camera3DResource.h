@@ -1,0 +1,50 @@
+#pragma once
+
+#include <d3d12.h>
+
+#include "ComPtr/ComPtr.h"
+
+#include "Math/Types/Vector3.h"
+#include "Math/Types/Matrix4x4.h"
+
+namespace LGF {
+
+	class DirectXCore;
+
+	class Camera3D;
+
+	/// <summary>
+	/// GPUに送るカメラデータ
+	/// </summary>
+	struct Camera3DForGPU {
+		Matrix4x4 viewProjection;
+		Vector3 worldPosition;
+		float padding;
+	};
+
+	/// <summary>
+	/// GPUに送るカメラリソースを持つクラス
+	/// </summary>
+	class Camera3DResource {
+	public:
+		Camera3DResource(DirectXCore& directX);
+		~Camera3DResource();
+
+		void Initialize();
+
+		void Update(const Camera3D& camera);
+
+		void Bind(UINT rootParamIdx);
+
+	private:
+		// Camera用リソース
+		ComPtr<ID3D12Resource> resource_ = nullptr;
+		// Camera用データ
+		Camera3DForGPU* data_ = nullptr;
+
+
+		DirectXCore& directX_;
+
+	};
+
+}

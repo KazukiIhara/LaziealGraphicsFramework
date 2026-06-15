@@ -1,4 +1,4 @@
-#include "LGF/Math/Functions/QuaternionMath.h"
+#include "QuaternionMath.h"
 
 #include "LGF/Math/MathConstants.h"
 

@@ -1,4 +1,4 @@
-#include "LGF/Math/Functions/MatrixMath.h"
+#include "MatrixMath.h"
 
 #include "LGF/Math/MathConstants.h"
 

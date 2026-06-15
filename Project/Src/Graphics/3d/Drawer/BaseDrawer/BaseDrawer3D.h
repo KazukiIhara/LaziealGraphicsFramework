@@ -6,10 +6,22 @@
 #include "ComPtr/ComPtr.h"
 #include "3d/Drawer/IDrawer3D.h"
 
+#include "Math/Types/Vector4.h"
+#include "Math/Types/Matrix4x4.h"
+
 namespace LGF {
 
 	class DirectXCore;
 	class Pipeline;
+
+	/// <summary>
+	/// インスタンシング描画用の構造体
+	/// </summary>
+	struct InstanceData3D {
+		Matrix4x4 worldMatrix;
+		Matrix4x4 worldInverseTranspose;
+		Vector4 baseColor;
+	};
 
 	/// <summary>
 	/// 3D描画基底クラス

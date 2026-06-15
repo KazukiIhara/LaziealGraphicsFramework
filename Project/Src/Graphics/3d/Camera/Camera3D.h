@@ -23,6 +23,7 @@ namespace LGF {
 
 		const Matrix4x4 GetViewMatrix()const;
 		const Matrix4x4 GetProjectionMatrix()const;
+		const Vector3 GetTranslation()const;
 
 	private:
 		Vector3 translation_{};

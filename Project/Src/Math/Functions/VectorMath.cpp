@@ -1,4 +1,4 @@
-#include "LGF/Math/Functions/VectorMath.h"
+#include "VectorMath.h"
 
 #include "LGF/Math/MathConstants.h"
 
