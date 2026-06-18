@@ -32,7 +32,7 @@ void Camera3DResource::Update(const Camera3D& camera) {
 	data_->worldPosition = camera.GetTranslation();
 }
 
-void Camera3DResource::Bind(UINT rootParamIdx) {
+void Camera3DResource::Bind(uint32_t rootParamIdx) {
 	assert(resource_);
-	directX_.GetCommandList()->SetGraphicsRootConstantBufferView(rootParamIdx, resource_->GetGPUVirtualAddress());
+	directX_.GetCommandList()->SetGraphicsRootConstantBufferView(static_cast<UINT>(rootParamIdx), resource_->GetGPUVirtualAddress());
 }

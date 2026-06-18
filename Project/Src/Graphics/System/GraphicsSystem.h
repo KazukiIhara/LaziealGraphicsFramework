@@ -10,6 +10,8 @@ namespace LGF {
 	class IGraphicsSubsystem;
 	class DirectXCore;
 	class PipelineManager;
+	class Camera3DResource;
+	class Camera3DSystem;
 	class Renderer3D;
 	class Renderer2D;
 
@@ -34,9 +36,10 @@ namespace LGF {
 
 		// DirectXSystem
 		std::unique_ptr<DirectXCore> directX_;
-
 		// パイプラインマネージャ
 		std::unique_ptr<PipelineManager> pipelineManager_;
+		// カメラ3Dシステム
+		std::unique_ptr<Camera3DSystem> camera3DSystem_;
 
 		// 3D描画クラス
 		std::unique_ptr<Renderer3D> renderer3D_;

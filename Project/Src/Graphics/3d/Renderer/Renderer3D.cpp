@@ -7,8 +7,8 @@
 
 using namespace LGF;
 
-Renderer3D::Renderer3D(PipelineManager& pipelineMgr) :
-	pipelineMgr_(pipelineMgr) {
+Renderer3D::Renderer3D(Context context) :
+	context_(context) {
 }
 
 Renderer3D::~Renderer3D() = default;

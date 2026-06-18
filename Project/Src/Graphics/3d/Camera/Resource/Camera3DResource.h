@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <d3d12.h>
 
 #include "ComPtr/ComPtr.h"
@@ -33,7 +34,7 @@ namespace LGF {
 
 		void Update(const Camera3D& camera);
 
-		void Bind(UINT rootParamIdx);
+		void Bind(uint32_t rootParamIdx);
 
 	private:
 		// Camera用リソース
@@ -41,9 +42,6 @@ namespace LGF {
 		// Camera用データ
 		Camera3DForGPU* data_ = nullptr;
 
-
 		DirectXCore& directX_;
-
 	};
-
 }
