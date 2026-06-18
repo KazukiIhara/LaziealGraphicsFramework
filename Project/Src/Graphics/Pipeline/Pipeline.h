@@ -28,7 +28,7 @@ namespace LGF {
 		void Initialize(
 			const std::string& name,
 			const PipelineType& type,
-			ComPtr<ID3D12PipelineState> state,
+			ComPtr<ID3D12PipelineState> pipelineState,
 			ComPtr<ID3D12RootSignature> rootSignature,
 			std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs);
 

@@ -5,17 +5,16 @@
 
 using namespace LGF;
 
-PipelineManager::PipelineManager(DirectXCore& directX) {
-	factory_ = std::make_unique<PipelineFactory>(directX);
-
+PipelineManager::PipelineManager(DirectXCore& directX):
+	directX_(directX) {
 }
 
 PipelineManager::~PipelineManager() = default;
 
 void PipelineManager::Initialize() {
 	// アセット内のJsonを読み込んでパイプラインを生成する
-	const std::string pipelineName;
-	std::unique_ptr<Pipeline>();
+	factory_ = std::make_unique<PipelineFactory>(directX_);
+	
 }
 
 void PipelineManager::Finalize() {

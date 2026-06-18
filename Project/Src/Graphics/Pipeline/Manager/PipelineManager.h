@@ -30,6 +30,8 @@ namespace LGF {
 		std::unique_ptr<PipelineFactory> factory_;
 		// パイプラインリスト
 		std::map<std::string, std::unique_ptr<Pipeline>> pipelines_;
+
+		DirectXCore& directX_;
 	};
 
 }
