@@ -18,8 +18,9 @@ PipelineFactory::PipelineFactory(DirectXCore& directX)
 PipelineFactory::~PipelineFactory() = default;
 
 std::unique_ptr<Pipeline> PipelineFactory::CreatePipeline(const std::string& jsonPath) {
-
-
+	// jsonからパラメータをロード
+	PipelineJsonLoader loader;
+	PipelineJsonLoader::Param jsonParam = loader.Load(jsonPath);
 
 	// パイプラインを生成して返す
 	Pipeline::InitParam initParam;
