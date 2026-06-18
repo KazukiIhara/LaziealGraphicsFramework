@@ -9,6 +9,8 @@
 
 #include "3d/Renderer/Renderer3D.h"
 
+#include "Graphics/3d/Graphics3DContext.h"
+
 using namespace LGF;
 
 GraphicsSystem::GraphicsSystem() {
@@ -32,12 +34,12 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	camera3DSystem_->Initialize();
 
 	// 3Dレンダラークラス初期化
-	Renderer3D::Context renderer3DContext{
+	Graphics3DContext graphics3DContext{
 		*directX_,
 		*pipelineManager_,
 		*camera3DSystem_
 	};
-	renderer3D_ = std::make_unique<Renderer3D>(renderer3DContext);
+	renderer3D_ = std::make_unique<Renderer3D>(graphics3DContext);
 	renderer3D_->Initialize();
 	// サブシステムリストに追加
 	subsystems_.push_back(renderer3D_.get());

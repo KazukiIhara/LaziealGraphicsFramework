@@ -2,13 +2,18 @@
 
 using namespace LGF;
 
-TriangleDrawer3D::TriangleDrawer3D(DirectXCore* directXCore) :
-	BaseDrawer3D(directXCore) {
+TriangleDrawer3D::TriangleDrawer3D(Graphics3DContext context) :
+	BaseDrawer3D(context) {
 }
 
 TriangleDrawer3D::~TriangleDrawer3D() = default;
 
 void TriangleDrawer3D::Initialize() {
+	// Drawer初期化
+	BaseDrawer3D::InitParam initParam{};
+	BaseDrawer3D::Initialize(initParam);
+
+	// パイプラインマネージャからパイプラインを取得
 
 }
 

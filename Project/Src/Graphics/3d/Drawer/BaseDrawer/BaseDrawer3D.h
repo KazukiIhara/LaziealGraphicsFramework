@@ -3,15 +3,18 @@
 #include <cstdint>
 #include <string>
 #include <d3d12.h>
+
 #include "ComPtr/ComPtr.h"
+
 #include "3d/Drawer/IDrawer3D.h"
 
 #include "Math/Types/Vector4.h"
 #include "Math/Types/Matrix4x4.h"
 
+#include "3d/Graphics3DContext.h"
+
 namespace LGF {
 
-	class DirectXCore;
 	class Pipeline;
 
 	/// <summary>
@@ -36,7 +39,7 @@ namespace LGF {
 			void** matData;
 		};
 	public:
-		BaseDrawer3D(DirectXCore* directx);
+		BaseDrawer3D(Graphics3DContext context);
 		virtual ~BaseDrawer3D();
 
 		/// <summary>
@@ -49,13 +52,21 @@ namespace LGF {
 		/// </summary>
 		virtual void EndFrame()override = 0;
 
+	protected:
+		/// <summary>
+		/// 参照メンバ構造体を取得
+		/// </summary>
+		Graphics3DContext GetContext() const;
+
+		/// <summary>
+		/// パイプラインを取得
+		/// </summary>
+		Pipeline* GetPipeline();
+
 		/// <summary>
 		/// パイプラインをセット
 		/// </summary>
 		void SetPipeline(Pipeline* pipeline);
-
-	protected:
-		DirectXCore* GetDirectX();
 
 		/// <summary>
 		/// リソースの作成など共通の初期化処理
@@ -84,7 +95,7 @@ namespace LGF {
 		uint32_t numMaxInstance_{};
 
 	private:
-		DirectXCore* directX_;
+		Graphics3DContext context_;
 		Pipeline* pipeline_ = nullptr;
 	};
 

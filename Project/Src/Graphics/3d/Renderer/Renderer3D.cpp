@@ -7,7 +7,7 @@
 
 using namespace LGF;
 
-Renderer3D::Renderer3D(Context context) :
+Renderer3D::Renderer3D(Graphics3DContext context) :
 	context_(context) {
 }
 
@@ -15,11 +15,10 @@ Renderer3D::~Renderer3D() = default;
 
 bool Renderer3D::Initialize() {
 	// レンダラーを作成
-
-	// パイプラインをレンダラーにセット
-
+	triangleDrawer3D_ = std::make_unique<TriangleDrawer3D>(context_);
+	triangleDrawer3D_->Initialize();
 	// 更新用リストに追加
-
+	drawerList_.push_back(triangleDrawer3D_.get());
 
 	return true;
 }

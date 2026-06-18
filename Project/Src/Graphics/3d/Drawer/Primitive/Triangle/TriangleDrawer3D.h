@@ -22,7 +22,7 @@ namespace LGF {
 	/// </summary>
 	class TriangleDrawer3D :public BaseDrawer3D {
 	public:
-		TriangleDrawer3D(DirectXCore* directXCore);
+		TriangleDrawer3D(Graphics3DContext context);
 		~TriangleDrawer3D()override;
 
 		void Initialize()override;

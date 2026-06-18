@@ -4,14 +4,11 @@
 #include <vector>
 
 #include "Graphics/System/IGraphicsSubsystem.h"
+#include "Graphics/3d/Graphics3DContext.h"
 
 namespace LGF {
 
 	class IDrawer3D;
-	class DirectXCore;
-	class PipelineManager;
-	class Camera3DSystem;
-
 	class TriangleDrawer3D;
 
 	/// <summary>
@@ -19,13 +16,7 @@ namespace LGF {
 	/// </summary>
 	class Renderer3D : public IGraphicsSubsystem {
 	public:
-		struct Context {
-			DirectXCore& directX;
-			PipelineManager& pipelineMgr;
-			Camera3DSystem& camera3DSys;
-		};
-	public:
-		Renderer3D(Context context);
+		Renderer3D(Graphics3DContext context);
 		~Renderer3D();
 
 		bool Initialize()override;
@@ -38,10 +29,9 @@ namespace LGF {
 
 	private:
 		// 参照
-		Context context_;
+		Graphics3DContext context_;
 		// 全更新用リスト
 		std::vector<IDrawer3D*> drawerList_;
-
 
 		// 描画クラス
 		std::unique_ptr<TriangleDrawer3D> triangleDrawer3D_;
