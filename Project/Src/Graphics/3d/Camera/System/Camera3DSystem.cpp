@@ -43,6 +43,10 @@ void Camera3DSystem::EndFrame() {
 		currentCameraName_ = "Default";
 	}
 	Camera3D* currentCam = Get(currentCameraName_);
+	if (currentCam == nullptr) {
+		currentCam = Get("Default");
+	}
+	assert(currentCam != nullptr);
 
 	// GPUにバインドするリソースの更新
 	resource_->Update(*currentCam);

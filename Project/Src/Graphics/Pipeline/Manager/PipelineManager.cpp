@@ -21,7 +21,12 @@ void PipelineManager::Finalize() {
 }
 
 Pipeline* PipelineManager::GetPipeline(const std::string& pipelineName) {
-	return nullptr;
+	auto it = pipelines_.find(pipelineName);
+	if (it == pipelines_.end()) {
+		return nullptr;
+	}
+
+	return it->second.get();
 }
 
 void PipelineManager::LoadAll() {
