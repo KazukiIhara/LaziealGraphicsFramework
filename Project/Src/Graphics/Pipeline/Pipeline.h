@@ -9,11 +9,6 @@
 #include "ComPtr/ComPtr.h"
 
 namespace LGF {
-	enum class PipelineType {
-		Render,
-		Compute,
-		PostEffect,
-	};
 
 	class PipelineFactory;
 
@@ -22,18 +17,17 @@ namespace LGF {
 	/// </summary>
 	class Pipeline {
 	public:
-		Pipeline();
+		struct InitParam {
+			std::string name;
+			ComPtr<ID3D12PipelineState> pipelineState;
+			ComPtr<ID3D12RootSignature> rootSignature;
+			std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs;
+		};
+	public:
+		Pipeline(InitParam initParam);
 		~Pipeline();
 
-		void Initialize(
-			const std::string& name,
-			const PipelineType& type,
-			ComPtr<ID3D12PipelineState> pipelineState,
-			ComPtr<ID3D12RootSignature> rootSignature,
-			std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs);
-
 		const std::string& GetName() const;
-		PipelineType GetType() const;
 
 		ID3D12PipelineState* GetPipelineState() const;
 		ID3D12RootSignature* GetRootSignature() const;
@@ -44,7 +38,6 @@ namespace LGF {
 
 	private:
 		std::string name_;
-		PipelineType type_ = PipelineType::Render;
 
 		ComPtr<ID3D12PipelineState> pipelineState_;
 		ComPtr<ID3D12RootSignature> rootSignature_;

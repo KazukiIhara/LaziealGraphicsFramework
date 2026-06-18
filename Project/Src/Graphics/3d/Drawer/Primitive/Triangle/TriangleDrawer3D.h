@@ -2,7 +2,7 @@
 
 #include "3d/Drawer/BaseDrawer/BaseDrawer3D.h"
 
-#include "Math/Types/Vector4.h"
+#include "Math/Types/Vector3.h"
 
 namespace LGF {
 
@@ -13,7 +13,8 @@ namespace LGF {
 	/// </summary>
 	struct Triangle3DForGPU {
 		InstanceData3D instance;
-		Vector4 vertexOffsets[3];
+		Vector3 vertexOffsets[3];
+		float padding;
 	};
 
 	/// <summary>

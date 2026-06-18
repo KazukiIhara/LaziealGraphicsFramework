@@ -18,16 +18,11 @@ PipelineFactory::PipelineFactory(DirectXCore& directX)
 PipelineFactory::~PipelineFactory() = default;
 
 std::unique_ptr<Pipeline> PipelineFactory::CreatePipeline(const std::string& jsonPath) {
-	// 名前を取得
-	const std::string name;
-	// タイプを取得
-	const PipelineType type;
 
-	// シェーダーのマップを作成
-	std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs;
 
 
 	// パイプラインを生成して返す
+	Pipeline::InitParam initParam;
 
-	return std::make_unique<Pipeline>();
+	return std::make_unique<Pipeline>(initParam);
 }

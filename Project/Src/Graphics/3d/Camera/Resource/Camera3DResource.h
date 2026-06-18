@@ -10,7 +10,6 @@
 namespace LGF {
 
 	class DirectXCore;
-
 	class Camera3D;
 
 	/// <summary>

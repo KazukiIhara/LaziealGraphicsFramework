@@ -23,7 +23,6 @@ void BaseDrawer3D::Initialize(InitParam param) {
 	// 各変数をリセット
 	currentIndex_ = 0;
 	instanceCount_ = 0;
-
 }
 
 void BaseDrawer3D::SetPipeline(Pipeline* pipeline) {

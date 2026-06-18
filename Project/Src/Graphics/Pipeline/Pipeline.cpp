@@ -2,31 +2,17 @@
 
 using namespace LGF;
 
-Pipeline::Pipeline() {
+Pipeline::Pipeline(InitParam initParam) {
+	name_ = initParam.name;
+	pipelineState_ = initParam.pipelineState;
+	rootSignature_ = initParam.rootSignature;
+	shaderBlobs_ = initParam.shaderBlobs;
 }
 
 Pipeline::~Pipeline() = default;
 
-void Pipeline::Initialize(
-	const std::string& name,
-	const PipelineType& type,
-	ComPtr<ID3D12PipelineState> pipelineState,
-	ComPtr<ID3D12RootSignature> rootSignature,
-	std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs
-) {
-	name_ = name;
-	type_ = type;
-	pipelineState_ = pipelineState;
-	rootSignature_ = rootSignature;
-	shaderBlobs_ = shaderBlobs;
-}
-
 const std::string& Pipeline::GetName() const {
 	return name_;
-}
-
-PipelineType Pipeline::GetType() const {
-	return type_;
 }
 
 ID3D12PipelineState* Pipeline::GetPipelineState() const {
