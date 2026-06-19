@@ -370,6 +370,7 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vect
 	rootParams.reserve(resources.size());
 	descriptorRanges.reserve(resources.size());
 
+	// Reflection結果からRootParameterを生成
 	for (const ResourceInfo& resource : resources) {
 		D3D12_ROOT_PARAMETER rootParam{};
 
@@ -422,10 +423,9 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vect
 	rootSigDesc.pParameters = rootParams.data();
 	rootSigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
 
+	// RootSignatureをシリアライズ
 	ComPtr<ID3DBlob> sigBlob;
 	ComPtr<ID3DBlob> errorBlob;
-
-	// RootSignatureをシリアライズ
 	HRESULT hr = D3D12SerializeRootSignature(
 		&rootSigDesc,
 		D3D_ROOT_SIGNATURE_VERSION_1,
@@ -433,9 +433,8 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vect
 		&errorBlob);
 	assert(SUCCEEDED(hr));
 
-	ComPtr<ID3D12RootSignature> rootSignature;
-
 	// RootSignatureを生成
+	ComPtr<ID3D12RootSignature> rootSignature;
 	hr = directX_.GetDevice()->CreateRootSignature(
 		0,
 		sigBlob->GetBufferPointer(),
