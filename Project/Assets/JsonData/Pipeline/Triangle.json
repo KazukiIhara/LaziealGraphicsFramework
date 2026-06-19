@@ -2,8 +2,8 @@
   "Name": "Triangle3D",
 
   "Shaders": {
-    "MS": "Triangle3D.MS.hlsl",
-    "PS": "Triangle3D.PS.hlsl"
+    "MS": "Graphics3D/Triangle3D.MS.hlsl",
+    "PS": "Graphics3D/Primitive3D.PS.hlsl"
   },
 
   "Rasterizer": {

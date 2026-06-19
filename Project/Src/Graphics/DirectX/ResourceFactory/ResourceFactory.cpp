@@ -11,6 +11,7 @@ ResourceFactory::ResourceFactory(Device& device)
 }
 
 ComPtr<ID3D12Resource> ResourceFactory::CreateUploadBufferResource(size_t sizeInBytes) {
+	assert(sizeInBytes > 0);
 	// UploadHeap設定
 	D3D12_HEAP_PROPERTIES heapProperties{};
 	heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;

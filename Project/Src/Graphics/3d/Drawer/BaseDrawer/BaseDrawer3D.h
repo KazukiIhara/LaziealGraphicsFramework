@@ -34,9 +34,7 @@ namespace LGF {
 		struct InitParam {
 			uint32_t numMaxInstance;
 			unsigned long long instResSize;
-			unsigned long long matResSize;
 			void** instData;
-			void** matData;
 		};
 	public:
 		BaseDrawer3D(Graphics3DContext context);
