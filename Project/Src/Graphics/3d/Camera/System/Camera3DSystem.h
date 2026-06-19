@@ -5,6 +5,8 @@
 #include <map>
 #include <memory>
 
+#include <d3d12.h>
+
 namespace LGF {
 
 	class DirectXCore;
@@ -31,7 +33,7 @@ namespace LGF {
 		void Set(const std::string& name);
 		Camera3D* Get(const std::string& name);
 
-		void Bind(uint32_t rootParamIdx);
+		void Bind(ID3D12GraphicsCommandList* commandList,uint32_t rootParamIdx);
 
 	private:
 		// カメラマップ

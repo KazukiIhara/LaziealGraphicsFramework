@@ -20,7 +20,7 @@ TriangleDrawer3D::~TriangleDrawer3D() = default;
 void TriangleDrawer3D::Initialize() {
 	// Drawer初期化
 	BaseDrawer3D::InitParam initParam{
-		4098,
+		4096,
 		sizeof(Triangle3DForGPU),
 		reinterpret_cast<void**>(&instanceData_)
 	};
@@ -28,11 +28,12 @@ void TriangleDrawer3D::Initialize() {
 
 	// パイプラインマネージャからパイプラインを取得
 	SetPipeline(GetContext().pipelineMgr.GetPipeline("Triangle3D"));
+	assert(GetPipeline() != nullptr);
 }
 
 void TriangleDrawer3D::EndFrame() {
 	// インスタンスカウント計測
-	assert(currentIndex_ <= 4098);
+	assert(currentIndex_ <= numMaxInstance_);
 	instanceCount_ = currentIndex_;
 	currentIndex_ = 0;
 
@@ -49,7 +50,7 @@ void TriangleDrawer3D::EndFrame() {
 	commandList->SetPipelineState(GetPipeline()->GetPipelineState());
 
 	// カメラバインド
-	GetContext().cameraSys.Bind(0);
+	GetContext().cameraSys.Bind(commandList,0);
 
 	// インスタンシングリソースバインド
 	commandList->SetGraphicsRootDescriptorTable(
@@ -60,7 +61,7 @@ void TriangleDrawer3D::EndFrame() {
 }
 
 void TriangleDrawer3D::AddTriangle(const Triangle3DForGPU& data) {
-	assert(currentIndex_ <= 4098);
+	assert(currentIndex_ <= numMaxInstance_);
 	instanceData_[currentIndex_] = data;
-	currentIndex_++;
+	++currentIndex_;
 }

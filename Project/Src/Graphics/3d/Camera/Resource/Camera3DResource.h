@@ -34,7 +34,7 @@ namespace LGF {
 
 		void Update(const Camera3D& camera);
 
-		void Bind(uint32_t rootParamIdx);
+		void Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
 
 	private:
 		// Camera用リソース

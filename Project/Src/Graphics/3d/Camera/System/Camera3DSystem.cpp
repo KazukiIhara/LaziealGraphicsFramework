@@ -89,6 +89,6 @@ Camera3D* Camera3DSystem::Get(const std::string& name) {
 	return it->second.get();
 }
 
-void Camera3DSystem::Bind(uint32_t  rootParamIdx) {
-	resource_->Bind(rootParamIdx);
+void Camera3DSystem::Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx) {
+	resource_->Bind(commandList, rootParamIdx);
 }
