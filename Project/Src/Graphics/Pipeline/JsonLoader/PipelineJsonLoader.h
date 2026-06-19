@@ -4,6 +4,8 @@
 #include <string>
 #include <optional>
 
+#include <nlohmann/json.hpp>
+
 namespace LGF {
 
 	/// <summary>
@@ -25,7 +27,7 @@ namespace LGF {
 		};
 
 		struct BlendParam {
-			bool enable = false;
+			std::string mode = "None";
 		};
 
 		struct DepthParam {
@@ -46,6 +48,7 @@ namespace LGF {
 
 		struct Param {
 			std::string name;
+			std::string pipelineKind = "MeshGraphics";
 			ShaderParam shaders;
 			RasterizerParam rasterizer;
 			BlendParam blend;
@@ -62,6 +65,7 @@ namespace LGF {
 		Param Load(const std::string& filePath);
 
 	private:
+		nlohmann::json LoadJson(const std::string& filePath);
 		std::string LoadTextFile(const std::string& filePath);
 	};
 

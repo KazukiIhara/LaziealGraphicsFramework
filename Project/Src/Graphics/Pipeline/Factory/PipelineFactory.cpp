@@ -3,6 +3,10 @@
 #include <cassert>
 #include <vector>
 
+#include <dxcapi.h>
+#include <d3d12shader.h>
+#include <algorithm>
+
 #include "Pipeline/Pipeline.h"
 #include "DirectX/Core/DirectXCore.h"
 #include "DirectX/ShaderCompiler/ShaderCompiler.h"
@@ -10,6 +14,12 @@
 using namespace LGF;
 
 namespace {
+
+	enum class PipelineKind {
+		Graphics,
+		MeshGraphics,
+		Compute,
+	};
 
 	std::wstring ToWString(const std::string& text) {
 		return std::wstring(text.begin(), text.end());
@@ -83,6 +93,96 @@ namespace {
 		return D3D12_COMPARISON_FUNC_LESS_EQUAL;
 	}
 
+	ShaderBlob* FindShaderBlob(
+		std::vector<ShaderBlob>& shaderBlobs,
+		const std::string& stageName) {
+
+		for (ShaderBlob& shaderBlob : shaderBlobs) {
+			if (shaderBlob.stageName == stageName) {
+				return &shaderBlob;
+			}
+		}
+
+		return nullptr;
+	}
+
+	const ShaderBlob* FindShaderBlob(
+		const std::vector<ShaderBlob>& shaderBlobs,
+		const std::string& stageName) {
+
+		for (const ShaderBlob& shaderBlob : shaderBlobs) {
+			if (shaderBlob.stageName == stageName) {
+				return &shaderBlob;
+			}
+		}
+
+		return nullptr;
+	}
+
+	bool HasShaderBlob(
+		const std::vector<ShaderBlob>& shaderBlobs,
+		const std::string& stageName) {
+
+		return FindShaderBlob(shaderBlobs, stageName) != nullptr;
+	}
+
+	PipelineKind ToPipelineKind(const std::string& kind) {
+		if (kind == "Graphics") {
+			return PipelineKind::Graphics;
+		}
+
+		if (kind == "MeshGraphics") {
+			return PipelineKind::MeshGraphics;
+		}
+
+		if (kind == "Compute") {
+			return PipelineKind::Compute;
+		}
+
+		assert(false);
+		return PipelineKind::MeshGraphics;
+	}
+
+	D3D12_BLEND_DESC ToBlendDesc(const std::string& blendMode) {
+		D3D12_BLEND_DESC desc{};
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+		if (blendMode == "None") {
+			return desc;
+		}
+
+		if (blendMode == "Normal") {
+			desc.RenderTarget[0].BlendEnable = TRUE;
+			desc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+			desc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+			desc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+			desc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ZERO;
+			desc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+			desc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ONE;
+			return desc;
+		}
+
+		assert(false);
+		return desc;
+	}
+
+	D3D12_PRIMITIVE_TOPOLOGY_TYPE ToPrimitiveTopologyType(const std::string& primitiveTopology) {
+		if (primitiveTopology == "Triangle") {
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		}
+
+		if (primitiveTopology == "Line") {
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+		}
+
+		if (primitiveTopology == "Point") {
+			return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+		}
+
+		assert(false);
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	}
+
 #pragma warning(push)
 #pragma warning(disable : 4324)
 
@@ -116,87 +216,217 @@ std::unique_ptr<Pipeline> PipelineFactory::CreatePipeline(const std::string& jso
 	// ルートシグネチャを生成
 	initParam.rootSignature = CreateRootSignature(initParam.shaderBlobs);
 
-	// パイプラインステートを生成
-	initParam.pipelineState = CreatePipelineState(
-		jsonParam,
-		initParam.rootSignature,
-		initParam.shaderBlobs);
+	// パイプライン種別を取得
+	const PipelineKind kind = ToPipelineKind(jsonParam.pipelineKind);
 
-	return std::make_unique<Pipeline>(initParam);
+	switch (kind) {
+		case PipelineKind::MeshGraphics:
+			// MeshGraphics用PSOを生成
+			initParam.pipelineState = CreateMeshGraphicsPipelineState(
+				jsonParam,
+				initParam.rootSignature,
+				initParam.shaderBlobs);
+			break;
+
+		default:
+			assert(false);
+			break;
+	}
+
+	return std::make_unique<Pipeline>(std::move(initParam));
 }
 
-std::unordered_map<std::string, ComPtr<ID3DBlob>> LGF::PipelineFactory::CompileShaders(const PipelineJsonLoader::ShaderParam& shaderParam) {
+std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonLoader::ShaderParam& shaderParam) {
 
-	std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs;
+	std::vector<ShaderBlob> shaderBlobs;
 
 	const std::string kShaderDirectory = "Assets/Shaders/";
 
 	// ASをコンパイル
 	if (!shaderParam.amplification.empty()) {
-		shaderBlobs["AS"] = directX_.GetShaderCompiler()->Compile(
+		ShaderBlob shaderBlob{};
+		shaderBlob.stageName = "AS";
+		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
 			ToWString(kShaderDirectory + shaderParam.amplification),
 			L"as_6_6");
-		assert(shaderBlobs["AS"] != nullptr);
+		assert(shaderBlob.blob != nullptr);
+
+		shaderBlobs.push_back(shaderBlob);
 	}
 
 	// MSをコンパイル
 	if (!shaderParam.mesh.empty()) {
-		shaderBlobs["MS"] = directX_.GetShaderCompiler()->Compile(
+		ShaderBlob shaderBlob{};
+		shaderBlob.stageName = "MS";
+		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
 			ToWString(kShaderDirectory + shaderParam.mesh),
 			L"ms_6_6");
-		assert(shaderBlobs["MS"] != nullptr);
+		assert(shaderBlob.blob != nullptr);
+
+		shaderBlobs.push_back(shaderBlob);
 	}
 
 	// PSをコンパイル
 	if (!shaderParam.pixel.empty()) {
-		shaderBlobs["PS"] = directX_.GetShaderCompiler()->Compile(
+		ShaderBlob shaderBlob{};
+		shaderBlob.stageName = "PS";
+		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
 			ToWString(kShaderDirectory + shaderParam.pixel),
 			L"ps_6_6");
-		assert(shaderBlobs["PS"] != nullptr);
+		assert(shaderBlob.blob != nullptr);
+
+		shaderBlobs.push_back(shaderBlob);
 	}
 
 	return shaderBlobs;
 }
 
-ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(
-	const std::unordered_map<std::string, ComPtr<ID3DBlob>>& shaderBlobs) {
+ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vector<ShaderBlob>& shaderBlobs) {
+	// リフレクションで見つけたリソース情報を一時保存する構造体
+	struct ResourceInfo {
+		D3D_SHADER_INPUT_TYPE type;			// CBV / SRV / Texture/ Samplerなど
+		UINT bindPoint;						// b0 / t0 の数字部分
+		UINT bindCount;						// 配列数
+		UINT space;							// registerのスペース
+		D3D12_SHADER_VISIBILITY visibility;	// どのシェーダー用か
+	};
 
-	shaderBlobs;
+	// 全シェーダーから見つけたリソースをまとめる配列
+	std::vector<ResourceInfo> resources;
 
-	HRESULT hr;
+	// シェーダーblobを全走査
+	for (const auto& [stageName, blob] : shaderBlobs) {
+		// 一旦ALLで初期化
+		D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL;
+		// シェーダーステージを判定
+		if (stageName == "MS") {
+			visibility = D3D12_SHADER_VISIBILITY_MESH;
+		} else if (stageName == "PS") {
+			visibility = D3D12_SHADER_VISIBILITY_PIXEL;
+		} else if (stageName == "AS") {
+			visibility = D3D12_SHADER_VISIBILITY_AMPLIFICATION;
+		}
 
-	// TriangleData用のSRV
-	D3D12_DESCRIPTOR_RANGE triangleRange{};
-	triangleRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	triangleRange.NumDescriptors = 1;
-	triangleRange.BaseShaderRegister = 0;
-	triangleRange.RegisterSpace = 0;
-	triangleRange.OffsetInDescriptorsFromTableStart =
-		D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		// リフレクション
+		DxcBuffer reflectionBuffer{};
+		reflectionBuffer.Ptr = blob->GetBufferPointer();
+		reflectionBuffer.Size = blob->GetBufferSize();
+		reflectionBuffer.Encoding = DXC_CP_ACP;
 
-	D3D12_ROOT_PARAMETER rootParams[2]{};
+		// リフレクションの結果を受け取るオブジェクト
+		ComPtr<ID3D12ShaderReflection> reflection;
 
-	// CameraData
-	rootParams[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParams[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_MESH;
-	rootParams[0].Descriptor.ShaderRegister = 0;
+		// シェーダーリフレクションを作成
+		HRESULT hr = directX_.GetShaderCompiler()->GetUtils()->CreateReflection(
+			&reflectionBuffer,
+			IID_PPV_ARGS(&reflection));
+		assert(SUCCEEDED(hr));
 
-	// TriangleData
-	rootParams[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParams[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_MESH;
-	rootParams[1].DescriptorTable.NumDescriptorRanges = 1;
-	rootParams[1].DescriptorTable.pDescriptorRanges = &triangleRange;
+		D3D12_SHADER_DESC shaderDesc{};
 
+		// シェーダー情報を取得
+		hr = reflection->GetDesc(&shaderDesc);
+		assert(SUCCEEDED(hr));
+
+		// シェーダーが使っているリソースを全走査
+		for (UINT i = 0; i < shaderDesc.BoundResources; ++i) {
+			// リソース1個分の詳細を取得
+			D3D12_SHADER_INPUT_BIND_DESC bindDesc{};
+			hr = reflection->GetResourceBindingDesc(i, &bindDesc);
+			assert(SUCCEEDED(hr));
+
+			ResourceInfo info{};
+			info.type = bindDesc.Type;
+			info.bindPoint = bindDesc.BindPoint;
+			info.bindCount = bindDesc.BindCount;
+			info.space = bindDesc.Space;
+			info.visibility = visibility;
+
+			// リソースをリストに追加
+			resources.push_back(info);
+		}
+	}
+
+	// RootParameterの並び順をそろえる
+	std::sort(resources.begin(), resources.end(),
+		[](const ResourceInfo& a, const ResourceInfo& b) {
+			if (a.space != b.space) {
+				return a.space < b.space;
+			}
+
+			if (a.type != b.type) {
+				return a.type < b.type;
+			}
+
+			return a.bindPoint < b.bindPoint;
+		});
+
+	// RootSignature生成用のパラメータ
+	std::vector<D3D12_ROOT_PARAMETER> rootParams;
+	// DescriptorTable用のレンジ
+	std::vector<D3D12_DESCRIPTOR_RANGE> descriptorRanges;
+
+	// 再確保を防ぐ
+	rootParams.reserve(resources.size());
+	descriptorRanges.reserve(resources.size());
+
+	for (const ResourceInfo& resource : resources) {
+		D3D12_ROOT_PARAMETER rootParam{};
+
+		// ConstantBuffer
+		if (resource.type == D3D_SIT_CBUFFER) {
+			// CBVを設定
+			rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+			rootParam.ShaderVisibility = resource.visibility;
+			rootParam.Descriptor.ShaderRegister = resource.bindPoint;
+			rootParam.Descriptor.RegisterSpace = resource.space;
+
+			rootParams.push_back(rootParam);
+			continue;
+		}
+
+		// StructuredBuffer / Texture
+		if (resource.type == D3D_SIT_STRUCTURED ||
+			resource.type == D3D_SIT_TEXTURE) {
+
+			D3D12_DESCRIPTOR_RANGE range{};
+
+			// SRVレンジを設定
+			range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+			range.NumDescriptors = resource.bindCount;
+			range.BaseShaderRegister = resource.bindPoint;
+			range.RegisterSpace = resource.space;
+			range.OffsetInDescriptorsFromTableStart =
+				D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+			descriptorRanges.push_back(range);
+
+			// DescriptorTableを設定
+			rootParam.ParameterType =
+				D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rootParam.ShaderVisibility = resource.visibility;
+			rootParam.DescriptorTable.NumDescriptorRanges = 1;
+			rootParam.DescriptorTable.pDescriptorRanges =
+				&descriptorRanges.back();
+
+			rootParams.push_back(rootParam);
+			continue;
+		}
+
+		assert(false);
+	}
+
+	// RootSignature情報を設定
 	D3D12_ROOT_SIGNATURE_DESC rootSigDesc{};
-	rootSigDesc.NumParameters = _countof(rootParams);
-	rootSigDesc.pParameters = rootParams;
+	rootSigDesc.NumParameters = static_cast<UINT>(rootParams.size());
+	rootSigDesc.pParameters = rootParams.data();
 	rootSigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
 
 	ComPtr<ID3DBlob> sigBlob;
 	ComPtr<ID3DBlob> errorBlob;
 
-	// ルートシグネチャをシリアライズ
-	hr = D3D12SerializeRootSignature(
+	// RootSignatureをシリアライズ
+	HRESULT hr = D3D12SerializeRootSignature(
 		&rootSigDesc,
 		D3D_ROOT_SIGNATURE_VERSION_1,
 		&sigBlob,
@@ -205,7 +435,7 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(
 
 	ComPtr<ID3D12RootSignature> rootSignature;
 
-	// ルートシグネチャを生成
+	// RootSignatureを生成
 	hr = directX_.GetDevice()->CreateRootSignature(
 		0,
 		sigBlob->GetBufferPointer(),
@@ -216,13 +446,13 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(
 	return rootSignature;
 }
 
-ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreatePipelineState(
-	const PipelineJsonLoader::Param& jsonParam,
-	const ComPtr<ID3D12RootSignature>& rootSignature,
-	const std::unordered_map<std::string, ComPtr<ID3DBlob>>& shaderBlobs) {
+ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreateMeshGraphicsPipelineState(const PipelineJsonLoader::Param& jsonParam, const ComPtr<ID3D12RootSignature>& rootSignature, const std::vector<ShaderBlob>& shaderBlobs) {
 
-	assert(shaderBlobs.contains("MS"));
-	assert(shaderBlobs.contains("PS"));
+	const ShaderBlob* meshShader = FindShaderBlob(shaderBlobs, "MS");
+	const ShaderBlob* pixelShader = FindShaderBlob(shaderBlobs, "PS");
+
+	assert(meshShader != nullptr);
+	assert(pixelShader != nullptr);
 
 	struct PipelineStateStream {
 		PipelineStreamSubobject<ID3D12RootSignature*> rootSignature;
@@ -243,16 +473,15 @@ ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreatePipelineState(
 	stream.rootSignature.value = rootSignature.Get();
 
 	stream.ms.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_MS;
-	stream.ms.value.pShaderBytecode = shaderBlobs.at("MS")->GetBufferPointer();
-	stream.ms.value.BytecodeLength = shaderBlobs.at("MS")->GetBufferSize();
+	stream.ms.value.pShaderBytecode = meshShader->blob->GetBufferPointer();
+	stream.ms.value.BytecodeLength = meshShader->blob->GetBufferSize();
 
 	stream.ps.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PS;
-	stream.ps.value.pShaderBytecode = shaderBlobs.at("PS")->GetBufferPointer();
-	stream.ps.value.BytecodeLength = shaderBlobs.at("PS")->GetBufferSize();
+	stream.ps.value.pShaderBytecode = pixelShader->blob->GetBufferPointer();
+	stream.ps.value.BytecodeLength = pixelShader->blob->GetBufferSize();
 
 	stream.blend.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_BLEND;
-	stream.blend.value.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-	stream.blend.value.RenderTarget[0].BlendEnable = jsonParam.blend.enable;
+	stream.blend.value = ToBlendDesc(jsonParam.blend.mode);
 
 	stream.rasterizer.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_RASTERIZER;
 	stream.rasterizer.value.FillMode = ToFillMode(jsonParam.rasterizer.fillMode);
@@ -269,7 +498,7 @@ ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreatePipelineState(
 	stream.depthStencil.value.DepthFunc = ToDepthFunc(jsonParam.depth.func);
 
 	stream.primitiveTopology.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PRIMITIVE_TOPOLOGY;
-	stream.primitiveTopology.value = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	stream.primitiveTopology.value = ToPrimitiveTopologyType(jsonParam.primitiveTopology);
 
 	stream.rtvFormats.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_RENDER_TARGET_FORMATS;
 	stream.rtvFormats.value.NumRenderTargets =

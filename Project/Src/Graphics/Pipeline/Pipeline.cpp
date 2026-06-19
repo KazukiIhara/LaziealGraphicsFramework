@@ -1,12 +1,14 @@
 #include "Pipeline.h"
 
+#include <utility>
+
 using namespace LGF;
 
 Pipeline::Pipeline(InitParam initParam) {
-	name_ = initParam.name;
-	pipelineState_ = initParam.pipelineState;
-	rootSignature_ = initParam.rootSignature;
-	shaderBlobs_ = initParam.shaderBlobs;
+	name_ = std::move(initParam.name);
+	pipelineState_ = std::move(initParam.pipelineState);
+	rootSignature_ = std::move(initParam.rootSignature);
+	shaderBlobs_ = std::move(initParam.shaderBlobs);
 }
 
 Pipeline::~Pipeline() = default;
@@ -24,12 +26,13 @@ ID3D12RootSignature* Pipeline::GetRootSignature() const {
 }
 
 ID3DBlob* Pipeline::GetShaderBlob(const std::string& shaderName) const {
-	const auto it = shaderBlobs_.find(shaderName);
-	if (it == shaderBlobs_.end()) {
-		return nullptr;
+	for (const ShaderBlob& shaderBlob : shaderBlobs_) {
+		if (shaderBlob.stageName == shaderName) {
+			return shaderBlob.blob.Get();
+		}
 	}
 
-	return it->second.Get();
+	return nullptr;
 }
 
 bool Pipeline::IsValid() const {

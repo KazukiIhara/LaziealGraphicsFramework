@@ -1,6 +1,8 @@
 {
   "Name": "Triangle3D",
 
+  "PipelineKind": "MeshGraphics",
+
   "Shaders": {
     "MS": "Graphics3D/Triangle3D.MS.hlsl",
     "PS": "Graphics3D/Primitive3D.PS.hlsl"
@@ -12,7 +14,7 @@
   },
 
   "Blend": {
-    "Enable": false
+    "Mode": "None"
   },
 
   "Depth": {

@@ -25,6 +25,8 @@ namespace LGF {
 			const std::wstring& filePath,
 			const wchar_t* profile);
 
+		IDxcUtils* GetUtils();
+
 	private:
 		ComPtr<IDxcUtils> dxcUtils_ = nullptr;
 		ComPtr<IDxcCompiler3> dxcCompiler_ = nullptr;

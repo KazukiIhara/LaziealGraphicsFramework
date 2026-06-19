@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -10,6 +11,8 @@
 #include "ComPtr/ComPtr.h"
 
 #include "Pipeline/JsonLoader/PipelineJsonLoader.h"
+
+#include "Pipeline/ShaderBlob.h"
 
 namespace LGF {
 
@@ -27,16 +30,16 @@ namespace LGF {
 		std::unique_ptr<Pipeline> CreatePipeline(const std::string& jsonPath);
 
 	private:
-		std::unordered_map<std::string, ComPtr<ID3DBlob>> CompileShaders(
+		std::vector<ShaderBlob> CompileShaders(
 			const PipelineJsonLoader::ShaderParam& shaderParam);
 
 		ComPtr<ID3D12RootSignature> CreateRootSignature(
-			const std::unordered_map<std::string, ComPtr<ID3DBlob>>& shaderBlobs);
+			const std::vector<ShaderBlob>& shaderBlobs);
 
-		ComPtr<ID3D12PipelineState> CreatePipelineState(
+		ComPtr<ID3D12PipelineState> CreateMeshGraphicsPipelineState(
 			const PipelineJsonLoader::Param& jsonParam,
 			const ComPtr<ID3D12RootSignature>& rootSignature,
-			const std::unordered_map<std::string, ComPtr<ID3DBlob>>& shaderBlobs);
+			const std::vector<ShaderBlob>& shaderBlobs);
 
 	private:
 		DirectXCore& directX_;

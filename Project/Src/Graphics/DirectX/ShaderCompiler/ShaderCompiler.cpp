@@ -82,3 +82,7 @@ ComPtr<ID3DBlob> ShaderCompiler::Compile(const std::wstring& filePath, const wch
 
 	return shaderBlob;
 }
+
+IDxcUtils* LGF::ShaderCompiler::GetUtils() {
+	return dxcUtils_.Get();
+}

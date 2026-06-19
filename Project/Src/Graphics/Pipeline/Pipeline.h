@@ -8,6 +8,8 @@
 
 #include "ComPtr/ComPtr.h"
 
+#include "Pipeline/ShaderBlob.h"
+
 namespace LGF {
 
 	class PipelineFactory;
@@ -21,7 +23,7 @@ namespace LGF {
 			std::string name;
 			ComPtr<ID3D12PipelineState> pipelineState;
 			ComPtr<ID3D12RootSignature> rootSignature;
-			std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs;
+			std::vector<ShaderBlob> shaderBlobs;
 		};
 	public:
 		Pipeline(InitParam initParam);
@@ -42,7 +44,7 @@ namespace LGF {
 		ComPtr<ID3D12PipelineState> pipelineState_;
 		ComPtr<ID3D12RootSignature> rootSignature_;
 
-		std::unordered_map<std::string, ComPtr<ID3DBlob>> shaderBlobs_;
+		std::vector<ShaderBlob> shaderBlobs_;
 
 	};
 }
