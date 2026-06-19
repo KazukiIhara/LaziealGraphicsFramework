@@ -5,6 +5,8 @@
 
 #include "3d/Drawer/Primitive/Triangle/TriangleDrawer3D.h"
 
+#include "LGF/Math/MathUtils.h"
+
 using namespace LGF;
 
 Renderer3D::Renderer3D(Graphics3DContext context) :
@@ -24,11 +26,12 @@ bool Renderer3D::Initialize() {
 }
 
 void Renderer3D::BeginFrame() {
-
 }
 
 void Renderer3D::EndFrame() {
-
+	for (const auto& drawer : drawerList_) {
+		drawer->EndFrame();
+	}
 }
 
 void Renderer3D::Finalize() {

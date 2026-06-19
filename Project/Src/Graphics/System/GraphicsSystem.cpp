@@ -6,8 +6,8 @@
 #include "DirectX/Core/DirectXCore.h"
 #include "Pipeline/Manager/PipelineManager.h"
 #include "3d/Camera/System/Camera3DSystem.h"
-
 #include "3d/Renderer/Renderer3D.h"
+#include "DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
 
 #include "Graphics/3d/Graphics3DContext.h"
 
@@ -75,6 +75,15 @@ void GraphicsSystem::BeginFrame([[maybe_unused]] FrameworkContext& context) {
 }
 
 void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
+	// ディスクリプターヒープセット
+	ID3D12GraphicsCommandList* commandList = directX_->GetCommandList();
+
+	// SRV用ヒープを設定
+	ID3D12DescriptorHeap* heaps[] = {
+		directX_->GetResMgr().srvuav->GetDescriptorHeap()
+	};
+	commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+
 	camera3DSystem_->EndFrame();
 	for (auto& subSys : subsystems_) {
 		subSys->EndFrame();

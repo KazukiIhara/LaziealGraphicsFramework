@@ -32,7 +32,7 @@ namespace LGF {
 		void AddTriangle(const Triangle3DForGPU& data);
 
 	private:
-		Triangle3DForGPU* instData_ = nullptr;
+		Triangle3DForGPU* instanceData_ = nullptr;
 
 	};
 
