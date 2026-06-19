@@ -9,6 +9,7 @@
 #include "ComPtr/ComPtr.h"
 
 #include "Pipeline/ShaderBlob.h"
+#include "Pipeline/RootParameterInfo.h"
 
 namespace LGF {
 
@@ -24,6 +25,7 @@ namespace LGF {
 			ComPtr<ID3D12PipelineState> pipelineState;
 			ComPtr<ID3D12RootSignature> rootSignature;
 			std::vector<ShaderBlob> shaderBlobs;
+			std::vector<RootParameterInfo> rootParamInfos;
 		};
 	public:
 		Pipeline(InitParam initParam);
@@ -35,6 +37,7 @@ namespace LGF {
 		ID3D12RootSignature* GetRootSignature() const;
 
 		ID3DBlob* GetShaderBlob(const std::string& shaderName) const;
+		uint32_t GetRootIndex(const std::string& name) const;
 
 		bool IsValid() const;
 
@@ -43,9 +46,8 @@ namespace LGF {
 
 		ComPtr<ID3D12PipelineState> pipelineState_;
 		ComPtr<ID3D12RootSignature> rootSignature_;
-
 		std::vector<ShaderBlob> shaderBlobs_;
-
+		std::vector<RootParameterInfo> rootParamInfos_;
 	};
 }
 

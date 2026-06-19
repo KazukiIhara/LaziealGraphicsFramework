@@ -1,5 +1,6 @@
 #include "Pipeline.h"
 
+#include <cassert>
 #include <utility>
 
 using namespace LGF;
@@ -9,6 +10,7 @@ Pipeline::Pipeline(InitParam initParam) {
 	pipelineState_ = std::move(initParam.pipelineState);
 	rootSignature_ = std::move(initParam.rootSignature);
 	shaderBlobs_ = std::move(initParam.shaderBlobs);
+	rootParamInfos_ = std::move(initParam.rootParamInfos);
 }
 
 Pipeline::~Pipeline() = default;
@@ -33,6 +35,17 @@ ID3DBlob* Pipeline::GetShaderBlob(const std::string& shaderName) const {
 	}
 
 	return nullptr;
+}
+
+uint32_t Pipeline::GetRootIndex(const std::string& name) const {
+	for (const RootParameterInfo& info : rootParamInfos_) {
+		if (info.name == name) {
+			return info.rootIndex;
+		}
+	}
+
+	assert(false);
+	return 0;
 }
 
 bool Pipeline::IsValid() const {

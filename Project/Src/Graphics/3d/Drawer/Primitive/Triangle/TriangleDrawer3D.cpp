@@ -50,18 +50,17 @@ void TriangleDrawer3D::EndFrame() {
 	commandList->SetPipelineState(GetPipeline()->GetPipelineState());
 
 	// カメラバインド
-	GetContext().cameraSys.Bind(commandList,0);
+	GetContext().cameraSys.Bind(commandList, GetPipeline()->GetRootIndex("gCamera"));
 
 	// インスタンシングリソースバインド
-	commandList->SetGraphicsRootDescriptorTable(
-		1, GetContext().directX.GetResMgr().srvuav->GetDescriptorHandleGPU(instanceSrvIndex_));
+	commandList->SetGraphicsRootDescriptorTable(GetPipeline()->GetRootIndex("gTriangle"), GetContext().directX.GetResMgr().srvuav->GetDescriptorHandleGPU(instanceSrvIndex_));
 
 	// インスタンシング描画実行
 	commandList->DispatchMesh(instanceCount_, 1, 1);
 }
 
 void TriangleDrawer3D::AddTriangle(const Triangle3DForGPU& data) {
-	assert(currentIndex_ <= numMaxInstance_);
+	assert(currentIndex_ < numMaxInstance_);
 	instanceData_[currentIndex_] = data;
 	++currentIndex_;
 }

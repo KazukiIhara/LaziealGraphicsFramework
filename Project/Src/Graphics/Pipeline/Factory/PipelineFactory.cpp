@@ -214,7 +214,10 @@ std::unique_ptr<Pipeline> PipelineFactory::CreatePipeline(const std::string& jso
 	initParam.shaderBlobs = CompileShaders(jsonParam.shaders);
 
 	// ルートシグネチャを生成
-	initParam.rootSignature = CreateRootSignature(initParam.shaderBlobs);
+	RootSignatureBuildResult rootSigResult = CreateRootSignature(initParam.shaderBlobs);
+
+	initParam.rootSignature = std::move(rootSigResult.rootSignature);
+	initParam.rootParamInfos = std::move(rootSigResult.rootParamInfos);
 
 	// パイプライン種別を取得
 	const PipelineKind kind = ToPipelineKind(jsonParam.pipelineKind);
@@ -281,9 +284,10 @@ std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonL
 	return shaderBlobs;
 }
 
-ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vector<ShaderBlob>& shaderBlobs) {
+PipelineFactory::RootSignatureBuildResult PipelineFactory::CreateRootSignature(const std::vector<ShaderBlob>& shaderBlobs) {
 	// リフレクションで見つけたリソース情報を一時保存する構造体
 	struct ResourceInfo {
+		std::string name;					// 名前
 		D3D_SHADER_INPUT_TYPE type;			// CBV / SRV / Texture/ Samplerなど
 		UINT bindPoint;						// b0 / t0 の数字部分
 		UINT bindCount;						// 配列数
@@ -336,6 +340,7 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vect
 			assert(SUCCEEDED(hr));
 
 			ResourceInfo info{};
+			info.name = bindDesc.Name;
 			info.type = bindDesc.Type;
 			info.bindPoint = bindDesc.BindPoint;
 			info.bindCount = bindDesc.BindCount;
@@ -366,9 +371,12 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vect
 	// DescriptorTable用のレンジ
 	std::vector<D3D12_DESCRIPTOR_RANGE> descriptorRanges;
 
+	std::vector<RootParameterInfo> rootParamInfos;
+
 	// 再確保を防ぐ
 	rootParams.reserve(resources.size());
 	descriptorRanges.reserve(resources.size());
+	rootParamInfos.reserve(resources.size());
 
 	// Reflection結果からRootParameterを生成
 	for (const ResourceInfo& resource : resources) {
@@ -382,7 +390,16 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vect
 			rootParam.Descriptor.ShaderRegister = resource.bindPoint;
 			rootParam.Descriptor.RegisterSpace = resource.space;
 
+			RootParameterInfo rootInfo{};
+			rootInfo.name = resource.name;
+			rootInfo.rootIndex = static_cast<uint32_t>(rootParams.size());
+			rootInfo.type = resource.type;
+			rootInfo.bindPoint = resource.bindPoint;
+			rootInfo.space = resource.space;
+
+			rootParamInfos.push_back(rootInfo);
 			rootParams.push_back(rootParam);
+
 			continue;
 		}
 
@@ -397,8 +414,7 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vect
 			range.NumDescriptors = resource.bindCount;
 			range.BaseShaderRegister = resource.bindPoint;
 			range.RegisterSpace = resource.space;
-			range.OffsetInDescriptorsFromTableStart =
-				D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+			range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 			descriptorRanges.push_back(range);
 
@@ -409,6 +425,15 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vect
 			rootParam.DescriptorTable.NumDescriptorRanges = 1;
 			rootParam.DescriptorTable.pDescriptorRanges =
 				&descriptorRanges.back();
+
+			RootParameterInfo rootInfo{};
+			rootInfo.name = resource.name;
+			rootInfo.rootIndex = static_cast<uint32_t>(rootParams.size());
+			rootInfo.type = resource.type;
+			rootInfo.bindPoint = resource.bindPoint;
+			rootInfo.space = resource.space;
+
+			rootParamInfos.push_back(rootInfo);
 
 			rootParams.push_back(rootParam);
 			continue;
@@ -442,7 +467,11 @@ ComPtr<ID3D12RootSignature> PipelineFactory::CreateRootSignature(const std::vect
 		IID_PPV_ARGS(&rootSignature));
 	assert(SUCCEEDED(hr));
 
-	return rootSignature;
+	RootSignatureBuildResult result{};
+	result.rootSignature = std::move(rootSignature);
+	result.rootParamInfos = std::move(rootParamInfos);
+
+	return result;
 }
 
 ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreateMeshGraphicsPipelineState(const PipelineJsonLoader::Param& jsonParam, const ComPtr<ID3D12RootSignature>& rootSignature, const std::vector<ShaderBlob>& shaderBlobs) {

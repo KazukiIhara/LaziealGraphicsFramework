@@ -13,6 +13,7 @@
 #include "Pipeline/JsonLoader/PipelineJsonLoader.h"
 
 #include "Pipeline/ShaderBlob.h"
+#include "Pipeline/RootParameterInfo.h"
 
 namespace LGF {
 
@@ -24,6 +25,11 @@ namespace LGF {
 	/// </summary>
 	class PipelineFactory {
 	public:
+		struct RootSignatureBuildResult {
+			ComPtr<ID3D12RootSignature> rootSignature;
+			std::vector<RootParameterInfo> rootParamInfos;
+		};
+	public:
 		PipelineFactory(DirectXCore& directX);
 		~PipelineFactory();
 
@@ -33,7 +39,7 @@ namespace LGF {
 		std::vector<ShaderBlob> CompileShaders(
 			const PipelineJsonLoader::ShaderParam& shaderParam);
 
-		ComPtr<ID3D12RootSignature> CreateRootSignature(
+		RootSignatureBuildResult CreateRootSignature(
 			const std::vector<ShaderBlob>& shaderBlobs);
 
 		ComPtr<ID3D12PipelineState> CreateMeshGraphicsPipelineState(
