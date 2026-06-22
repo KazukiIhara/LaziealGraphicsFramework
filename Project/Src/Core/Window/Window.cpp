@@ -1,5 +1,14 @@
 #include "Window.h"
 
+#include <imgui_impl_win32.h>
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
+	HWND hwnd,
+	UINT msg,
+	WPARAM wparam,
+	LPARAM lparam
+);
+
 using namespace LGF;
 
 Window::Window() {
@@ -139,8 +148,7 @@ void Window::ToggleFullScreen() {
 
 		// フルスクリーンフラグを設定
 		setting_.isFullScreen = true;
-	}
-	else {
+	} else {
 		// ウィンドウスタイルを元に戻す
 		SetWindowLongPtr(hwnd_, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
@@ -217,9 +225,13 @@ void Window::CreateGameWindow(int32_t clientWidth, int32_t clientHeight, const s
 }
 
 LRESULT Window::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+	// ImGui用のメッセージを処理
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
+		return true;
+	}
+
 	// メッセージに応じてゲーム固有の処理を行う
 	switch (msg) {
-		// ウィンドウが破棄された
 		case WM_DESTROY:
 			// OSに対してアプリの終了を伝える
 			PostQuitMessage(0);

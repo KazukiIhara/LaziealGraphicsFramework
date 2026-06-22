@@ -22,6 +22,15 @@ project "LaziealGraphicsFramework" -- プロジェクト名
 
       "../Include/**.cpp",
       "../Include/**.h",
+
+      "../Externals/imgui/*.cpp",
+      "../Externals/imgui/*.h",
+
+      "../Externals/imgui/backends/imgui_impl_dx12.cpp",
+      "../Externals/imgui/backends/imgui_impl_dx12.h",
+
+      "../Externals/imgui/backends/imgui_impl_win32.cpp",
+      "../Externals/imgui/backends/imgui_impl_win32.h",
    }
    
    -- 追加のインクルードパス
@@ -32,6 +41,9 @@ project "LaziealGraphicsFramework" -- プロジェクト名
        "../Src/Graphics/DirectX",
        "../Include",
        "../Externals",
+
+       "../Externals/imgui",
+       "../Externals/imgui/backends",
    }
 
    dependson { } -- 依存していることを指定
