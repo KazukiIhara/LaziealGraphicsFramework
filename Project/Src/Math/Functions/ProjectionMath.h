@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Math/Types/Matrix4x4.h"
+#include "LGF/Math/Matrix4x4.h"
 
 namespace LGF::Math {
 

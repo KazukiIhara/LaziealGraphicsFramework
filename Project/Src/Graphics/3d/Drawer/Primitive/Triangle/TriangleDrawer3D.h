@@ -2,7 +2,7 @@
 
 #include "3d/Drawer/BaseDrawer/BaseDrawer3D.h"
 
-#include "Math/Types/Vector3.h"
+#include "LGF/Math/Vector3.h"
 
 namespace LGF {
 

@@ -48,11 +48,7 @@ void Renderer3D::Finalize() {
 void Renderer3D::AddTriangle(const Triangle3D& triangle, const Transform3D& transform, const Vector4& color) {
 	Triangle3DForGPU data{};
 
-	data.instance.worldMatrix = Math::MakeAffineMatrix(
-		transform.scale,
-		Math::MakeQuaternion(transform.rotation),
-		transform.translation
-	);
+	data.instance.worldMatrix = transform.GetWorldMatrix();
 
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));

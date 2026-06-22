@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Math/Types/Vector4.h"
+#include "LGF/Math/Vector4.h"
 
 namespace LGF::Color {
 

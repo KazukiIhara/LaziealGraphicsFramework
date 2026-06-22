@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Math/Types/Vector2.h"
-#include "Math/Types/Vector3.h"
-#include "Math/Types/Vector4.h"
+#include "LGF/Math/Vector2.h"
+#include "LGF/Math/Vector3.h"
+#include "LGF/Math/Vector4.h"
  
 namespace LGF::Math {
 

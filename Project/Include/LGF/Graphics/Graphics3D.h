@@ -11,7 +11,7 @@ namespace LGF {
 
 		void Draw(
 			const Triangle3D& triangle,
-			const Transform3D& transform = {},
+			const Transform3D& transform = Transform3D(),
 			const Vector4& color = Color::White
 		);
 

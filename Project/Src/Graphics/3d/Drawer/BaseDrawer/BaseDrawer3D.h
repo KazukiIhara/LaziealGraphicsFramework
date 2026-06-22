@@ -8,8 +8,8 @@
 
 #include "3d/Drawer/IDrawer3D.h"
 
-#include "Math/Types/Vector4.h"
-#include "Math/Types/Matrix4x4.h"
+#include "LGF/Math/Vector4.h"
+#include "LGF/Math/Matrix4x4.h"
 
 #include "3d/Graphics3DContext.h"
 

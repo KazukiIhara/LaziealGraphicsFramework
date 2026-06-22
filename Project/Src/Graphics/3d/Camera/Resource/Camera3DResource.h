@@ -5,8 +5,8 @@
 
 #include "ComPtr/ComPtr.h"
 
-#include "Math/Types/Vector3.h"
-#include "Math/Types/Matrix4x4.h"
+#include "LGF/Math/Vector3.h"
+#include "LGF/Math/Matrix4x4.h"
 
 namespace LGF {
 

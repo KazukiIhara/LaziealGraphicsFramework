@@ -12,10 +12,11 @@
 namespace LGF {
 
 	class IDrawer3D;
+	class Transform3D;
+
 	class TriangleDrawer3D;
 	class Triangle3D;
 
-	struct Transform3D;
 
 	/// <summary>
 	/// 全3D描画をするクラス
