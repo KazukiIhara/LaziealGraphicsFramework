@@ -36,7 +36,7 @@ uint32_t BaseViewManager::Allocate() {
 	return index;
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE BaseViewManager::GetDescriptorHandleCPU(uint32_t index)const {
+D3D12_CPU_DESCRIPTOR_HANDLE BaseViewManager::GetCPUDescriptorHandle(uint32_t index)const {
 	assert(index < maxViewCount_);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap_->GetCPUDescriptorHandleForHeapStart();
@@ -44,7 +44,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE BaseViewManager::GetDescriptorHandleCPU(uint32_t ind
 	return handleCPU;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE BaseViewManager::GetDescriptorHandleGPU(uint32_t index)const {
+D3D12_GPU_DESCRIPTOR_HANDLE BaseViewManager::GetGPUDescriptorHandle(uint32_t index)const {
 	assert(isShaderVisible_);
 	assert(index < maxViewCount_);
 

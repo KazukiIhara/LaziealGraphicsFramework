@@ -28,5 +28,5 @@ void RTVManager::CreateRTVTexture2d(uint32_t rtvIndex, ID3D12Resource* resource,
 	device_.GetDevice()->CreateRenderTargetView(
 		resource,
 		&rtvDesc,
-		GetDescriptorHandleCPU(rtvIndex));
+		GetCPUDescriptorHandle(rtvIndex));
 }

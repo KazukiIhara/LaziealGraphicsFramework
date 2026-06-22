@@ -11,15 +11,19 @@ namespace LGF {
 	class WindowSystem :public IFrameworkSystem {
 	public:
 		WindowSystem();
-		~WindowSystem()override = default;
+		~WindowSystem()override;
 
 		bool Initialize(FrameworkContext& context)override;
-		bool Update(FrameworkContext& context)override;
 		bool Finalize(FrameworkContext& context)override;
+
+		void ProcessMessage();
 
 		Window& GetWindow();
 
+		bool IsCloseRequested() const;
+
 	private:
 		Window window_;
+		bool isCloseRequested_ = false;
 	};
 }

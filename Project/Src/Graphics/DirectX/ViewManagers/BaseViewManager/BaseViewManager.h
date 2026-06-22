@@ -35,9 +35,9 @@ namespace LGF {
 		// ViewIndexの割り当て
 		uint32_t Allocate();
 		// CPUハンドルを取得
-		D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandleCPU(uint32_t index)const;
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(uint32_t index)const;
 		// GPUハンドルを取得
-		D3D12_GPU_DESCRIPTOR_HANDLE GetDescriptorHandleGPU(uint32_t index)const;
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(uint32_t index)const;
 		// DescriptorHeapの取得
 		ID3D12DescriptorHeap* GetDescriptorHeap()const;
 		// DescriptorSizeの取得

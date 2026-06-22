@@ -30,7 +30,7 @@ void SRVUAVManager::CreateSrvTexture2d(uint32_t viewIndex, ID3D12Resource* resou
 	device_.GetDevice()->CreateShaderResourceView(
 		resource,
 		&srvDesc,
-		GetDescriptorHandleCPU(viewIndex));
+		GetCPUDescriptorHandle(viewIndex));
 }
 
 void SRVUAVManager::CreateSrvTextureCubeMap(uint32_t viewIndex, ID3D12Resource* resource, DXGI_FORMAT format) {
@@ -46,7 +46,7 @@ void SRVUAVManager::CreateSrvTextureCubeMap(uint32_t viewIndex, ID3D12Resource* 
 	device_.GetDevice()->CreateShaderResourceView(
 		resource,
 		&srvDesc,
-		GetDescriptorHandleCPU(viewIndex));
+		GetCPUDescriptorHandle(viewIndex));
 }
 
 void SRVUAVManager::CreateSrvStructuredBuffer(uint32_t viewIndex, ID3D12Resource* resource, uint32_t numElements, UINT structureByteStride) {
@@ -64,7 +64,7 @@ void SRVUAVManager::CreateSrvStructuredBuffer(uint32_t viewIndex, ID3D12Resource
 	device_.GetDevice()->CreateShaderResourceView(
 		resource,
 		&srvDesc,
-		GetDescriptorHandleCPU(viewIndex));
+		GetCPUDescriptorHandle(viewIndex));
 }
 
 void SRVUAVManager::CreateSrvByteAddressBuffer(uint32_t viewIndex, ID3D12Resource* resource, uint32_t byteSize) {
@@ -82,7 +82,7 @@ void SRVUAVManager::CreateSrvByteAddressBuffer(uint32_t viewIndex, ID3D12Resourc
 	device_.GetDevice()->CreateShaderResourceView(
 		resource,
 		&srvDesc,
-		GetDescriptorHandleCPU(viewIndex));
+		GetCPUDescriptorHandle(viewIndex));
 }
 
 void SRVUAVManager::CreateUavStructuredBuffer(uint32_t viewIndex, ID3D12Resource* resource, uint32_t numElements, UINT structureByteStride) {
@@ -101,7 +101,7 @@ void SRVUAVManager::CreateUavStructuredBuffer(uint32_t viewIndex, ID3D12Resource
 		resource,
 		nullptr,
 		&uavDesc,
-		GetDescriptorHandleCPU(viewIndex));
+		GetCPUDescriptorHandle(viewIndex));
 }
 
 void SRVUAVManager::CreateConstantBufferView(uint32_t viewIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation, uint32_t sizeInBytes) {
@@ -111,5 +111,5 @@ void SRVUAVManager::CreateConstantBufferView(uint32_t viewIndex, D3D12_GPU_VIRTU
 
 	device_.GetDevice()->CreateConstantBufferView(
 		&cbvDesc,
-		GetDescriptorHandleCPU(viewIndex));
+		GetCPUDescriptorHandle(viewIndex));
 }

@@ -72,7 +72,7 @@ ID3D12Resource* SwapChain::GetCurrentBackBufferResource() {
 
 D3D12_CPU_DESCRIPTOR_HANDLE SwapChain::GetCurrentBackBufferRTVHandle() {
 	backBufferIndex_ = swapChain_->GetCurrentBackBufferIndex();
-	return rtvMgr_.GetDescriptorHandleCPU(rtvIndex_[backBufferIndex_]);
+	return rtvMgr_.GetCPUDescriptorHandle(rtvIndex_[backBufferIndex_]);
 }
 
 bool SwapChain::CreateSwapChain() {

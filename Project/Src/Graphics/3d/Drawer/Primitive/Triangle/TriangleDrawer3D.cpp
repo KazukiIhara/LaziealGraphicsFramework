@@ -53,7 +53,7 @@ void TriangleDrawer3D::EndFrame() {
 	GetContext().cameraSys.Bind(commandList, GetPipeline()->GetRootIndex("gCamera"));
 
 	// インスタンシングリソースバインド
-	commandList->SetGraphicsRootDescriptorTable(GetPipeline()->GetRootIndex("gTriangle"), GetContext().directX.GetResMgr().srvuav->GetDescriptorHandleGPU(instanceSrvIndex_));
+	commandList->SetGraphicsRootDescriptorTable(GetPipeline()->GetRootIndex("gTriangle"), GetContext().directX.GetResMgr().srvuav->GetGPUDescriptorHandle(instanceSrvIndex_));
 
 	// インスタンシング描画実行
 	commandList->DispatchMesh(instanceCount_, 1, 1);

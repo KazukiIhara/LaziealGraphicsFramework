@@ -40,15 +40,16 @@ bool Framework::Update() {
 		isFrameStarted_ = false;
 	}
 
+	// OSメッセージ処理
+	context_.window->ProcessMessage();
+
+	// 終了要求を確認
+	if (context_.window->IsCloseRequested()) {
+		return false;
+	}
+
 	// フレーム開始処理
 	BeginFrame();
-
-	// 各システムを更新
-	for (const auto& system : systems_) {
-		if (!system->Update(context_)) {
-			return false;
-		}
-	}
 
 	isFrameStarted_ = true;
 

@@ -8,6 +8,7 @@
 #include "3d/Camera/System/Camera3DSystem.h"
 #include "3d/Renderer/Renderer3D.h"
 #include "DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
+#include "Graphics/ImGui/ImGuiSystem.h"
 
 #include "Graphics/3d/Graphics3DContext.h"
 
@@ -44,10 +45,13 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	// サブシステムリストに追加
 	subsystems_.push_back(renderer3D_.get());
 
-	return true;
-}
 
-bool GraphicsSystem::Update([[maybe_unused]] FrameworkContext& context) {
+	// ImGuiシステムクラス初期化
+	imguiSystem_ = std::make_unique<ImGuiSystem>(*directX_, context.window->GetWindow());
+	imguiSystem_->Initialize();
+	// サブシステムリストに追加
+	subsystems_.push_back(imguiSystem_.get());
+
 	return true;
 }
 

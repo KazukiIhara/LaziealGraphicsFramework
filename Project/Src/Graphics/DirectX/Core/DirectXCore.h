@@ -44,6 +44,7 @@ namespace LGF {
 		ID3D12Device* GetDevice();
 		ID3D12GraphicsCommandList* GetCommandList();
 		ID3D12GraphicsCommandList6* GetCommandList6();
+		ID3D12CommandQueue* GetCommandQueue();
 
 		ResourceFactory* GetResourceFactory();
 		ShaderCompiler* GetShaderCompiler();

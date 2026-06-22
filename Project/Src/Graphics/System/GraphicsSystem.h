@@ -15,6 +15,8 @@ namespace LGF {
 	class Renderer3D;
 	class Renderer2D;
 
+	class ImGuiSystem;
+
 	/// <summary>
 	/// グラフィックシステムクラス
 	/// </summary>
@@ -24,7 +26,6 @@ namespace LGF {
 		~GraphicsSystem()override;
 
 		bool Initialize(FrameworkContext& context)override;
-		bool Update(FrameworkContext& context)override;
 		bool Finalize(FrameworkContext& context)override;
 
 		void BeginFrame(FrameworkContext& context)override;
@@ -44,5 +45,7 @@ namespace LGF {
 		// 3D描画クラス
 		std::unique_ptr<Renderer3D> renderer3D_;
 
+		// ImGuiシステムクラス
+		std::unique_ptr<ImGuiSystem> imguiSystem_;
 	};
 }

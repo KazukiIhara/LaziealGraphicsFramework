@@ -115,6 +115,10 @@ ID3D12GraphicsCommandList6* DirectXCore::GetCommandList6() {
 	return command_->GetList6();
 }
 
+ID3D12CommandQueue* LGF::DirectXCore::GetCommandQueue() {
+	return command_->GetQueue();
+}
+
 DirectXCore::ResMgr DirectXCore::GetResMgr() {
 	return ResMgr(rtvManager_.get(), dsvManager_.get(), srvUavManager_.get());
 }

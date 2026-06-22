@@ -34,5 +34,5 @@ uint32_t DepthStencil::GetDSVIndex()const {
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE DepthStencil::GetDSVHandleCPU()const {
-	return dsvManager_.GetDescriptorHandleCPU(dsvIndex_);
+	return dsvManager_.GetCPUDescriptorHandle(dsvIndex_);
 }

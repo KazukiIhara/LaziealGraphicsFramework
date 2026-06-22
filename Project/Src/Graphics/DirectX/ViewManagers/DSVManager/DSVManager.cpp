@@ -28,5 +28,5 @@ void DSVManager::CreateDSVTexture2d(uint32_t dsvIndex, ID3D12Resource* resource,
 	device_.GetDevice()->CreateDepthStencilView(
 		resource,
 		&dsvDesc,
-		GetDescriptorHandleCPU(dsvIndex));
+		GetCPUDescriptorHandle(dsvIndex));
 }
