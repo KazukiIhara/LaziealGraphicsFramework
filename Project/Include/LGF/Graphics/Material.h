@@ -3,12 +3,12 @@
 #include "LGF/Math/MathTypes.h"
 #include "Color.h"
 
-namespace LGF::Graphics3D {
+namespace LGF{
 
 	/// <summary>
 	/// マテリアルデータ
 	/// </summary>
-	struct Material {
+	struct Material3D {
 		Vector4 color = Color::White;
 	};
 

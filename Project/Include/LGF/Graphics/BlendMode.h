@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace LGF::Graphics {
+namespace LGF {
 	/// <summary>
 	/// ブレンドモード
 	/// </summary>
