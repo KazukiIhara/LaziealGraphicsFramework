@@ -33,11 +33,11 @@ void Transform3D::Finalize() {
 
 }
 
-const Matrix4x4 Transform3D::GetWorldMatrix() const {
+ Matrix4x4 Transform3D::GetWorldMatrix() const {
 	return worldMatrix_;
 }
 
-const Vector3 Transform3D::GetWorldPosition() const {
+ Vector3 Transform3D::GetWorldPosition() const {
 	return worldPosition_;
 }
 

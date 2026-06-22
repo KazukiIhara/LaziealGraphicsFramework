@@ -27,8 +27,8 @@ namespace LGF {
 
 		void Finalize();
 
-		const Matrix4x4 GetWorldMatrix()const;
-		const Vector3 GetWorldPosition()const;
+		Matrix4x4 GetWorldMatrix()const;
+		Vector3 GetWorldPosition()const;
 
 		void SetParent(Transform3D* parent);
 

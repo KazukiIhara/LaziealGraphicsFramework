@@ -40,4 +40,7 @@ namespace LGF::Math {
 
 	// 方向ベクトル変換
 	Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);
+
+	// 行列の平行移動成分を取得
+	Vector3 ExtractTranslation(const Matrix4x4& matrix);
 }

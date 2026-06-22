@@ -302,4 +302,12 @@ namespace LGF::Math {
 
 		return result;
 	}
+
+	Vector3 ExtractTranslation(const Matrix4x4& matrix) {
+		return {
+			matrix.m[3][0],
+			matrix.m[3][1],
+			matrix.m[3][2]
+		};
+	}
 }
