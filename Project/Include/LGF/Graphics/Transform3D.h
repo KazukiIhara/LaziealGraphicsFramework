@@ -43,6 +43,12 @@ namespace LGF {
 		Quaternion rotation{};
 		Vector3 translation{};
 
+	public:
+		Transform3D(const Transform3D&) = delete;
+		Transform3D& operator=(const Transform3D&) = delete;
+
+		Transform3D(Transform3D&&) = delete;
+		Transform3D& operator=(Transform3D&&) = delete;
 	};
 
 

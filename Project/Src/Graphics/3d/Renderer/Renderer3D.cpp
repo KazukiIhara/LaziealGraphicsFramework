@@ -45,10 +45,10 @@ void Renderer3D::Finalize() {
 	triangleDrawer3D_.reset();
 }
 
-void Renderer3D::AddTriangle(const Triangle3D& triangle, const Transform3D& transform, const Vector4& color) {
+void Renderer3D::AddTriangle(const Triangle3D& triangle, const Matrix4x4& worldMatrix, const Vector4& color) {
 	Triangle3DForGPU data{};
 
-	data.instance.worldMatrix = transform.GetWorldMatrix();
+	data.instance.worldMatrix = worldMatrix;
 
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));

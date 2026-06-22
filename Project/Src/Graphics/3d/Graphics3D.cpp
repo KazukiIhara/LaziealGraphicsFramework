@@ -20,7 +20,7 @@ void LGF::Graphics3D::Internal::ResetRenderer() {
 	g_renderer = nullptr;
 }
 
-void LGF::Graphics3D::Draw(const Triangle3D& triangle, const Transform3D& transform, const Vector4& color) {
+void LGF::Graphics3D::Draw(const Triangle3D& triangle, const Matrix4x4& worldMatrix, const Vector4& color) {
 	assert(g_renderer != nullptr);
 
 	if (g_renderer == nullptr) {
@@ -29,7 +29,7 @@ void LGF::Graphics3D::Draw(const Triangle3D& triangle, const Transform3D& transf
 
 	g_renderer->AddTriangle(
 		triangle,
-		transform,
+		worldMatrix,
 		color
 	);
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LGF/Graphics/Transform3D.h"
+#include "LGF/Math/Matrix4x4.h"
 #include "LGF/Graphics/Color.h"
 
 namespace LGF {
@@ -11,7 +11,7 @@ namespace LGF {
 
 		void Draw(
 			const Triangle3D& triangle,
-			const Transform3D& transform = Transform3D(),
+			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
 		);
 

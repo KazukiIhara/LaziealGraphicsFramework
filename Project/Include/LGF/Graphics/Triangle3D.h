@@ -22,7 +22,7 @@ namespace LGF {
 		~Triangle3D();
 
 		void Draw(
-			const Transform3D& transform = Transform3D(),
+			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
 		)const;
 

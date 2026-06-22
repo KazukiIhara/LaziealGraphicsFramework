@@ -12,7 +12,6 @@
 namespace LGF {
 
 	class IDrawer3D;
-	class Transform3D;
 
 	class TriangleDrawer3D;
 	class Triangle3D;
@@ -36,7 +35,7 @@ namespace LGF {
 		// 三角形描画
 		void AddTriangle(
 			const Triangle3D& triangle,
-			const Transform3D& transform,
+			const Matrix4x4& worldMatrix,
 			const Vector4& color
 		);
 
