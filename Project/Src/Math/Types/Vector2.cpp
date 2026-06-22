@@ -1,4 +1,4 @@
-#include "Vector2.h"
+#include "LGF/Math/Vector2.h"
 
 namespace LGF {
 

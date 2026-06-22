@@ -1,4 +1,4 @@
-#include "Quaternion.h"
+#include "LGF/Math/Quaternion.h"
 
 namespace LGF {
 
