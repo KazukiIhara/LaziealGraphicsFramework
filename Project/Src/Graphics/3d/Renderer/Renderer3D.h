@@ -4,12 +4,18 @@
 #include <vector>
 
 #include "Graphics/System/IGraphicsSubsystem.h"
+
+#include "LGF/Math/MathTypes.h"
+
 #include "Graphics/3d/Graphics3DContext.h"
 
 namespace LGF {
 
 	class IDrawer3D;
 	class TriangleDrawer3D;
+	class Triangle3D;
+
+	struct Transform3D;
 
 	/// <summary>
 	/// 全3D描画をするクラス
@@ -26,6 +32,12 @@ namespace LGF {
 
 		// 各Drawerに描画コマンドを積む関数群
 
+		// 三角形描画
+		void AddTriangle(
+			const Triangle3D& triangle,
+			const Transform3D& transform,
+			const Vector4& color
+		);
 
 	private:
 		// 参照

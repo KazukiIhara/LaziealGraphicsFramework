@@ -25,21 +25,12 @@ namespace LGF::Math {
 	float Dot(const Quaternion& q1, const Quaternion& q2);
 
 	// 軸角
-	Quaternion MakeRotateAxisAngle(
-		const Vector3& axis,
-		float rad);
+	Quaternion MakeRotateAxisAngle(const Vector3& axis, float rad);
 
-	// Euler→Quaternion
-	Quaternion EulerToQuaternionXYZ(
-		const Vector3& euler);
-
-	Quaternion EulerToQuaternionYXZ(
-		const Vector3& euler);
+	// オイラー角からクオータニオンを作成(Y→X→Z)
+	Quaternion MakeQuaternion(const Vector3& euler);
 
 	// 補間
-	Quaternion Slerp(
-		const Quaternion& q1,
-		const Quaternion& q2,
-		float t);
+	Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, float t);
 
 }

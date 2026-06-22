@@ -50,9 +50,7 @@ namespace LGF::Math {
 			q1.w * q2.w;
 	}
 
-	Quaternion MakeRotateAxisAngle(
-		const Vector3& axis,
-		float rad) {
+	Quaternion MakeRotateAxisAngle(const Vector3& axis, float rad) {
 
 		const float axisLength =
 			std::sqrt(axis.x * axis.x + axis.y * axis.y + axis.z * axis.z);
@@ -83,23 +81,7 @@ namespace LGF::Math {
 		};
 	}
 
-	Quaternion EulerToQuaternionXYZ(
-		const Vector3& euler) {
-
-		const Quaternion rotateX =
-			MakeRotateAxisAngle({ 1.0f, 0.0f, 0.0f }, euler.x);
-
-		const Quaternion rotateY =
-			MakeRotateAxisAngle({ 0.0f, 1.0f, 0.0f }, euler.y);
-
-		const Quaternion rotateZ =
-			MakeRotateAxisAngle({ 0.0f, 0.0f, 1.0f }, euler.z);
-
-		return Normalize(rotateX * rotateY * rotateZ);
-	}
-
-	Quaternion EulerToQuaternionYXZ(
-		const Vector3& euler) {
+	Quaternion MakeQuaternion(const Vector3& euler) {
 
 		const Quaternion rotateY =
 			MakeRotateAxisAngle({ 0.0f, 1.0f, 0.0f }, euler.y);
@@ -113,10 +95,7 @@ namespace LGF::Math {
 		return Normalize(rotateY * rotateX * rotateZ);
 	}
 
-	Quaternion Slerp(
-		const Quaternion& q1,
-		const Quaternion& q2,
-		float t) {
+	Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, float t) {
 
 		Quaternion from = Normalize(q1);
 		Quaternion to = Normalize(q2);

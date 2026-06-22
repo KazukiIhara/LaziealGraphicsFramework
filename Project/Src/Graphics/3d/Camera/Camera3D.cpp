@@ -15,7 +15,7 @@ void Camera3D::Initialize() {
 
 void Camera3D::Update() {
 	// 回転を作る
-	rotation_ = Math::EulerToQuaternionYXZ({
+	rotation_ = Math::MakeQuaternion({
 		pitch_,
 		yaw_,
 		0.0f

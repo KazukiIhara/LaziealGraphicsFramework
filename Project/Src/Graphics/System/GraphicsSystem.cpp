@@ -11,6 +11,7 @@
 #include "Graphics/ImGui/ImGuiSystem.h"
 
 #include "Graphics/3d/Graphics3DContext.h"
+#include "Graphics/3d/Graphics3DInternal.h"
 
 using namespace LGF;
 
@@ -41,7 +42,10 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 		*camera3DSystem_
 	};
 	renderer3D_ = std::make_unique<Renderer3D>(graphics3DContext);
-	renderer3D_->Initialize();
+	if (!renderer3D_->Initialize()) {
+		return false;
+	}
+	Graphics3D::Internal::SetRenderer(renderer3D_.get());
 	// サブシステムリストに追加
 	subsystems_.push_back(renderer3D_.get());
 
@@ -56,6 +60,8 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 }
 
 bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
+	Graphics3D::Internal::ResetRenderer();
+
 	for (auto& subSys : subsystems_) {
 		subSys->Finalize();
 	}

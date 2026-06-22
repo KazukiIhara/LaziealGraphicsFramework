@@ -1,9 +1,5 @@
 #pragma once
 
-#include "MathConstants.h"
-
-#include "MathTypes.h"
-
 #include "Math/Functions/VectorMath.h"
 #include "Math/Functions/MatrixMath.h"
 #include "Math/Functions/QuaternionMath.h"

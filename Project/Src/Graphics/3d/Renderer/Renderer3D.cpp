@@ -1,11 +1,17 @@
 #include "Renderer3D.h"
 
+#include <algorithm>
+
 #include "3d/Drawer/BaseDrawer/BaseDrawer3D.h"
 #include "Pipeline/Manager/PipelineManager.h"
 
 #include "3d/Drawer/Primitive/Triangle/TriangleDrawer3D.h"
+#include "LGF/Graphics/Triangle3D.h"
+
+#include "LGF/Graphics/Transform3D.h"
 
 #include "LGF/Math/MathUtils.h"
+
 
 using namespace LGF;
 
@@ -27,15 +33,6 @@ bool Renderer3D::Initialize() {
 
 void Renderer3D::BeginFrame() {
 
-	Triangle3DForGPU data;
-	data.instance.worldMatrix = Math::MakeAffineMatrix(Vector3(1.0f, 1.0f, 1.0f), Quaternion(), Vector3(0.0f, 0.0f, 5.0f));
-	data.instance.worldInverseTranspose = Math::Transpose(Math::Inverse(data.instance.worldMatrix));
-	data.instance.baseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-	data.vertexOffsets[0] = Vector3(-1.0f, -1.0f, 0.0f);
-	data.vertexOffsets[1] = Vector3(0.0f, 1.0f, 0.0f);
-	data.vertexOffsets[2] = Vector3(1.0f, -1.0f, 0.0f);
-	triangleDrawer3D_->AddTriangle(data);
-
 }
 
 void Renderer3D::EndFrame() {
@@ -46,4 +43,26 @@ void Renderer3D::EndFrame() {
 
 void Renderer3D::Finalize() {
 	triangleDrawer3D_.reset();
+}
+
+void Renderer3D::AddTriangle(const Triangle3D& triangle, const Transform3D& transform, const Vector4& color) {
+	Triangle3DForGPU data{};
+
+	data.instance.worldMatrix = Math::MakeAffineMatrix(
+		transform.scale,
+		Math::MakeQuaternion(transform.rotation),
+		transform.translation
+	);
+
+	data.instance.worldInverseTranspose =
+		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
+
+	data.instance.baseColor = color;
+
+	std::ranges::copy(
+		triangle.vertices,
+		data.vertexOffsets
+	);
+
+	triangleDrawer3D_->AddTriangle(data);
 }
