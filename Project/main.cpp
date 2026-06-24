@@ -4,11 +4,12 @@ using namespace LGF;
 
 void Main() {
 
-	Transform3D trans = Transform3D(Vector3(0.0f, 0.0f, 5.0f));
+	Transform3D trans{};
+	trans.translation.z = 5;
 
 	while (System::Update()) {
-		trans.Update();
-		Triangle3D{}.Draw(trans.GetWorldMatrix());
+
+		Triangle3D{}.Draw(Math::MakeAffineMatrix(trans.scale, trans.rotation, trans.translation));
 	}
 
 }
