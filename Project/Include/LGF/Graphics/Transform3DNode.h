@@ -2,6 +2,8 @@
 
 namespace LGF {
 
+	struct Transform3D;
+
 	/// <summary>
 	/// トランスフォーム3Dクラス
 	/// </summary>
