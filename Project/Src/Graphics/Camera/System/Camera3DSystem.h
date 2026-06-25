@@ -7,40 +7,37 @@
 
 #include <d3d12.h>
 
+#include "LGF/Graphics/Camera3D.h"
+
+#include "Graphics/System/IGraphicsSubsystem.h"
+
 namespace LGF {
 
 	class DirectXCore;
-	class Camera3D;
 	class Camera3DResource;
 
 	/// <summary>
 	/// カメラ3Dシステム
 	/// </summary>
-	class Camera3DSystem {
+	class Camera3DSystem :public IGraphicsSubsystem {
 	public:
 		Camera3DSystem(DirectXCore& directX);
 		~Camera3DSystem();
 
-		void Initialize();
-		void Finalize();
+		bool Initialize()override;
+		void BeginFrame()override;
+		void EndFrame()override;
+		void Finalize()override;
 
-		void BeginFrame();
-		void EndFrame();
 
-		void Add(const std::string& name, std::unique_ptr<Camera3D> camera);
-		void Remove(const std::string& name);
+		void SetCamera(const Camera3D& camera);
 
-		void Set(const std::string& name);
-		Camera3D* Get(const std::string& name);
-
-		void Bind(ID3D12GraphicsCommandList* commandList,uint32_t rootParamIdx);
+		void Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
 
 	private:
-		// カメラマップ
-		std::map<std::string, std::unique_ptr<Camera3D>> cameraMap_;
+		// シーンで使用するカメラ
+		Camera3D camera_;
 		// GPUに送るカメラリソース
 		std::unique_ptr<Camera3DResource> resource_;
-		// 使用するカメラの名前
-		std::string currentCameraName_{};
 	};
 }

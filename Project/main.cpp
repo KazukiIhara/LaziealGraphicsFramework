@@ -8,7 +8,6 @@ void Main() {
 	trans.translation.z = 5;
 
 	while (System::Update()) {
-
 		Triangle3D{}.Draw(Math::MakeAffineMatrix(trans.scale, trans.rotation, trans.translation), Color::Violet);
 	}
 

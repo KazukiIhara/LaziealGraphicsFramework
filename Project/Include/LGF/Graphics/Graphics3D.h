@@ -5,9 +5,13 @@
 
 namespace LGF {
 
+	class Camera3D;
+
 	class Triangle3D;
 
 	namespace Graphics3D {
+
+		void SetCamera(const Camera3D& camera);
 
 		void Draw(
 			const Triangle3D& triangle,

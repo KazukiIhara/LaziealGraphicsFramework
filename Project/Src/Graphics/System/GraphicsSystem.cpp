@@ -34,6 +34,9 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	// 3Dカメラシステム初期化
 	camera3DSystem_ = std::make_unique<Camera3DSystem>(*directX_);
 	camera3DSystem_->Initialize();
+	Graphics3D::Internal::SetCameraSystem(camera3DSystem_.get());
+	// サブシステムリストに追加
+	subsystems_.push_back(camera3DSystem_.get());
 
 	// 3Dレンダラークラス初期化
 	Graphics3DContext graphics3DContext{
@@ -65,7 +68,6 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 	for (auto& subSys : subsystems_) {
 		subSys->Finalize();
 	}
-	camera3DSystem_->Finalize();
 	pipelineManager_->Finalize();
 	directX_->Finalize();
 
@@ -78,7 +80,6 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 
 void GraphicsSystem::BeginFrame([[maybe_unused]] FrameworkContext& context) {
 	directX_->BeginFrame();
-	camera3DSystem_->BeginFrame();
 	for (auto& subSys : subsystems_) {
 		subSys->BeginFrame();
 	}
@@ -94,7 +95,6 @@ void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 	};
 	commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
-	camera3DSystem_->EndFrame();
 	for (auto& subSys : subsystems_) {
 		subSys->EndFrame();
 	}

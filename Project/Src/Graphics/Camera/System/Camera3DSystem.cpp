@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-#include "Graphics/Camera/Camera3D.h"
 #include "Graphics/Camera/Resource/Camera3DResource.h"
 
 using namespace LGF;
@@ -14,79 +13,32 @@ Camera3DSystem::Camera3DSystem(DirectXCore& directX) {
 
 Camera3DSystem::~Camera3DSystem() = default;
 
-void Camera3DSystem::Initialize() {
+bool Camera3DSystem::Initialize() {
 	// GPUリソース初期化
 	resource_->Initialize();
-	// デフォルトカメラの生成
-	Add("Default", std::make_unique<Camera3D>());
+	// カメラ初期化
+	camera_.Initialize();
 
-	// 使用するカメラをクリア
-	currentCameraName_ = "";
-}
-
-void Camera3DSystem::Finalize() {
+	return true;
 }
 
 void Camera3DSystem::BeginFrame() {
-	// 使用するカメラをクリア
-	currentCameraName_ = "";
+	// カメラ初期化
+	camera_ = Camera3D();
+	camera_.Initialize();
 }
 
 void Camera3DSystem::EndFrame() {
-	// 描画前カメラ更新
-	for (auto& camera : cameraMap_) {
-		camera.second->Update();
-	}
-
-	// 使用するカメラを取得
-	if (currentCameraName_ == "") {
-		currentCameraName_ = "Default";
-	}
-	Camera3D* currentCam = Get(currentCameraName_);
-	if (currentCam == nullptr) {
-		currentCam = Get("Default");
-	}
-	assert(currentCam != nullptr);
-
 	// GPUにバインドするリソースの更新
-	resource_->Update(*currentCam);
-
+	resource_->Update(camera_);
 }
 
-void Camera3DSystem::Add(const std::string& name, std::unique_ptr<Camera3D> camera) {
-	assert(camera != nullptr);
-
-	// カメラを追加
-	cameraMap_[name] = std::move(camera);
+void Camera3DSystem::Finalize() {
+	resource_.reset();
 }
 
-void Camera3DSystem::Remove(const std::string& name) {
-	// デフォルトカメラは削除しない
-	if (name == "Default") {
-		return;
-	}
-
-	// 使用中なら解除
-	if (currentCameraName_ == name) {
-		currentCameraName_ = "";
-	}
-
-	// カメラを削除
-	cameraMap_.erase(name);
-}
-
-void Camera3DSystem::Set(const std::string& name) {
-	currentCameraName_ = name;
-}
-
-Camera3D* Camera3DSystem::Get(const std::string& name) {
-	// カメラを検索
-	auto it = cameraMap_.find(name);
-	if (it == cameraMap_.end()) {
-		return nullptr;
-	}
-
-	return it->second.get();
+void Camera3DSystem::SetCamera(const Camera3D& camera) {
+	camera_ = camera;
 }
 
 void Camera3DSystem::Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx) {

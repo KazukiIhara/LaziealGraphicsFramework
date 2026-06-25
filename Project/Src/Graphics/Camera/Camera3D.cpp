@@ -1,4 +1,4 @@
-#include "Camera3D.h"
+#include "LGF/Graphics/Camera3D.h"
 
 #include "LGF/Math/MathUtils.h"
 
