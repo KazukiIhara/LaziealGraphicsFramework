@@ -1,8 +1,8 @@
 #include "ImGuiSystem.h"
 
-#include "DirectX/Core/DirectXCore.h"
-#include "Window/Window.h"
-#include "DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
+#include "Core/Window/Window.h"
+#include "Graphics/DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
 
 using namespace LGF;
 

@@ -1,6 +1,6 @@
 #include "Viewport.h"
 
-#include "Command/Command.h"
+#include "Graphics/DirectX/Command/Command.h"
 
 using namespace LGF;
 

@@ -2,12 +2,12 @@
 
 #include <cassert>
 
-#include "DirectX/Core/DirectXCore.h"
-#include "Pipeline/Manager/PipelineManager.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
+#include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
-#include "DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
+#include "Graphics/DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
 
-#include "Pipeline/Pipeline.h"
+#include "Graphics/Pipeline/Pipeline.h"
 
 using namespace LGF;
 

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <d3d12.h>
 
-#include "ComPtr/ComPtr.h"
+#include "Graphics/DirectX/ComPtr/ComPtr.h"
 
 #include "IDrawer.h"
 

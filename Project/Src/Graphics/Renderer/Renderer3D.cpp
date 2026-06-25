@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "Graphics/Drawer/IDrawer.h"
-#include "Pipeline/Manager/PipelineManager.h"
+#include "Graphics/Pipeline/Manager/PipelineManager.h"
 
 #include "Graphics/Drawer/3D/Primitive/Triangle/TriangleDrawer3D.h"
 #include "LGF/Graphics/Triangle3D.h"

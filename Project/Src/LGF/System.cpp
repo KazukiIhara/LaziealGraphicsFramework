@@ -1,6 +1,6 @@
 #include "LGF/System.h"
 
-#include "Framework/Framework.h"
+#include "Core/Framework/Framework.h"
 
 namespace LGF::Detail {
 	Framework& GetFramework() {
