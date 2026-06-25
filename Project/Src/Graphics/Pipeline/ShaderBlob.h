@@ -2,7 +2,7 @@
 
 #include <string>
 #include <d3dcompiler.h>
-#include "ComPtr/ComPtr.h"
+#include "Graphics/DirectX/ComPtr/ComPtr.h"
 
 namespace LGF {
 	/// <summary>

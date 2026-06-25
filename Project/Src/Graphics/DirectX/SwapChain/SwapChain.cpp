@@ -2,12 +2,12 @@
 
 #include <cassert>
 
-#include "Window/Window.h"
-#include "Device/Device.h"
-#include "Command/Command.h"
-#include "ViewManagers/RTVManager/RTVManager.h"
-#include "Viewport/Viewport.h"
-#include "ScissorRect/ScissorRect.h"
+#include "Core/Window/Window.h"
+#include "Graphics/DirectX/Device/Device.h"
+#include "Graphics/DirectX/Command/Command.h"
+#include "Graphics/DirectX/ViewManagers/RTVManager/RTVManager.h"
+#include "Graphics/DirectX/Viewport/Viewport.h"
+#include "Graphics/DirectX/ScissorRect/ScissorRect.h"
 
 using namespace LGF;
 

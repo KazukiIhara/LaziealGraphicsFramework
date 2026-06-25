@@ -2,8 +2,8 @@
 
 #include <cassert>
 
-#include "DescriptorHeap/DescriptorHeapFactory.h"
-#include "Device/Device.h"
+#include "Graphics/DirectX/DescriptorHeap/DescriptorHeapFactory.h"
+#include "Graphics/DirectX/Device/Device.h"
 
 using namespace LGF;
 

@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 
-#include "Framework/System/IFrameworkSystem.h"
+#include "Core/Framework/System/IFrameworkSystem.h"
 
 namespace LGF {
 

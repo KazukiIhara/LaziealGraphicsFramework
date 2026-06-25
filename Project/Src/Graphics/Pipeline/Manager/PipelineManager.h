@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-#include "Pipeline/Factory/PipelineFactory.h"
+#include "Graphics/Pipeline/Factory/PipelineFactory.h"
 
 namespace LGF {
 

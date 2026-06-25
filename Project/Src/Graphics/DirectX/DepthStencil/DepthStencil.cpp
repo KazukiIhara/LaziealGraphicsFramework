@@ -2,8 +2,8 @@
 
 #include <cassert>
 
-#include "ViewManagers/DSVManager/DSVManager.h"
-#include "ResourceFactory/ResourceFactory.h"
+#include "Graphics/DirectX/ViewManagers/DSVManager/DSVManager.h"
+#include "Graphics/DirectX/ResourceFactory/ResourceFactory.h"
 
 using namespace LGF;
 

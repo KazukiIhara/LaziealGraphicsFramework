@@ -6,10 +6,10 @@
 #include <d3d12.h>
 #include <d3dcommon.h>
 
-#include "ComPtr/ComPtr.h"
+#include "Graphics/DirectX/ComPtr/ComPtr.h"
 
-#include "Pipeline/ShaderBlob.h"
-#include "Pipeline/RootParameterInfo.h"
+#include "Graphics/Pipeline/ShaderBlob.h"
+#include "Graphics/Pipeline/RootParameterInfo.h"
 
 namespace LGF {
 

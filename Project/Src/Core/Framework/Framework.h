@@ -5,8 +5,8 @@
 #include <vector>
 
 // Framework
-#include "Framework/System/IFrameworkSystem.h"
-#include "Framework/FrameworkContext.h"
+#include "Core/Framework/System/IFrameworkSystem.h"
+#include "Core/Framework/FrameworkContext.h"
 
 namespace LGF {
 	/// <summary>
@@ -15,7 +15,7 @@ namespace LGF {
 	class Framework {
 	public:
 		Framework();
-		~Framework() ;
+		~Framework();
 
 		bool Initialize();
 		bool Update();

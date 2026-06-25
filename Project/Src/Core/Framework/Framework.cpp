@@ -2,7 +2,7 @@
 
 #include <ranges>
 
-#include "Window/System/WindowSystem.h"
+#include "Core/Window/System/WindowSystem.h"
 #include "Graphics/System/GraphicsSystem.h"
 
 using namespace LGF;

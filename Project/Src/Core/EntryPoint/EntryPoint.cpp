@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "Logger/Logger.h"
-#include "Framework/Framework.h"
+#include "Core/Logger/Logger.h"
+#include "Core/Framework/Framework.h"
 
 
 #pragma comment(lib,"d3d12.lib")

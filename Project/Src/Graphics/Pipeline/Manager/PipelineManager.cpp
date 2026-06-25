@@ -3,8 +3,8 @@
 #include <cassert>
 #include <filesystem>
 
-#include "Pipeline/Pipeline.h"
-#include "DirectX/Core/DirectXCore.h"
+#include "Graphics/Pipeline/Pipeline.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
 
 using namespace LGF;
 

@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "Device/Device.h"
+#include "Graphics/DirectX/Device/Device.h"
 
 using namespace LGF;
 

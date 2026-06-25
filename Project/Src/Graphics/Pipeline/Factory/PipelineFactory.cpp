@@ -7,9 +7,9 @@
 #include <d3d12shader.h>
 #include <algorithm>
 
-#include "Pipeline/Pipeline.h"
-#include "DirectX/Core/DirectXCore.h"
-#include "DirectX/ShaderCompiler/ShaderCompiler.h"
+#include "Graphics/Pipeline/Pipeline.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
+#include "Graphics/DirectX/ShaderCompiler/ShaderCompiler.h"
 
 using namespace LGF;
 

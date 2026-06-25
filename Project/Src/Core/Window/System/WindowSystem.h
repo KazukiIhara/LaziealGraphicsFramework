@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Framework/System/IFrameworkSystem.h"
+#include "Core/Framework/System/IFrameworkSystem.h"
 
-#include "Window/Window.h"
+#include "Core/Window/Window.h"
 
 namespace LGF {
 	/// <summary>

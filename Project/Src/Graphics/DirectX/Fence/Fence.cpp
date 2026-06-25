@@ -2,8 +2,8 @@
 
 #include <cassert>
 
-#include "Device/Device.h"
-#include "Command/Command.h"
+#include "Graphics/DirectX/Device/Device.h"
+#include "Graphics/DirectX/Command/Command.h"
 
 using namespace LGF;
 

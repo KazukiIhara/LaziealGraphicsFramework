@@ -7,7 +7,7 @@
 #include <d3d12.h>
 #include <dxcapi.h>
 
-#include "ComPtr/ComPtr.h"
+#include "Graphics/DirectX/ComPtr/ComPtr.h"
 
 namespace LGF {
 

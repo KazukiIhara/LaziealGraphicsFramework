@@ -36,9 +36,6 @@ project "LaziealGraphicsFramework" -- プロジェクト名
    -- 追加のインクルードパス
    includedirs { 
        "../Src",
-       "../Src/Core",
-       "../Src/Graphics",
-       "../Src/Graphics/DirectX",
        "../Include",
        "../Externals",
 

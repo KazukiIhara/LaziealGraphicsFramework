@@ -1,10 +1,10 @@
 #include "Camera3DResource.h"
 
-#include "DirectX/Core/DirectXCore.h"
-#include "DirectX/Command/Command.h"
-#include "DirectX/ResourceFactory/ResourceFactory.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
+#include "Graphics/DirectX/Command/Command.h"
+#include "Graphics/DirectX/ResourceFactory/ResourceFactory.h"
 
-#include "Camera/Camera3D.h"
+#include "Graphics/Camera/Camera3D.h"
 
 #include "Math/Functions/MatrixMath.h"
 

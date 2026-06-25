@@ -2,8 +2,8 @@
 
 #include <cassert>
 
-#include "Camera/Camera3D.h"
-#include "Camera/Resource/Camera3DResource.h"
+#include "Graphics/Camera/Camera3D.h"
+#include "Graphics/Camera/Resource/Camera3DResource.h"
 
 using namespace LGF;
 

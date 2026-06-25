@@ -1,13 +1,13 @@
 #include "GraphicsSystem.h"
 
-#include "Framework/FrameworkContext.h"
-#include "Window/System/WindowSystem.h"
+#include "Core/Framework/FrameworkContext.h"
+#include "Core/Window/System/WindowSystem.h"
 
-#include "DirectX/Core/DirectXCore.h"
-#include "Pipeline/Manager/PipelineManager.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
+#include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
-#include "DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
+#include "Graphics/DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
 #include "Graphics/ImGui/ImGuiSystem.h"
 
 #include "Graphics/Graphics3DContext.h"
