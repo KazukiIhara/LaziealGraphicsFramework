@@ -7,7 +7,7 @@ using namespace LGF;
 Camera3D::Camera3D() {
 }
 
-Camera3D::Camera3D(Vector3 translation, float yaw, float pitch, const CameraParam& param) :
+Camera3D::Camera3D(Vector3 translation, float yaw, float pitch, const Param& param) :
 	translation(translation), yaw(yaw), pitch(pitch), param(param) {
 }
 

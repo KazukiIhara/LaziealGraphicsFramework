@@ -27,6 +27,7 @@ namespace LGF {
 		)const;
 
 	public:
+		// 頂点 左下→上→右下
 		std::array<Vector3, 3> vertices{
 			Vector3{ -1.0f, -1.0f, 0.0f },
 			Vector3{  0.0f,  1.0f, 0.0f },

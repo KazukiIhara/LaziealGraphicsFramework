@@ -12,7 +12,6 @@
 
 #include "LGF/Math/MathUtils.h"
 
-
 using namespace LGF;
 
 Renderer3D::Renderer3D(Graphics3DContext context) :

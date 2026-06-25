@@ -64,6 +64,7 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 
 bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 	Graphics3D::Internal::ResetRenderer();
+	Graphics3D::Internal::ResetCameraSystem();
 
 	for (auto& subSys : subsystems_) {
 		subSys->Finalize();

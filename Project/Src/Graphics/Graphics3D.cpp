@@ -7,7 +7,6 @@
 #include "Graphics/Renderer/Renderer3D.h"
 
 namespace {
-
 	LGF::Camera3DSystem* g_cameraSystem = nullptr;
 	LGF::Renderer3D* g_renderer = nullptr;
 }

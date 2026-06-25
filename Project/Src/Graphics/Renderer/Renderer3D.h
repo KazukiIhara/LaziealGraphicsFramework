@@ -12,10 +12,8 @@
 namespace LGF {
 
 	class IDrawer;
-
 	class TriangleDrawer3D;
 	class Triangle3D;
-
 
 	/// <summary>
 	/// 全3D描画をするクラス

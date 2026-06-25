@@ -6,27 +6,31 @@
 namespace LGF {
 
 	/// <summary>
-	/// カメラパラメータ
-	/// </summary>
-	struct CameraParam {
-		float fovY = 45.0f * Math::DEG_TO_RAD;
-		float aspectRatio = 16.0f / 9.0f;
-		float nearClip = 0.1f;
-		float farClip = 1000.0f;
-	};
-
-	/// <summary>
 	/// 3Dカメラ
 	/// </summary>
 	class Camera3D {
 	public:
+		/// <summary>
+		/// カメラパラメータ
+		/// </summary>
+		struct Param {
+			float fovY = 45.0f * Math::DEG_TO_RAD;
+			float aspectRatio = 16.0f / 9.0f;
+			float nearClip = 0.1f;
+			float farClip = 1000.0f;
+		};
+		/// <summary>
+		/// デフォルトの姿勢のカメラを作成
+		/// </summary>
 		Camera3D();
-
+		/// <summary>
+		/// 姿勢とパラメータを指定してカメラを作成
+		/// </summary>
 		Camera3D(
 			Vector3 translation,
 			float yaw = {},
 			float pitch = {},
-			const CameraParam& param = {});
+			const Param& param = {});
 
 		~Camera3D();
 
@@ -36,7 +40,7 @@ namespace LGF {
 		Vector3 translation{};
 		float yaw{};
 		float pitch{};
-		CameraParam param;
+		Param param{};
 	};
 
 }
