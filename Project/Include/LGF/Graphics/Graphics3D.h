@@ -11,8 +11,14 @@ namespace LGF {
 
 	namespace Graphics3D {
 
+		/// <summary>
+		/// 使用するカメラをセットする
+		/// </summary>
 		void SetCamera(const Camera3D& camera);
 
+		/// <summary>
+		/// 三角形描画
+		/// </summary>
 		void Draw(
 			const Triangle3D& triangle,
 			const Matrix4x4& worldMatrix,
