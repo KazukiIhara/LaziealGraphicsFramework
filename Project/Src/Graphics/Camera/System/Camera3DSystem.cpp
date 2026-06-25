@@ -16,8 +16,6 @@ Camera3DSystem::~Camera3DSystem() = default;
 bool Camera3DSystem::Initialize() {
 	// GPUリソース初期化
 	resource_->Initialize();
-	// カメラ初期化
-	camera_.Initialize();
 
 	return true;
 }
@@ -25,7 +23,6 @@ bool Camera3DSystem::Initialize() {
 void Camera3DSystem::BeginFrame() {
 	// カメラ初期化
 	camera_ = Camera3D();
-	camera_.Initialize();
 }
 
 void Camera3DSystem::EndFrame() {
