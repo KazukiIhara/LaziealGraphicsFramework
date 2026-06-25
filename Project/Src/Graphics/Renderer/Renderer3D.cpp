@@ -2,10 +2,10 @@
 
 #include <algorithm>
 
-#include "3d/Drawer/BaseDrawer/BaseDrawer3D.h"
+#include "Graphics/Drawer/IDrawer.h"
 #include "Pipeline/Manager/PipelineManager.h"
 
-#include "3d/Drawer/Primitive/Triangle/TriangleDrawer3D.h"
+#include "Graphics/Drawer/3D/Primitive/Triangle/TriangleDrawer3D.h"
 #include "LGF/Graphics/Triangle3D.h"
 
 #include "LGF/Graphics/Transform3D.h"

@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include "Graphics3DInternal.h"
-#include "3d/Renderer/Renderer3D.h"
+#include "Graphics/Renderer/Renderer3D.h"
 
 namespace {
 

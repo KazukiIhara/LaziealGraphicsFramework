@@ -5,13 +5,13 @@
 
 #include "DirectX/Core/DirectXCore.h"
 #include "Pipeline/Manager/PipelineManager.h"
-#include "3d/Camera/System/Camera3DSystem.h"
-#include "3d/Renderer/Renderer3D.h"
+#include "Graphics/Camera/System/Camera3DSystem.h"
+#include "Graphics/Renderer/Renderer3D.h"
 #include "DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
 #include "Graphics/ImGui/ImGuiSystem.h"
 
-#include "Graphics/3d/Graphics3DContext.h"
-#include "Graphics/3d/Graphics3DInternal.h"
+#include "Graphics/Graphics3DContext.h"
+#include "Graphics/Graphics3DInternal.h"
 
 using namespace LGF;
 

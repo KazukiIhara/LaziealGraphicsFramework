@@ -1,13 +1,12 @@
 #pragma once
 
-
 namespace LGF {
 	/// <summary>
-	/// 3D描画クラスのインターフェース
+	/// 描画クラスのインターフェース
 	/// </summary>
-	class IDrawer3D {
+	class IDrawer {
 	public:
-		virtual ~IDrawer3D() = default;
+		virtual ~IDrawer() = default;
 		virtual void Initialize() = 0;
 		virtual void EndFrame() = 0;
 	};

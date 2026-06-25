@@ -7,11 +7,11 @@
 
 #include "LGF/Math/MathTypes.h"
 
-#include "Graphics/3d/Graphics3DContext.h"
+#include "Graphics/Graphics3DContext.h"
 
 namespace LGF {
 
-	class IDrawer3D;
+	class IDrawer;
 
 	class TriangleDrawer3D;
 	class Triangle3D;
@@ -43,7 +43,7 @@ namespace LGF {
 		// 参照
 		Graphics3DContext context_;
 		// 全更新用リスト
-		std::vector<IDrawer3D*> drawerList_;
+		std::vector<IDrawer*> drawerList_;
 
 		// 描画クラス
 		std::unique_ptr<TriangleDrawer3D> triangleDrawer3D_;

@@ -9,7 +9,7 @@ void Main() {
 
 	while (System::Update()) {
 
-		Triangle3D{}.Draw(Math::MakeAffineMatrix(trans.scale, trans.rotation, trans.translation));
+		Triangle3D{}.Draw(Math::MakeAffineMatrix(trans.scale, trans.rotation, trans.translation), Color::Violet);
 	}
 
 }

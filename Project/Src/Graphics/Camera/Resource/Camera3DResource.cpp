@@ -4,7 +4,7 @@
 #include "DirectX/Command/Command.h"
 #include "DirectX/ResourceFactory/ResourceFactory.h"
 
-#include "3d/Camera/Camera3D.h"
+#include "Camera/Camera3D.h"
 
 #include "Math/Functions/MatrixMath.h"
 

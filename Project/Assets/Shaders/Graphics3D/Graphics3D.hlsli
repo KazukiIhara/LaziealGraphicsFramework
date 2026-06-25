@@ -19,5 +19,5 @@ struct CameraData
 struct MSOutput
 {
     float4 position : SV_Position;
-    nointerpolation float4 baseColor : COLOR0;
+    float4 baseColor : COLOR0;
 };

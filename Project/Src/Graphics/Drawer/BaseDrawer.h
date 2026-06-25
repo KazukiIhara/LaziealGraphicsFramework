@@ -1,35 +1,22 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
 #include <d3d12.h>
 
 #include "ComPtr/ComPtr.h"
 
-#include "3d/Drawer/IDrawer3D.h"
-
-#include "LGF/Math/Vector4.h"
-#include "LGF/Math/Matrix4x4.h"
-
-#include "3d/Graphics3DContext.h"
+#include "IDrawer.h"
 
 namespace LGF {
 
+	class DirectXCore;
+	class PipelineManager;
 	class Pipeline;
 
 	/// <summary>
-	/// インスタンシング描画用の構造体
+	/// 汎用描画基底クラス
 	/// </summary>
-	struct InstanceData3D {
-		Matrix4x4 worldMatrix;
-		Matrix4x4 worldInverseTranspose;
-		Vector4 baseColor;
-	};
-
-	/// <summary>
-	/// 3D描画基底クラス
-	/// </summary>
-	class BaseDrawer3D :public IDrawer3D {
+	class BaseDrawer :public IDrawer {
 	protected:
 		struct InitParam {
 			uint32_t numMaxInstance;
@@ -37,8 +24,8 @@ namespace LGF {
 			void** instData;
 		};
 	public:
-		BaseDrawer3D(Graphics3DContext context);
-		virtual ~BaseDrawer3D();
+		BaseDrawer(DirectXCore& directX, PipelineManager& pipelineMgr);
+		virtual ~BaseDrawer()override;
 
 		/// <summary>
 		/// 描画クラス固有の初期化処理
@@ -51,11 +38,6 @@ namespace LGF {
 		virtual void EndFrame()override = 0;
 
 	protected:
-		/// <summary>
-		/// 参照メンバ構造体を取得
-		/// </summary>
-		Graphics3DContext GetContext() const;
-
 		/// <summary>
 		/// パイプラインを取得
 		/// </summary>
@@ -93,8 +75,9 @@ namespace LGF {
 		uint32_t numMaxInstance_{};
 
 	private:
-		Graphics3DContext context_;
+		DirectXCore& directX_;
+		PipelineManager& pipelineMgr_;
+
 		Pipeline* pipeline_ = nullptr;
 	};
-
 }

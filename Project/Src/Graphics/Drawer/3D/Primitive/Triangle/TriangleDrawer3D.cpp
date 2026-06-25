@@ -4,7 +4,7 @@
 
 #include "DirectX/Core/DirectXCore.h"
 #include "Pipeline/Manager/PipelineManager.h"
-#include "3d/Camera/System/Camera3DSystem.h"
+#include "Graphics/Camera/System/Camera3DSystem.h"
 #include "DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
 
 #include "Pipeline/Pipeline.h"
@@ -19,12 +19,12 @@ TriangleDrawer3D::~TriangleDrawer3D() = default;
 
 void TriangleDrawer3D::Initialize() {
 	// Drawer初期化
-	BaseDrawer3D::InitParam initParam{
+	BaseDrawer::InitParam initParam{
 		4096,
 		sizeof(Triangle3DForGPU),
 		reinterpret_cast<void**>(&instanceData_)
 	};
-	BaseDrawer3D::Initialize(initParam);
+	BaseDrawer::Initialize(initParam);
 
 	// パイプラインマネージャからパイプラインを取得
 	SetPipeline(GetContext().pipelineMgr.GetPipeline("Triangle3D"));
