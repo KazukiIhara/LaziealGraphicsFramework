@@ -12,6 +12,8 @@
 namespace LGF {
 
 	class IDrawer;
+	class TriangleDrawer2D;
+	class Triangle2D;
 
 	/// <summary>
 	/// 全2D描画をするクラス
@@ -35,6 +37,8 @@ namespace LGF {
 		std::vector<IDrawer*> drawerList_;
 
 		// 描画クラス
+		std::unique_ptr<TriangleDrawer2D> triangleDrawer_ = nullptr;
+
 
 	};
 }

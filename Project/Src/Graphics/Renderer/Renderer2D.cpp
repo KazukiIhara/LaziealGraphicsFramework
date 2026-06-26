@@ -3,6 +3,8 @@
 #include "Graphics/Drawer/IDrawer.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 
+#include "Graphics/Drawer/2D/Primitive/Triangle/TriangleDrawer2D.h"
+#include "LGF/Graphics/Triangle2D.h"
 
 #include "LGF/Math/MathUtils.h"
 

@@ -6,8 +6,6 @@
 
 namespace LGF {
 
-	class DirectXCore;
-
 	/// <summary>
 	/// GPUに送る3D三角形データ
 	/// </summary>

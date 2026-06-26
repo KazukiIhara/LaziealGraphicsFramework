@@ -47,7 +47,7 @@ namespace LGF {
 		/// </summary>
 		Graphics3DContext GetContext() const;
 
-	protected:
+	private:
 		Graphics3DContext context_;
 	};
 
