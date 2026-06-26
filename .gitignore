@@ -17,6 +17,7 @@
 
 # Build results
 *.sln
+*.slnx
 Project/*.vcxproj
 Project/*.filters
 Project/Logs/

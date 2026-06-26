@@ -1,6 +1,5 @@
 #include "LGF/Graphics/Triangle3D.h"
 #include "LGF/Graphics/Graphics3D.h"
-#include "LGF/Math/Matrix4x4.h"
 
 using namespace LGF;
 

@@ -26,3 +26,7 @@ uint32_t LGF::Graphics2D::GetWindowWidth() {
 uint32_t LGF::Graphics2D::GetWindowHeight() {
 	return g_windowSystem->GetWindow().GetWndSetting().wndSize.height;
 }
+
+void LGF::Graphics2D::Draw(const Triangle2D& triangle, const Matrix3x3& worldMatrix, const Vector4& color) {
+	
+}

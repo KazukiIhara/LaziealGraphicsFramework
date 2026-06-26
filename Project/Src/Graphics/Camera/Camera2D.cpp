@@ -18,6 +18,10 @@ Camera2D::Camera2D() {
 	};
 }
 
+Camera2D::Camera2D(Vector2 translation, float rotation, Vector2 size) :
+	translation(translation), rotation(rotation), size(size) {
+}
+
 Camera2D::~Camera2D() = default;
 
 void Camera2D::Set() const {
