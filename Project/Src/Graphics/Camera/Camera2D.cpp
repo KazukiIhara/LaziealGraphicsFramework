@@ -25,4 +25,5 @@ Camera2D::Camera2D(Vector2 translation, float rotation, Vector2 size) :
 Camera2D::~Camera2D() = default;
 
 void Camera2D::Set() const {
+	Graphics2D::SetCamera(*this);
 }

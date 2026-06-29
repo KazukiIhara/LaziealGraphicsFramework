@@ -23,7 +23,7 @@ namespace LGF {
 	};
 
 	/// <summary>
-	/// GPUに送るカメラリソースを持つクラス
+	/// GPUに送る3Dカメラリソースを持つクラス
 	/// </summary>
 	class Camera3DResource {
 	public:
@@ -31,7 +31,6 @@ namespace LGF {
 		~Camera3DResource();
 
 		void Initialize();
-
 		void Update(const Camera3D& camera);
 
 		void Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);

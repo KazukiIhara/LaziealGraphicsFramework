@@ -1,8 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
-#include <map>
 #include <memory>
 
 #include <d3d12.h>

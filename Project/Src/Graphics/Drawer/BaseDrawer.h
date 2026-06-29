@@ -39,6 +39,11 @@ namespace LGF {
 
 	protected:
 		/// <summary>
+		/// インスタンスの数が不正でないか確認して返す
+		/// </summary>
+		uint32_t CheckIntstanceCount();
+
+		/// <summary>
 		/// パイプラインを取得
 		/// </summary>
 		Pipeline* GetPipeline();

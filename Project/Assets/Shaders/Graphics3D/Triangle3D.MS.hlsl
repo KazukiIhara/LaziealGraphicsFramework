@@ -4,7 +4,6 @@ struct TriangleData
 {
     InstanceData instData;
     float3 vertexOffsets[3];
-    float padding;
 };
 
 ConstantBuffer<CameraData> gCamera : register(b0);

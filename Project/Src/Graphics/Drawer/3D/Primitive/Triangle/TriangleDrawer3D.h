@@ -12,7 +12,6 @@ namespace LGF {
 	struct Triangle3DForGPU {
 		InstanceData3D instance;
 		Vector3 vertexOffsets[3];
-		float padding;
 	};
 
 	/// <summary>

@@ -44,7 +44,7 @@ namespace LGF {
 		std::vector<IDrawer*> drawerList_;
 
 		// 描画クラス
-		std::unique_ptr<TriangleDrawer3D> triangleDrawer3D_;
+		std::unique_ptr<TriangleDrawer3D> triangleDrawer_;
 	};
 
 }

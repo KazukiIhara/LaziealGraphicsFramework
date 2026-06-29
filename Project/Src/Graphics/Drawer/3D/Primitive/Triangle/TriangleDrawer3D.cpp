@@ -32,13 +32,8 @@ void TriangleDrawer3D::Initialize() {
 }
 
 void TriangleDrawer3D::EndFrame() {
-	// インスタンスカウント計測
-	assert(currentIndex_ <= numMaxInstance_);
-	instanceCount_ = currentIndex_;
-	currentIndex_ = 0;
-
-	// 描画数が0なら描画しない
-	if (instanceCount_ == 0) {
+	// インスタンスの数が0なら描画しない
+	if (CheckIntstanceCount() == 0) {
 		return;
 	}
 

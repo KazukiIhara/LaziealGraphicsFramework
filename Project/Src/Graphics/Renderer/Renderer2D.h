@@ -30,6 +30,13 @@ namespace LGF {
 
 		// 各Drawerに描画コマンドを積む関数群
 
+		// 三角形描画
+		void AddTriangle(
+			const Triangle2D& triangle,
+			const Matrix3x3& worldMatrix,
+			const Vector4& color
+		);
+
 	private:
 		// 参照
 		Graphics2DContext context_;

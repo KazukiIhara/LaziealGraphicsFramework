@@ -26,7 +26,7 @@ namespace LGF {
 			const Vector4& color = Color::White
 		)const;
 
-	private:
+	public:
 		// 頂点 左下→上→右下
 		std::array<Vector2, 3> vertices{
 			Vector2{-50.0f,-50.0f},

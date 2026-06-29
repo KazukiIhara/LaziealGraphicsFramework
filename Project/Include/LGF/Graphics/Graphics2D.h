@@ -24,6 +24,11 @@ namespace LGF {
 		uint32_t GetWindowHeight();
 
 		/// <summary>
+		/// 使用するカメラをセットする
+		/// </summary>
+		void SetCamera(const Camera2D& camera);
+
+		/// <summary>
 		/// 三角形描画
 		/// </summary>
 		void Draw(

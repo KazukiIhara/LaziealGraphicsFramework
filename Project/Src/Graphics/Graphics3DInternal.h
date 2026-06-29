@@ -7,11 +7,11 @@ namespace LGF {
 
 	namespace Graphics3D::Internal {
 
-		void SetCameraSystem(Camera3DSystem* cameraSystem);
-		void ResetCameraSystem();
+		void SetCamera3DSystem(Camera3DSystem* cameraSystem);
+		void ResetCamera3DSystem();
 
-		void SetRenderer(Renderer3D* renderer);
-		void ResetRenderer();
+		void SetRenderer3D(Renderer3D* renderer);
+		void ResetRenderer3D();
 
 	}
 

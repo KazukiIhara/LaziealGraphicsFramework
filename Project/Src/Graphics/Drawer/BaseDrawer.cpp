@@ -1,5 +1,7 @@
 #include "BaseDrawer.h"
 
+#include <cassert>
+
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/DirectX/ResourceFactory/ResourceFactory.h"
 #include "Graphics/DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
@@ -11,6 +13,16 @@ BaseDrawer::BaseDrawer(DirectXCore& directX, PipelineManager& pipelineMgr) :
 }
 
 BaseDrawer::~BaseDrawer() = default;
+
+uint32_t BaseDrawer::CheckIntstanceCount() {
+	// インスタンスカウント計測
+	assert(currentIndex_ <= numMaxInstance_);
+	instanceCount_ = currentIndex_;
+	currentIndex_ = 0;
+
+	// インスタンスの数を返す
+	return instanceCount_;
+}
 
 Pipeline* BaseDrawer::GetPipeline() {
 	return pipeline_;
