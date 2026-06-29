@@ -14,13 +14,13 @@
   },
 
   "Blend": {
-    "Mode": "None"
+    "Mode": "Normal"
   },
 
   "Depth": {
-    "Enable": true,
-    "Write": true,
-    "Func": "LessEqual"
+    "Enable": false,
+    "Write": false,
+    "Func": "Always"
   },
 
   "RenderTarget": {
