@@ -1,0 +1,37 @@
+{
+  "Name": "Triangle2D",
+
+  "PipelineKind": "MeshGraphics",
+
+  "Shaders": {
+    "MS": "Graphics2D/Triangle2D.MS.hlsl",
+    "PS": "Graphics2D/Primitive2D.PS.hlsl"
+  },
+
+  "Rasterizer": {
+    "CullMode": "Back",
+    "FillMode": "Solid"
+  },
+
+  "Blend": {
+    "Mode": "None"
+  },
+
+  "Depth": {
+    "Enable": true,
+    "Write": true,
+    "Func": "LessEqual"
+  },
+
+  "RenderTarget": {
+    "Formats": [
+      "R8G8B8A8_UNORM_SRGB"
+    ]
+  },
+
+  "DepthStencil": {
+    "Format": "D24_UNORM_S8_UINT"
+  },
+
+  "PrimitiveTopology": "Triangle"
+}
