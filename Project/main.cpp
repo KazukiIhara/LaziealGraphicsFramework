@@ -8,11 +8,9 @@ void Main() {
 
 	while (System::Update()) {
 
-		Camera3D(Vector3(1.0f, 0.0f, -5.0f)).Set();
+		Camera3D(Vector3(1.0f, 0.0f, -5.0f)).SetScene();
 
-		Triangle3D().Draw(
-			Math::MakeAffineMatrix(trans.scale, trans.rotation, trans.translation),
-			Color::Violet);
+		Triangle3D().Draw(Math::MakeAffineMatrix(trans.scale, trans.rotation, trans.translation), Color::Violet);
 
 	}
 

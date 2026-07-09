@@ -34,7 +34,7 @@ namespace LGF {
 
 		~Camera3D();
 
-		void Set()const;
+		void SetScene()const;
 
 	public:
 		Vector3 translation{};

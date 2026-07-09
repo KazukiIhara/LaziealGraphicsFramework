@@ -13,6 +13,6 @@ Camera3D::Camera3D(Vector3 translation, float yaw, float pitch, const Param& par
 
 Camera3D::~Camera3D() = default;
 
-void Camera3D::Set() const {
+void Camera3D::SetScene() const {
 	Graphics3D::SetCamera(*this);
 }
