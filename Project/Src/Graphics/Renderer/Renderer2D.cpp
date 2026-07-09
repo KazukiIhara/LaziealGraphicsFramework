@@ -23,7 +23,7 @@ bool Renderer2D::Initialize() {
 	// 更新用リストに追加
 	drawerList_.push_back(triangleDrawer_.get());
 
-	return false;
+	return true;
 }
 
 void Renderer2D::BeginFrame() {

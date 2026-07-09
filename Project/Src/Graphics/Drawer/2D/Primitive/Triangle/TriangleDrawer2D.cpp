@@ -5,7 +5,7 @@
 
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
-#include "Graphics/Camera/System/Camera3DSystem.h"
+#include "Graphics/Camera/System/Camera2DSystem.h"
 #include "Graphics/DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
 
 #include "Graphics/Pipeline/Pipeline.h"
@@ -28,7 +28,8 @@ void TriangleDrawer2D::Initialize() {
 	BaseDrawer::Initialize(initParam);
 
 	// パイプラインマネージャからパイプラインを取得
-
+	SetPipeline(GetContext().pipelineMgr.GetPipeline("Triangle2D"));
+	assert(GetPipeline() != nullptr);
 }
 
 void TriangleDrawer2D::EndFrame() {
@@ -37,6 +38,21 @@ void TriangleDrawer2D::EndFrame() {
 		return;
 	}
 
+	// コマンドリスト取得
+	ID3D12GraphicsCommandList6* commandList = GetContext().directX.GetCommandList6();
+
+	// ルートシグネイチャとパイプラインステート設定
+	commandList->SetGraphicsRootSignature(GetPipeline()->GetRootSignature());
+	commandList->SetPipelineState(GetPipeline()->GetPipelineState());
+
+	// カメラバインド
+	GetContext().cameraSys.Bind(commandList, GetPipeline()->GetRootIndex("gCamera"));
+
+	// インスタンシングリソースバインド
+	commandList->SetGraphicsRootDescriptorTable(GetPipeline()->GetRootIndex("gTriangle"), GetContext().directX.GetResMgr().srvuav->GetGPUDescriptorHandle(instanceSrvIndex_));
+
+	// インスタンシング描画実行
+	commandList->DispatchMesh(instanceCount_, 1, 1);
 }
 
 void TriangleDrawer2D::AddTriangle(const Triangle2DForGPU& data) {

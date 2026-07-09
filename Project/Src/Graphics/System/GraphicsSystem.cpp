@@ -7,11 +7,15 @@
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
+#include "Graphics/Camera/System/Camera2DSystem.h"
+#include "Graphics/Renderer/Renderer2D.h"
 #include "Graphics/DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
 #include "Graphics/ImGui/ImGuiSystem.h"
 
 #include "Graphics/Graphics3DContext.h"
 #include "Graphics/Graphics3DInternal.h"
+#include "Graphics/Graphics2DContext.h"
+#include "Graphics/Graphics2DInternal.h"
 
 using namespace LGF;
 
@@ -52,6 +56,28 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	// サブシステムリストに追加
 	subsystems_.push_back(renderer3D_.get());
 
+	// Windowシステムをセット
+	Graphics2D::Internal::SetWindowSystem(context.window);
+	// 2Dカメラシステム初期化
+	camera2DSystem_ = std::make_unique<Camera2DSystem>(*directX_);
+	camera2DSystem_->Initialize();
+	Graphics2D::Internal::SetCamera2DSystem(camera2DSystem_.get());
+	// サブシステムリストに追加
+	subsystems_.push_back(camera2DSystem_.get());
+
+	// 2Dレンダラークラス初期化
+	Graphics2DContext graphics2DContext{
+		*directX_,
+		*pipelineManager_,
+		*camera2DSystem_
+	};
+	renderer2D_ = std::make_unique<Renderer2D>(graphics2DContext);
+	if (!renderer2D_->Initialize()) {
+		return false;
+	}
+	Graphics2D::Internal::SetRenderer2D(renderer2D_.get());
+	// サブシステムリストに追加
+	subsystems_.push_back(renderer2D_.get());
 
 	// ImGuiシステムクラス初期化
 	imguiSystem_ = std::make_unique<ImGuiSystem>(*directX_, context.window->GetWindow());
@@ -66,12 +92,18 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 	Graphics3D::Internal::ResetRenderer3D();
 	Graphics3D::Internal::ResetCamera3DSystem();
 
+	Graphics2D::Internal::ResetWindowSystem();
+	Graphics2D::Internal::ResetRenderer2D();
+	Graphics2D::Internal::ResetCamera2DSystem();
+
 	for (auto& subSys : subsystems_) {
 		subSys->Finalize();
 	}
 	pipelineManager_->Finalize();
 	directX_->Finalize();
 
+	renderer2D_.reset();
+	camera2DSystem_.reset();
 	renderer3D_.reset();
 	camera3DSystem_.reset();
 	pipelineManager_.reset();
