@@ -303,6 +303,31 @@ namespace LGF::Math {
 		return result;
 	}
 
+	Matrix4x4 ConvertMatrix4x4(const Matrix3x3& m) {
+		Matrix4x4 result = Identity4x4();
+
+		result.m[0][0] = m.m[0][0];
+		result.m[0][1] = m.m[0][1];
+		result.m[0][3] = m.m[0][2];
+
+		result.m[1][0] = m.m[1][0];
+		result.m[1][1] = m.m[1][1];
+		result.m[1][3] = m.m[1][2];
+
+		result.m[3][0] = m.m[2][0];
+		result.m[3][1] = m.m[2][1];
+		result.m[3][3] = m.m[2][2];
+
+		return result;
+	}
+
+	Vector2 ExtractTranslation(const Matrix3x3& matrix) {
+		return {
+			matrix.m[2][0],
+			matrix.m[2][1]
+		};
+	}
+
 	Vector3 ExtractTranslation(const Matrix4x4& matrix) {
 		return {
 			matrix.m[3][0],

@@ -6,6 +6,15 @@
 
 namespace LGF::Math {
 
+	Matrix3x3 MakeScaleMatrix(const Vector2& scale) {
+		Matrix3x3 result = Identity3x3();
+
+		result.m[0][0] = scale.x;
+		result.m[1][1] = scale.y;
+
+		return result;
+	}
+
 	Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
 		Matrix4x4 result = Identity4x4();
 
@@ -16,12 +25,35 @@ namespace LGF::Math {
 		return result;
 	}
 
+	Matrix3x3 MakeTranslateMatrix(const Vector2& translation) {
+		Matrix3x3 result = Identity3x3();
+
+		result.m[2][0] = translation.x;
+		result.m[2][1] = translation.y;
+
+		return result;
+	}
+
 	Matrix4x4 MakeTranslateMatrix(const Vector3& translation) {
 		Matrix4x4 result = Identity4x4();
 
 		result.m[3][0] = translation.x;
 		result.m[3][1] = translation.y;
 		result.m[3][2] = translation.z;
+
+		return result;
+	}
+
+	Matrix3x3 MakeRotateMatrix(float rad) {
+		Matrix3x3 result = Identity3x3();
+
+		const float sin = std::sin(rad);
+		const float cos = std::cos(rad);
+
+		result.m[0][0] = cos;
+		result.m[0][1] = sin;
+		result.m[1][0] = -sin;
+		result.m[1][1] = cos;
 
 		return result;
 	}
@@ -89,6 +121,18 @@ namespace LGF::Math {
 		result.m[2][2] = 1.0f - 2.0f * x * x - 2.0f * y * y;
 
 		return result;
+	}
+
+	Matrix3x3 MakeAffineMatrix(
+		const Vector2& scale,
+		float rotation,
+		const Vector2& translation) {
+
+		const Matrix3x3 scaleMatrix = MakeScaleMatrix(scale);
+		const Matrix3x3 rotateMatrix = MakeRotateMatrix(rotation);
+		const Matrix3x3 translateMatrix = MakeTranslateMatrix(translation);
+
+		return Multiply(Multiply(scaleMatrix, rotateMatrix), translateMatrix);
 	}
 
 	Matrix4x4 MakeAffineMatrix(

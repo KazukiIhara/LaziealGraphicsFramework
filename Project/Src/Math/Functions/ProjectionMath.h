@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LGF/Math/Matrix3x3.h"
 #include "LGF/Math/Matrix4x4.h"
 
 namespace LGF::Math {
@@ -10,6 +11,13 @@ namespace LGF::Math {
 		float aspectRatio,
 		float nearClip,
 		float farClip);
+
+	// 正射影
+	Matrix3x3 MakeOrthographicMatrix(
+		float left,
+		float top,
+		float right,
+		float bottom);
 
 	// 正射影
 	Matrix4x4 MakeOrthographicMatrix(

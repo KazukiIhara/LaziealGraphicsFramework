@@ -2,18 +2,18 @@
 
 struct TriangleData
 {
-    InstanceData instData;
+    InstanceData3D instData;
     float3 vertexOffsets[3];
 };
 
-ConstantBuffer<CameraData> gCamera : register(b0);
+ConstantBuffer<CameraData3D> gCamera : register(b0);
 StructuredBuffer<TriangleData> gTriangle : register(t0);
 
 [outputtopology("triangle")]
 [numthreads(1, 1, 1)]
 void main(
     uint3 DTid : SV_DispatchThreadID,
-    out vertices MSOutput vertices[3],
+    out vertices MSOutput3D vertices[3],
     out indices uint3 triangles[1])
 {
     // 三角形1枚分を出力

@@ -1,6 +1,6 @@
 
 // インスタンシング描画用のデータ
-struct InstanceData
+struct InstanceData3D
 {
     float4x4 worldMatrix;
     float4x4 worldInverseTranspose;
@@ -8,7 +8,7 @@ struct InstanceData
 };
 
 // カメラデータ
-struct CameraData
+struct CameraData3D
 {
     float4x4 viewProj;
     float3 worldPos;
@@ -16,7 +16,7 @@ struct CameraData
 };
 
 // MSからPSに渡す構造体
-struct MSOutput
+struct MSOutput3D
 {
     float4 position : SV_Position;
     float4 baseColor : COLOR0;

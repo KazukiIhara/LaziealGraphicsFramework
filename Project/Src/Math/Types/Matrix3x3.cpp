@@ -84,6 +84,21 @@ namespace LGF {
 		return result;
 	}
 
+	Matrix3x3 operator*(const Matrix3x3& m1, const Matrix3x3& m2) {
+		Matrix3x3 result{};
+
+		for (int y = 0; y < 3; ++y) {
+			for (int x = 0; x < 3; ++x) {
+				result.m[y][x] =
+					m1.m[y][0] * m2.m[0][x] +
+					m1.m[y][1] * m2.m[1][x] +
+					m1.m[y][2] * m2.m[2][x];
+			}
+		}
+
+		return result;
+	}
+
 	Matrix3x3 operator*(const Matrix3x3& mat, float s) {
 		Matrix3x3 result{};
 

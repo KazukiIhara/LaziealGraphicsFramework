@@ -13,5 +13,5 @@ Triangle2D::Triangle2D(const Vector2& v0, const Vector2& v1, const Vector2& v2) 
 Triangle2D::~Triangle2D() = default;
 
 void Triangle2D::Draw(const Matrix3x3& worldMatrix, const Vector4& color) const {
-
+	Graphics2D::Draw(*this, worldMatrix, color);
 }

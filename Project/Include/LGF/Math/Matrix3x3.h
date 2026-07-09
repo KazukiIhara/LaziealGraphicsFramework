@@ -19,6 +19,7 @@ namespace LGF {
 
 	Matrix3x3 operator+(const Matrix3x3& m1, const Matrix3x3& m2);
 	Matrix3x3 operator-(const Matrix3x3& m1, const Matrix3x3& m2);
+	Matrix3x3 operator*(const Matrix3x3& m1, const Matrix3x3& m2);
 	Matrix3x3 operator*(const Matrix3x3& m, float s);
 	Matrix3x3 operator*(float s, const Matrix3x3& m);
 	Matrix3x3 operator/(const Matrix3x3& m, float s);

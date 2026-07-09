@@ -26,7 +26,7 @@ namespace LGF {
 
 		~Camera2D();
 
-		void Set()const;
+		void SetScene()const;
 
 	public:
 		Vector2 translation{};
