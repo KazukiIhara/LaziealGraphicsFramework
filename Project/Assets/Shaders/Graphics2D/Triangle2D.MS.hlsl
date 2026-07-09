@@ -25,7 +25,7 @@ void main(
     for (uint i = 0; i < 3; ++i)
     {
         // 頂点を変換
-        float4 localPos = float4(tri.vertexOffsets[i], 0.0f, 1.0f);
+        float4 localPos = float4(tri.vertexOffsets[i].xy, 0.0f, 1.0f);
         float4 worldPos = mul(localPos, tri.instData.worldMatrix);
         vertices[i].position = mul(worldPos, gCamera.viewProj);
 

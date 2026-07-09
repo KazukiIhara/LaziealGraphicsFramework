@@ -8,7 +8,7 @@
 #include "Graphics/Drawer/BaseDrawer.h"
 
 #include "LGF/Math/Vector4.h"
-#include "LGF/Math/Matrix3x3.h"
+#include "LGF/Math/Matrix4x4.h"
 
 #include "Graphics/Graphics2DContext.h"
 
@@ -18,7 +18,7 @@ namespace LGF {
 	/// 2Dインスタンシング描画用の構造体
 	/// </summary>
 	struct InstanceData2D {
-		Matrix3x3 worldMatrix;
+		Matrix4x4 worldMatrix;
 		Vector4 baseColor;
 	};
 

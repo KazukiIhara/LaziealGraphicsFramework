@@ -42,7 +42,7 @@ void Renderer2D::Finalize() {
 void Renderer2D::AddTriangle(const Triangle2D& triangle, const Matrix3x3& worldMatrix, const Vector4& color) {
 	Triangle2DForGPU data{};
 
-	data.instance.worldMatrix = worldMatrix;
+	data.instance.worldMatrix = Math::ConvertMatrix4x4(worldMatrix);
 
 	data.instance.baseColor = color;
 

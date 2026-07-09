@@ -13,8 +13,8 @@ Camera2D::Camera2D() {
 		static_cast<float>(windowHeight)
 	};
 	translation = {
-		size.x * 0.5f,
-		size.y * 0.5f
+		0.0f,
+		0.0f
 	};
 }
 

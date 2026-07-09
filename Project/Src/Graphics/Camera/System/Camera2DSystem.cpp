@@ -17,7 +17,7 @@ bool Camera2DSystem::Initialize() {
 	// GPUリソース初期化
 	resource_->Initialize();
 
-	return false;
+	return true;
 }
 
 void Camera2DSystem::BeginFrame() {
