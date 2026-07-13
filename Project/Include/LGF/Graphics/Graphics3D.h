@@ -9,6 +9,7 @@ namespace LGF {
 
 	class Camera3D;
 
+	class Plane3D;
 	class Triangle3D;
 
 	namespace Graphics3D {
@@ -26,6 +27,12 @@ namespace LGF {
 		/// </summary>
 		void Draw(
 			const Triangle3D& triangle,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color = Color::White
+		);
+
+		void Draw(
+			const Plane3D& plane,
 			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
 		);

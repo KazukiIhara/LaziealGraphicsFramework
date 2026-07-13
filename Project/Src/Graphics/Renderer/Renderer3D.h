@@ -12,7 +12,9 @@
 namespace LGF {
 
 	class IDrawer;
+	class PlaneDrawer3D;
 	class TriangleDrawer3D;
+	class Plane3D;
 	class Triangle3D;
 
 	/// <summary>
@@ -37,6 +39,12 @@ namespace LGF {
 			const Vector4& color
 		);
 
+		void AddPlane(
+			const Plane3D& plane,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color
+		);
+
 	private:
 		// 参照
 		Graphics3DContext context_;
@@ -44,6 +52,7 @@ namespace LGF {
 		std::vector<IDrawer*> drawerList_;
 
 		// 描画クラス
+		std::unique_ptr<PlaneDrawer3D> planeDrawer_;
 		std::unique_ptr<TriangleDrawer3D> triangleDrawer_;
 	};
 

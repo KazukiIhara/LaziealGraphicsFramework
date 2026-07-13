@@ -61,3 +61,12 @@ void LGF::Graphics3D::Draw(const Triangle3D& triangle, const Matrix4x4& worldMat
 		color
 	);
 }
+
+void LGF::Graphics3D::Draw(const Plane3D& plane, const Matrix4x4& worldMatrix, const Vector4& color) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddPlane(
+		plane,
+		worldMatrix,
+		color
+	);
+}
