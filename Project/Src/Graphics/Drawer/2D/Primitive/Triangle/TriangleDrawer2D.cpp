@@ -46,7 +46,6 @@ void TriangleDrawer2D::EndFrame() {
 	commandList->SetPipelineState(GetPipeline()->GetPipelineState());
 
 	// カメラバインド
-	GetContext().cameraSys.Bind(commandList, GetPipeline()->GetRootIndex("gCamera"));
 
 	// インスタンシングリソースバインド
 	commandList->SetGraphicsRootDescriptorTable(GetPipeline()->GetRootIndex("gTriangle"), GetContext().directX.GetResMgr().srvuav->GetGPUDescriptorHandle(instanceSrvIndex_));

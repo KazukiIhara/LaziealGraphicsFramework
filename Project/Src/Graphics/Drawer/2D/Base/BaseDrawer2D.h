@@ -18,7 +18,6 @@ namespace LGF {
 	/// 2Dインスタンシング描画用の構造体
 	/// </summary>
 	struct InstanceData2D {
-		Matrix4x4 worldMatrix;
 		Vector4 baseColor;
 	};
 

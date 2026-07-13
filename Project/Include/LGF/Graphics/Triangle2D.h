@@ -21,17 +21,14 @@ namespace LGF {
 
 		~Triangle2D();
 
-		void Draw(
-			const Matrix3x3& worldMatrix,
-			const Vector4& color = Color::White
-		)const;
+		void Draw(const Vector4& color = Color::White)const;
 
 	public:
-		// 頂点 左下→上→右下
+		// 頂点 上→右下→左下(時計回り)
 		std::array<Vector2, 3> vertices{
-			Vector2{-50.0f,50.0f},
-			Vector2{0.0f,-50.0f},
-			Vector2{50.0f,50.0f}
+			Vector2{50.0f,0.0f},
+			Vector2{100.0f,100.0f},
+			Vector2{0.0f,100.0f}
 		};
 	};
 

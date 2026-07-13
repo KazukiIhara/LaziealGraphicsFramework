@@ -33,7 +33,6 @@ namespace LGF {
 		// 三角形描画
 		void AddTriangle(
 			const Triangle2D& triangle,
-			const Matrix3x3& worldMatrix,
 			const Vector4& color
 		);
 

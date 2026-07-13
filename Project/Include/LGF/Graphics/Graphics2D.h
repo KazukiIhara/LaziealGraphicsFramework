@@ -33,7 +33,6 @@ namespace LGF {
 		/// </summary>
 		void Draw(
 			const Triangle2D& triangle,
-			const Matrix3x3& worldMatrix,
 			const Vector4& color= Color::White
 		);
 

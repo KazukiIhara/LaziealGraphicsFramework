@@ -4,11 +4,24 @@
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 
 #include "Graphics/Drawer/2D/Primitive/Triangle/TriangleDrawer2D.h"
+#include "LGF/Graphics/Graphics2D.h"
 #include "LGF/Graphics/Triangle2D.h"
 
-#include "LGF/Math/MathUtils.h"
-
 using namespace LGF;
+
+namespace {
+
+	Vector2 ToClipSpace(const Vector2& screenPosition) {
+		const float width = static_cast<float>(Graphics2D::GetWindowWidth());
+		const float height = static_cast<float>(Graphics2D::GetWindowHeight());
+
+		return {
+			(screenPosition.x / width) * 2.0f - 1.0f,
+			1.0f - (screenPosition.y / height) * 2.0f
+		};
+	}
+
+}
 
 Renderer2D::Renderer2D(Graphics2DContext context) :
 	context_(context) {
@@ -39,17 +52,14 @@ void Renderer2D::Finalize() {
 	triangleDrawer_.reset();
 }
 
-void Renderer2D::AddTriangle(const Triangle2D& triangle, const Matrix3x3& worldMatrix, const Vector4& color) {
+void Renderer2D::AddTriangle(const Triangle2D& triangle, const Vector4& color) {
 	Triangle2DForGPU data{};
-
-	data.instance.worldMatrix = Math::ConvertMatrix4x4(worldMatrix);
 
 	data.instance.baseColor = color;
 
-	std::ranges::copy(
-		triangle.vertices,
-		data.vertexOffsets
-	);
+	for (uint32_t i = 0; i < triangle.vertices.size(); ++i) {
+		data.vertexOffsets[i] = ToClipSpace(triangle.vertices[i]);
+	}
 
 	triangleDrawer_->AddTriangle(data);
 }

@@ -9,7 +9,7 @@
   },
 
   "Rasterizer": {
-    "CullMode": "Back",
+    "CullMode": "None",
     "FillMode": "Solid"
   },
 

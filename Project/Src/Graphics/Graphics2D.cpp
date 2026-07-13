@@ -53,11 +53,10 @@ void LGF::Graphics2D::SetCamera(const Camera2D& camera) {
 	g_camera2DSystem->SetCamera(camera);
 }
 
-void LGF::Graphics2D::Draw(const Triangle2D& triangle, const Matrix3x3& worldMatrix, const Vector4& color) {
+void LGF::Graphics2D::Draw(const Triangle2D& triangle, const Vector4& color) {
 	assert(g_renderer2D != nullptr);
 	g_renderer2D->AddTriangle(
 		triangle,
-		worldMatrix,
 		color
 	);
 }
