@@ -64,11 +64,13 @@ bool DirectXCore::Initialize() {
 	return true;
 }
 
-void DirectXCore::BeginFrame() {
+bool DirectXCore::BeginFrame() {
 	if (window_.IsResized()) {
 		const Window::Setting windowSetting = window_.GetWndSetting();
 		if (Resize(windowSetting.wndSize.width, windowSetting.wndSize.height)) {
 			window_.ClearResizeFlag();
+		} else {
+			return false;
 		}
 	}
 
@@ -85,6 +87,7 @@ void DirectXCore::BeginFrame() {
 
 	viewport_->BeginFrame(renderWidth_, renderHeight_);
 	scissorRect_->BeginFrame(renderWidth_, renderHeight_);
+	return true;
 }
 
 void DirectXCore::EndFrame() {

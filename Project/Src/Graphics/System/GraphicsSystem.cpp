@@ -114,13 +114,20 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 }
 
 void GraphicsSystem::BeginFrame([[maybe_unused]] FrameworkContext& context) {
-	directX_->BeginFrame();
+	isFrameRenderable_ = directX_->BeginFrame();
+	if (!isFrameRenderable_) {
+		return;
+	}
 	for (auto& subSys : subsystems_) {
 		subSys->BeginFrame();
 	}
 }
 
 void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
+	if (!isFrameRenderable_) {
+		return;
+	}
+
 	// ディスクリプターヒープセット
 	ID3D12GraphicsCommandList* commandList = directX_->GetCommandList();
 
@@ -134,4 +141,5 @@ void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 		subSys->EndFrame();
 	}
 	directX_->EndFrame();
+	isFrameRenderable_ = false;
 }

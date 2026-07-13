@@ -37,7 +37,7 @@ namespace LGF {
 		~DirectXCore();
 
 		bool Initialize();
-		void BeginFrame();
+		bool BeginFrame();
 		void EndFrame();
 		void Finalize();
 

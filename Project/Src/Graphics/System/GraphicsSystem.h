@@ -49,5 +49,6 @@ namespace LGF {
 		std::unique_ptr<Renderer2D> renderer2D_;
 		// ImGuiシステムクラス
 		std::unique_ptr<ImGuiSystem> imguiSystem_;
+		bool isFrameRenderable_ = false;
 	};
 }
