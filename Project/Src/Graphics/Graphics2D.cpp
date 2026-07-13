@@ -68,3 +68,19 @@ void LGF::Graphics2D::Draw(const Rect2D& rect, const Vector4& color) {
 		color
 	);
 }
+
+void LGF::Graphics2D::Draw(const Circle2D& circle, const Vector4& color) {
+	assert(g_renderer2D != nullptr);
+	g_renderer2D->AddCircle(
+		circle,
+		color
+	);
+}
+
+void LGF::Graphics2D::Draw(const Line2D& line, const Vector4& color) {
+	assert(g_renderer2D != nullptr);
+	g_renderer2D->AddLine(
+		line,
+		color
+	);
+}

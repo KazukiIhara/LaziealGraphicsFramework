@@ -8,6 +8,8 @@
 #include "LGF/Graphics/Transform2D.h"
 #include "LGF/Graphics/Triangle2D.h"
 #include "LGF/Graphics/Rect2D.h"
+#include "LGF/Graphics/Circle2D.h"
+#include "LGF/Graphics/Line2D.h"
 #include "LGF/Graphics/Graphics2D.h"
 
 #include "LGF/Graphics/Camera3D.h"

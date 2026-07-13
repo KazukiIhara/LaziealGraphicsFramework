@@ -3,11 +3,16 @@
 #include "Graphics/Drawer/IDrawer.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 
+#include "Graphics/Drawer/2D/Primitive/Circle/CircleDrawer2D.h"
 #include "Graphics/Drawer/2D/Primitive/Rect/RectDrawer2D.h"
 #include "Graphics/Drawer/2D/Primitive/Triangle/TriangleDrawer2D.h"
+#include "LGF/Graphics/Circle2D.h"
 #include "LGF/Graphics/Graphics2D.h"
+#include "LGF/Graphics/Line2D.h"
 #include "LGF/Graphics/Rect2D.h"
 #include "LGF/Graphics/Triangle2D.h"
+
+#include <cmath>
 
 using namespace LGF;
 
@@ -37,9 +42,12 @@ bool Renderer2D::Initialize() {
 	triangleDrawer_->Initialize();
 	rectDrawer_ = std::make_unique<RectDrawer2D>(context_);
 	rectDrawer_->Initialize();
+	circleDrawer_ = std::make_unique<CircleDrawer2D>(context_);
+	circleDrawer_->Initialize();
 	// 更新用リストに追加
 	drawerList_.push_back(triangleDrawer_.get());
 	drawerList_.push_back(rectDrawer_.get());
+	drawerList_.push_back(circleDrawer_.get());
 
 	return true;
 }
@@ -56,6 +64,7 @@ void Renderer2D::EndFrame() {
 void Renderer2D::Finalize() {
 	triangleDrawer_.reset();
 	rectDrawer_.reset();
+	circleDrawer_.reset();
 }
 
 void Renderer2D::AddTriangle(const Triangle2D& triangle, const Vector4& color) {
@@ -84,6 +93,50 @@ void Renderer2D::AddRect(const Rect2D& rect, const Vector4& color) {
 	data.vertices[1] = ToClipSpace(rightTop);
 	data.vertices[2] = ToClipSpace(leftBottom);
 	data.vertices[3] = ToClipSpace(rightBottom);
+
+	rectDrawer_->AddRect(data);
+}
+
+void Renderer2D::AddCircle(const Circle2D& circle, const Vector4& color) {
+	Circle2DForGPU data{};
+
+	const float width = static_cast<float>(Graphics2D::GetWindowWidth());
+	const float height = static_cast<float>(Graphics2D::GetWindowHeight());
+
+	data.instance.baseColor = color;
+	data.center = ToClipSpace(circle.center);
+	data.radius = {
+		(circle.radius / width) * 2.0f,
+		(circle.radius / height) * 2.0f
+	};
+
+	circleDrawer_->AddCircle(data);
+}
+
+void Renderer2D::AddLine(const Line2D& line, const Vector4& color) {
+	if (line.thickness <= 0.0f) {
+		return;
+	}
+
+	const Vector2 direction = line.end - line.start;
+	const float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+	if (length <= 0.0f) {
+		return;
+	}
+
+	const float halfThickness = line.thickness * 0.5f;
+	const Vector2 normal = {
+		-direction.y / length * halfThickness,
+		direction.x / length * halfThickness
+	};
+
+	Rect2DForGPU data{};
+
+	data.instance.baseColor = color;
+	data.vertices[0] = ToClipSpace(line.start - normal);
+	data.vertices[1] = ToClipSpace(line.start + normal);
+	data.vertices[2] = ToClipSpace(line.end - normal);
+	data.vertices[3] = ToClipSpace(line.end + normal);
 
 	rectDrawer_->AddRect(data);
 }

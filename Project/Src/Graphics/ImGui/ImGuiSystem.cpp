@@ -50,9 +50,6 @@ void ImGuiSystem::BeginFrame() {
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-
-	// 動作確認
-	ImGui::ShowDemoWindow();
 }
 
 void ImGuiSystem::EndFrame() {
