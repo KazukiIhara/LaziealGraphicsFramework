@@ -15,10 +15,12 @@ namespace LGF {
 	class TriangleDrawer2D;
 	class RectDrawer2D;
 	class CircleDrawer2D;
+	class RoundRectDrawer2D;
 	class Triangle2D;
 	class Rect2D;
 	class Circle2D;
 	class Line2D;
+	class RoundRect2D;
 
 	/// <summary>
 	/// 全2D描画をするクラス
@@ -59,6 +61,12 @@ namespace LGF {
 			const Vector4& color
 		);
 
+		// 角丸四角形描画
+		void AddRoundRect(
+			const RoundRect2D& roundRect,
+			const Vector4& color
+		);
+
 	private:
 		// 参照
 		Graphics2DContext context_;
@@ -69,6 +77,7 @@ namespace LGF {
 		std::unique_ptr<TriangleDrawer2D> triangleDrawer_ = nullptr;
 		std::unique_ptr<RectDrawer2D> rectDrawer_ = nullptr;
 		std::unique_ptr<CircleDrawer2D> circleDrawer_ = nullptr;
+		std::unique_ptr<RoundRectDrawer2D> roundRectDrawer_ = nullptr;
 
 
 	};

@@ -5,19 +5,22 @@
 
 #include "Graphics/Drawer/2D/Primitive/Circle/CircleDrawer2D.h"
 #include "Graphics/Drawer/2D/Primitive/Rect/RectDrawer2D.h"
+#include "Graphics/Drawer/2D/Primitive/RoundRect/RoundRectDrawer2D.h"
 #include "Graphics/Drawer/2D/Primitive/Triangle/TriangleDrawer2D.h"
 #include "LGF/Graphics/Circle2D.h"
 #include "LGF/Graphics/Graphics2D.h"
 #include "LGF/Graphics/Line2D.h"
 #include "LGF/Graphics/Rect2D.h"
+#include "LGF/Graphics/RoundRect2D.h"
 #include "LGF/Graphics/Triangle2D.h"
 
+#include <algorithm>
 #include <cmath>
 
 using namespace LGF;
 
 namespace {
-
+	// スクリーン座標をクリップ空間座標に変換
 	Vector2 ToClipSpace(const Vector2& screenPosition) {
 		const float width = static_cast<float>(Graphics2D::GetWindowWidth());
 		const float height = static_cast<float>(Graphics2D::GetWindowHeight());
@@ -44,10 +47,13 @@ bool Renderer2D::Initialize() {
 	rectDrawer_->Initialize();
 	circleDrawer_ = std::make_unique<CircleDrawer2D>(context_);
 	circleDrawer_->Initialize();
+	roundRectDrawer_ = std::make_unique<RoundRectDrawer2D>(context_);
+	roundRectDrawer_->Initialize();
 	// 更新用リストに追加
 	drawerList_.push_back(triangleDrawer_.get());
 	drawerList_.push_back(rectDrawer_.get());
 	drawerList_.push_back(circleDrawer_.get());
+	drawerList_.push_back(roundRectDrawer_.get());
 
 	return true;
 }
@@ -65,6 +71,7 @@ void Renderer2D::Finalize() {
 	triangleDrawer_.reset();
 	rectDrawer_.reset();
 	circleDrawer_.reset();
+	roundRectDrawer_.reset();
 }
 
 void Renderer2D::AddTriangle(const Triangle2D& triangle, const Vector4& color) {
@@ -139,5 +146,27 @@ void Renderer2D::AddLine(const Line2D& line, const Vector4& color) {
 	data.vertices[3] = ToClipSpace(line.end + normal);
 
 	rectDrawer_->AddRect(data);
+}
+
+void Renderer2D::AddRoundRect(const RoundRect2D& roundRect, const Vector4& color) {
+	if (roundRect.size.x <= 0.0f || roundRect.size.y <= 0.0f) {
+		return;
+	}
+
+	const float width = static_cast<float>(Graphics2D::GetWindowWidth());
+	const float height = static_cast<float>(Graphics2D::GetWindowHeight());
+	const float radius = std::clamp(roundRect.radius, 0.0f, ((roundRect.size.x < roundRect.size.y) ? roundRect.size.x : roundRect.size.y) * 0.5f);
+
+	RoundRect2DForGPU data{};
+
+	data.instance.baseColor = color;
+	data.leftTop = ToClipSpace(roundRect.leftTop);
+	data.rightBottom = ToClipSpace(roundRect.leftTop + roundRect.size);
+	data.radius = {
+		(radius / width) * 2.0f,
+		(radius / height) * 2.0f
+	};
+
+	roundRectDrawer_->AddRoundRect(data);
 }
 

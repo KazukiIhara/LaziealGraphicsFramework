@@ -84,3 +84,11 @@ void LGF::Graphics2D::Draw(const Line2D& line, const Vector4& color) {
 		color
 	);
 }
+
+void LGF::Graphics2D::Draw(const RoundRect2D& roundRect, const Vector4& color) {
+	assert(g_renderer2D != nullptr);
+	g_renderer2D->AddRoundRect(
+		roundRect,
+		color
+	);
+}

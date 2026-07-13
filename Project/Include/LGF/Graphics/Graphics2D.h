@@ -13,6 +13,7 @@ namespace LGF {
 	class Rect2D;
 	class Circle2D;
 	class Line2D;
+	class RoundRect2D;
 
 	namespace Graphics2D {
 
@@ -60,6 +61,14 @@ namespace LGF {
 		/// </summary>
 		void Draw(
 			const Line2D& line,
+			const Vector4& color= Color::White
+		);
+
+		/// <summary>
+		/// 角丸四角形描画
+		/// </summary>
+		void Draw(
+			const RoundRect2D& roundRect,
 			const Vector4& color= Color::White
 		);
 
