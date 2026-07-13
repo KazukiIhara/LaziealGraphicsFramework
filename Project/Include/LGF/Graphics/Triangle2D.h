@@ -25,11 +25,7 @@ namespace LGF {
 
 	public:
 		// 頂点 上→右下→左下(時計回り)
-		std::array<Vector2, 3> vertices{
-			Vector2{50.0f,0.0f},
-			Vector2{100.0f,100.0f},
-			Vector2{0.0f,100.0f}
-		};
+		std::array<Vector2, 3> vertices{};
 	};
 
 }
