@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "LGF/Math/Matrix4x4.h"
 #include "LGF/Graphics/Color.h"
 
@@ -10,6 +12,9 @@ namespace LGF {
 	class Triangle3D;
 
 	namespace Graphics3D {
+
+		uint32_t GetWindowWidth();
+		uint32_t GetWindowHeight();
 
 		/// <summary>
 		/// 使用するカメラをセットする

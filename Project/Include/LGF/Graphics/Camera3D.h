@@ -15,6 +15,7 @@ namespace LGF {
 		/// </summary>
 		struct Param {
 			float fovY = 45.0f * Math::DEG_TO_RAD;
+			bool useWindowAspectRatio = true;
 			float aspectRatio = 16.0f / 9.0f;
 			float nearClip = 0.1f;
 			float farClip = 1000.0f;

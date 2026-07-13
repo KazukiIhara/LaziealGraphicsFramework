@@ -36,6 +36,7 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	pipelineManager_->Initialize();
 
 	// 3Dカメラシステム初期化
+	Graphics3D::Internal::SetWindowSystem(context.window);
 	camera3DSystem_ = std::make_unique<Camera3DSystem>(*directX_);
 	camera3DSystem_->Initialize();
 	Graphics3D::Internal::SetCamera3DSystem(camera3DSystem_.get());
@@ -91,6 +92,7 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 	Graphics3D::Internal::ResetRenderer3D();
 	Graphics3D::Internal::ResetCamera3DSystem();
+	Graphics3D::Internal::ResetWindowSystem();
 
 	Graphics2D::Internal::ResetWindowSystem();
 	Graphics2D::Internal::ResetRenderer2D();

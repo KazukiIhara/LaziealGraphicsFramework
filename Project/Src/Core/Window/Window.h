@@ -17,7 +17,7 @@ namespace LGF {
 		};
 
 		struct Setting {
-			WndSize wndSize{ 1280,720 };
+			WndSize wndSize{ 800,600 };
 			std::wstring wndName{ L"LGF" };
 			bool isFullScreen = false;
 		};
@@ -44,7 +44,7 @@ namespace LGF {
 	private:
 
 		// ゲームウィンドウの作成
-		void CreateGameWindow(int32_t clientWidth = 1280, int32_t clientHeight = 720,
+		void CreateGameWindow(int32_t clientWidth, int32_t clientHeight,
 			const std::wstring& windowName = L"LGF", UINT windowStyle = WS_OVERLAPPEDWINDOW);
 
 		// ウィンドウプロシージャ

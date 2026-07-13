@@ -5,6 +5,7 @@
 #include "Graphics/DirectX/ResourceFactory/ResourceFactory.h"
 
 #include "LGF/Graphics/Camera3D.h"
+#include "LGF/Graphics/Graphics3D.h"
 
 #include "LGF/Math/MathUtils.h"
 
@@ -44,10 +45,15 @@ void Camera3DResource::Update(const Camera3D& camera) {
 	const Matrix4x4 viewMatrix = Math::Inverse(worldMatrix);
 
 	// Projection行列を作る
+	const float aspectRatio =
+		camera.param.useWindowAspectRatio
+		? static_cast<float>(Graphics3D::GetWindowWidth()) / static_cast<float>(Graphics3D::GetWindowHeight())
+		: camera.param.aspectRatio;
+
 	const Matrix4x4 projectionMatrix =
 		Math::MakePerspectiveFovMatrix(
 			camera.param.fovY,
-			camera.param.aspectRatio,
+			aspectRatio,
 			camera.param.nearClip,
 			camera.param.farClip);
 

@@ -3,12 +3,23 @@
 #include <cassert>
 
 #include "Graphics3DInternal.h"
+#include "Core/Window/System/WindowSystem.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
 
 namespace {
+	LGF::WindowSystem* g_windowSystem = nullptr;
 	LGF::Camera3DSystem* g_camera3DSystem = nullptr;
 	LGF::Renderer3D* g_renderer3D = nullptr;
+}
+
+void LGF::Graphics3D::Internal::SetWindowSystem(WindowSystem* windowSystem) {
+	assert(windowSystem != nullptr);
+	g_windowSystem = windowSystem;
+}
+
+void LGF::Graphics3D::Internal::ResetWindowSystem() {
+	g_windowSystem = nullptr;
 }
 
 void LGF::Graphics3D::Internal::SetCamera3DSystem(Camera3DSystem* cameraSystem) {
@@ -27,6 +38,14 @@ void LGF::Graphics3D::Internal::SetRenderer3D(Renderer3D* renderer) {
 
 void LGF::Graphics3D::Internal::ResetRenderer3D() {
 	g_renderer3D = nullptr;
+}
+
+uint32_t LGF::Graphics3D::GetWindowWidth() {
+	return g_windowSystem->GetWindow().GetWndSetting().wndSize.width;
+}
+
+uint32_t LGF::Graphics3D::GetWindowHeight() {
+	return g_windowSystem->GetWindow().GetWndSetting().wndSize.height;
 }
 
 void LGF::Graphics3D::SetCamera(const Camera3D& camera) {
