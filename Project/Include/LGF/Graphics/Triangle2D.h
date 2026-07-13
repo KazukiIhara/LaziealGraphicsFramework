@@ -29,9 +29,9 @@ namespace LGF {
 	public:
 		// 頂点 左下→上→右下
 		std::array<Vector2, 3> vertices{
-			Vector2{-50.0f,-50.0f},
-			Vector2{0.0f,50.0f},
-			Vector2{50.0f,-50.0f}
+			Vector2{-50.0f,50.0f},
+			Vector2{0.0f,-50.0f},
+			Vector2{50.0f,50.0f}
 		};
 	};
 
