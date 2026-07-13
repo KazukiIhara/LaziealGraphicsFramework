@@ -60,3 +60,11 @@ void LGF::Graphics2D::Draw(const Triangle2D& triangle, const Vector4& color) {
 		color
 	);
 }
+
+void LGF::Graphics2D::Draw(const Rect2D& rect, const Vector4& color) {
+	assert(g_renderer2D != nullptr);
+	g_renderer2D->AddRect(
+		rect,
+		color
+	);
+}

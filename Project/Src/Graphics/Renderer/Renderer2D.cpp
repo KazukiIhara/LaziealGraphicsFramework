@@ -3,8 +3,10 @@
 #include "Graphics/Drawer/IDrawer.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 
+#include "Graphics/Drawer/2D/Primitive/Rect/RectDrawer2D.h"
 #include "Graphics/Drawer/2D/Primitive/Triangle/TriangleDrawer2D.h"
 #include "LGF/Graphics/Graphics2D.h"
+#include "LGF/Graphics/Rect2D.h"
 #include "LGF/Graphics/Triangle2D.h"
 
 using namespace LGF;
@@ -33,8 +35,11 @@ bool Renderer2D::Initialize() {
 	// レンダラー作成
 	triangleDrawer_ = std::make_unique<TriangleDrawer2D>(context_);
 	triangleDrawer_->Initialize();
+	rectDrawer_ = std::make_unique<RectDrawer2D>(context_);
+	rectDrawer_->Initialize();
 	// 更新用リストに追加
 	drawerList_.push_back(triangleDrawer_.get());
+	drawerList_.push_back(rectDrawer_.get());
 
 	return true;
 }
@@ -50,6 +55,7 @@ void Renderer2D::EndFrame() {
 
 void Renderer2D::Finalize() {
 	triangleDrawer_.reset();
+	rectDrawer_.reset();
 }
 
 void Renderer2D::AddTriangle(const Triangle2D& triangle, const Vector4& color) {
@@ -62,5 +68,23 @@ void Renderer2D::AddTriangle(const Triangle2D& triangle, const Vector4& color) {
 	}
 
 	triangleDrawer_->AddTriangle(data);
+}
+
+void Renderer2D::AddRect(const Rect2D& rect, const Vector4& color) {
+	Rect2DForGPU data{};
+
+	data.instance.baseColor = color;
+
+	const Vector2 leftTop = rect.leftTop;
+	const Vector2 rightTop = { rect.leftTop.x + rect.size.x, rect.leftTop.y };
+	const Vector2 leftBottom = { rect.leftTop.x, rect.leftTop.y + rect.size.y };
+	const Vector2 rightBottom = { rect.leftTop.x + rect.size.x, rect.leftTop.y + rect.size.y };
+
+	data.vertices[0] = ToClipSpace(leftTop);
+	data.vertices[1] = ToClipSpace(rightTop);
+	data.vertices[2] = ToClipSpace(leftBottom);
+	data.vertices[3] = ToClipSpace(rightBottom);
+
+	rectDrawer_->AddRect(data);
 }
 

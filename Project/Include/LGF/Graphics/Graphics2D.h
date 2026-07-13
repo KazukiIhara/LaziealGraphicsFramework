@@ -10,6 +10,7 @@ namespace LGF {
 	class Camera2D;
 
 	class Triangle2D;
+	class Rect2D;
 
 	namespace Graphics2D {
 
@@ -33,6 +34,14 @@ namespace LGF {
 		/// </summary>
 		void Draw(
 			const Triangle2D& triangle,
+			const Vector4& color= Color::White
+		);
+
+		/// <summary>
+		/// 四角形描画
+		/// </summary>
+		void Draw(
+			const Rect2D& rect,
 			const Vector4& color= Color::White
 		);
 

@@ -13,7 +13,9 @@ namespace LGF {
 
 	class IDrawer;
 	class TriangleDrawer2D;
+	class RectDrawer2D;
 	class Triangle2D;
+	class Rect2D;
 
 	/// <summary>
 	/// 全2D描画をするクラス
@@ -36,6 +38,12 @@ namespace LGF {
 			const Vector4& color
 		);
 
+		// 四角形描画
+		void AddRect(
+			const Rect2D& rect,
+			const Vector4& color
+		);
+
 	private:
 		// 参照
 		Graphics2DContext context_;
@@ -44,6 +52,7 @@ namespace LGF {
 
 		// 描画クラス
 		std::unique_ptr<TriangleDrawer2D> triangleDrawer_ = nullptr;
+		std::unique_ptr<RectDrawer2D> rectDrawer_ = nullptr;
 
 
 	};
