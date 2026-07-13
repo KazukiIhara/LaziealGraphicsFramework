@@ -115,6 +115,14 @@ Window::Setting Window::GetWndSetting() const {
 	return setting_;
 }
 
+bool Window::IsResized() const {
+	return isResized_;
+}
+
+void Window::ClearResizeFlag() {
+	isResized_ = false;
+}
+
 void Window::ToggleFullScreen() {
 	// 無効なウィンドウは処理しない
 	if (hwnd_ == nullptr) {
@@ -211,7 +219,7 @@ void Window::CreateGameWindow(int32_t clientWidth, int32_t clientHeight, const s
 		nullptr,
 		nullptr,
 		wc_.hInstance,
-		nullptr
+		this
 	);
 
 	// 生成失敗を確認
@@ -225,6 +233,12 @@ void Window::CreateGameWindow(int32_t clientWidth, int32_t clientHeight, const s
 }
 
 LRESULT Window::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+	if (msg == WM_NCCREATE) {
+		const CREATESTRUCT* createStruct = reinterpret_cast<CREATESTRUCT*>(lparam);
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(createStruct->lpCreateParams));
+	}
+
+	Window* window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	// ImGui用のメッセージを処理
 	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
 		return true;
@@ -232,6 +246,14 @@ LRESULT Window::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 
 	// メッセージに応じてゲーム固有の処理を行う
 	switch (msg) {
+		case WM_SIZE:
+			if (window != nullptr && wparam != SIZE_MINIMIZED) {
+				const uint32_t width = static_cast<uint32_t>(LOWORD(lparam));
+				const uint32_t height = static_cast<uint32_t>(HIWORD(lparam));
+				window->OnResize(width, height);
+			}
+			return 0;
+
 		case WM_DESTROY:
 			// OSに対してアプリの終了を伝える
 			PostQuitMessage(0);
@@ -240,4 +262,18 @@ LRESULT Window::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 
 	// 標準のメッセージ処理を行う
 	return DefWindowProc(hwnd, msg, wparam, lparam);
+}
+
+void Window::OnResize(uint32_t width, uint32_t height) {
+	if (width == 0 || height == 0) {
+		return;
+	}
+
+	if (setting_.wndSize.width == width && setting_.wndSize.height == height) {
+		return;
+	}
+
+	setting_.wndSize.width = width;
+	setting_.wndSize.height = height;
+	isResized_ = true;
 }

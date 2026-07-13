@@ -37,6 +37,8 @@ namespace LGF {
 		WNDCLASS GetWndClass() const;
 		// ウィンドウサイズの取得
 		Window::Setting GetWndSetting()const;
+		bool IsResized()const;
+		void ClearResizeFlag();
 
 		// フルスクリーンモード切り替え
 		void ToggleFullScreen();
@@ -49,6 +51,7 @@ namespace LGF {
 
 		// ウィンドウプロシージャ
 		static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+		void OnResize(uint32_t width, uint32_t height);
 
 	private:
 		// ウィンドウハンドル
@@ -57,6 +60,7 @@ namespace LGF {
 		WNDCLASS wc_{};
 		// ウィンドウ設定
 		Window::Setting setting_;
+		bool isResized_ = false;
 		// ウィンドウモード時の位置とサイズ
 		RECT windowRect_{};
 		// Comの初期化判別フラグ

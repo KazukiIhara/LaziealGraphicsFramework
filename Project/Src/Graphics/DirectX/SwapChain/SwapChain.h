@@ -24,6 +24,7 @@ namespace LGF {
 		~SwapChain();
 
 		bool Initialize();
+		bool Resize(uint32_t width, uint32_t height);
 		void BeginFrame();
 		void EndFrame();
 		void Present();
@@ -54,6 +55,7 @@ namespace LGF {
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc_{};
 		// RTVリソースのインデックス
 		uint32_t rtvIndex_[2]{};
+		bool isRtvAllocated_ = false;
 		// バックバッファインデックス
 		UINT backBufferIndex_ = 0;
 	};

@@ -52,6 +52,9 @@ namespace LGF {
 		ResMgr GetResMgr();
 
 	private:
+		bool Resize(uint32_t width, uint32_t height);
+
+	private:
 		uint32_t renderWidth_ = 0u;
 		uint32_t renderHeight_ = 0u;
 

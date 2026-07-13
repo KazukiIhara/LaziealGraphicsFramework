@@ -65,6 +65,13 @@ bool DirectXCore::Initialize() {
 }
 
 void DirectXCore::BeginFrame() {
+	if (window_.IsResized()) {
+		const Window::Setting windowSetting = window_.GetWndSetting();
+		if (Resize(windowSetting.wndSize.width, windowSetting.wndSize.height)) {
+			window_.ClearResizeFlag();
+		}
+	}
+
 	command_->BeginFrame();
 	swapChain_->BeginFrame();
 
@@ -101,6 +108,27 @@ void DirectXCore::Finalize() {
 	descriptorHeapFactory_.reset();
 	command_.reset();
 	device_.reset();
+}
+
+bool DirectXCore::Resize(uint32_t width, uint32_t height) {
+	if (width == 0 || height == 0) {
+		return false;
+	}
+
+	if (width == renderWidth_ && height == renderHeight_) {
+		return true;
+	}
+
+	fence_->WaitGPU();
+
+	if (!swapChain_->Resize(width, height)) {
+		return false;
+	}
+
+	depthStencil_->Resize(width, height);
+	renderWidth_ = width;
+	renderHeight_ = height;
+	return true;
 }
 
 ID3D12Device* DirectXCore::GetDevice() {

@@ -30,6 +30,38 @@ bool SwapChain::Initialize() {
 	return checkFlag;
 }
 
+bool SwapChain::Resize(uint32_t width, uint32_t height) {
+	if (width == 0 || height == 0) {
+		return false;
+	}
+
+	swapChainDesc_.Width = width;
+	swapChainDesc_.Height = height;
+
+	for (ComPtr<ID3D12Resource>& resource : swapChainResources_) {
+		resource.Reset();
+	}
+
+	HRESULT hr = swapChain_->ResizeBuffers(
+		swapChainDesc_.BufferCount,
+		swapChainDesc_.Width,
+		swapChainDesc_.Height,
+		swapChainDesc_.Format,
+		swapChainDesc_.Flags
+	);
+	if (FAILED(hr)) {
+		assert(false);
+		return false;
+	}
+
+	if (!CreateResources()) {
+		return false;
+	}
+
+	CreateRTV();
+	return true;
+}
+
 void SwapChain::BeginFrame() {
 	backBufferIndex_ = swapChain_->GetCurrentBackBufferIndex();
 	TransitionToRenderTarget();
@@ -107,9 +139,12 @@ bool SwapChain::CreateResources() {
 
 void SwapChain::CreateRTV() {
 	// 1つめ
-	rtvIndex_[0] = rtvMgr_.Allocate();
+	if (!isRtvAllocated_) {
+		rtvIndex_[0] = rtvMgr_.Allocate();
+		rtvIndex_[1] = rtvMgr_.Allocate();
+		isRtvAllocated_ = true;
+	}
 	rtvMgr_.CreateRTVTexture2d(rtvIndex_[0], swapChainResources_[0].Get(), DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
 	// 2つめ
-	rtvIndex_[1] = rtvMgr_.Allocate();
 	rtvMgr_.CreateRTVTexture2d(rtvIndex_[1], swapChainResources_[1].Get(), DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
 }
