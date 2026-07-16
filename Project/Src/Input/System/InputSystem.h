@@ -2,18 +2,13 @@
 
 #include <array>
 #include <cstdint>
-#define DIRECTINPUT_VERSION 0x0800
-#include <dinput.h>
-#include <wrl.h>
+#include <Windows.h>
 
 #include "Core/Framework/System/IFrameworkSystem.h"
 #include "LGF/Input.h"
 
 namespace LGF {
 
-	/// <summary>
-	/// キー入力システム
-	/// </summary>
 	class InputSystem :public IFrameworkSystem {
 	public:
 		InputSystem();
@@ -23,23 +18,43 @@ namespace LGF {
 		bool Finalize(FrameworkContext& context)override;
 
 		void BeginFrame(FrameworkContext& context)override;
+		void EndFrame(FrameworkContext& context)override;
 
 		bool IsTriggered(KeyCode code)const;
 		bool IsPressed(KeyCode code)const;
 		bool IsReleased(KeyCode code)const;
 		uint32_t GetPressedFrames(KeyCode code)const;
 
-	private:
-		bool InitializeKeyboard(HWND hwnd);
-		void UpdateKeyboard();
-		uint8_t ToDirectInputKey(KeyCode code)const;
+		bool IsTriggered(MouseButtonCode code)const;
+		bool IsPressed(MouseButtonCode code)const;
+		bool IsReleased(MouseButtonCode code)const;
+		uint32_t GetPressedFrames(MouseButtonCode code)const;
+
+		Vector2 GetMouseDelta()const;
+		float GetMouseWheelDelta()const;
+
+		void HandleRawInput(HRAWINPUT rawInputHandle);
 
 	private:
-		Microsoft::WRL::ComPtr<IDirectInput8> directInput_;
-		Microsoft::WRL::ComPtr<IDirectInputDevice8> keyboard_;
-		std::array<uint8_t, 256> currentKeys_{};
-		std::array<uint8_t, 256> previousKeys_{};
-		std::array<uint32_t, 256> pressedFrames_{};
+		bool RegisterRawInput(HWND hwnd);
+		void UpdatePressedFrames();
+		void HandleKeyboardInput(const RAWKEYBOARD& keyboard);
+		void HandleMouseInput(const RAWMOUSE& mouse);
+		KeyCode ToKeyCode(USHORT virtualKey)const;
+		size_t ToIndex(KeyCode code)const;
+		size_t ToIndex(MouseButtonCode code)const;
+
+	private:
+		std::array<bool, static_cast<size_t>(KeyCode::Count)> currentKeys_{};
+		std::array<bool, static_cast<size_t>(KeyCode::Count)> previousKeys_{};
+		std::array<uint32_t, static_cast<size_t>(KeyCode::Count)> keyPressedFrames_{};
+
+		std::array<bool, static_cast<size_t>(MouseButtonCode::Count)> currentMouseButtons_{};
+		std::array<bool, static_cast<size_t>(MouseButtonCode::Count)> previousMouseButtons_{};
+		std::array<uint32_t, static_cast<size_t>(MouseButtonCode::Count)> mousePressedFrames_{};
+
+		Vector2 mouseDelta_{};
+		float mouseWheelDelta_ = 0.0f;
 	};
 
 }

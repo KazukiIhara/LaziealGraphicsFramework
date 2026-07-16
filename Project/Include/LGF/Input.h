@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "LGF/Math/Vector2.h"
+
 namespace LGF {
 
 	enum class KeyCode : uint8_t {
@@ -50,6 +52,16 @@ namespace LGF {
 		Num7,
 		Num8,
 		Num9,
+		Count
+	};
+
+	enum class MouseButtonCode : uint8_t {
+		Left,
+		Right,
+		Middle,
+		X1,
+		X2,
+		Count
 	};
 
 	class KeyButton {
@@ -65,6 +77,21 @@ namespace LGF {
 
 	private:
 		KeyCode code_;
+	};
+
+	class MouseButton {
+	public:
+		constexpr explicit MouseButton(MouseButtonCode code) :
+			code_(code) {
+		}
+
+		bool Trigger()const;
+		bool Press()const;
+		bool Release()const;
+		uint32_t PressedFrames()const;
+
+	private:
+		MouseButtonCode code_;
 	};
 
 	namespace Key {
@@ -117,11 +144,31 @@ namespace LGF {
 		inline constexpr KeyButton Num9{ KeyCode::Num9 };
 	}
 
+	namespace Mouse {
+		inline constexpr MouseButton Left{ MouseButtonCode::Left };
+		inline constexpr MouseButton Right{ MouseButtonCode::Right };
+		inline constexpr MouseButton Middle{ MouseButtonCode::Middle };
+		inline constexpr MouseButton X1{ MouseButtonCode::X1 };
+		inline constexpr MouseButton X2{ MouseButtonCode::X2 };
+
+		Vector2 Delta();
+		float WheelDelta();
+	}
+
 	namespace Input::Internal {
 		bool IsTriggered(KeyCode code);
 		bool IsPressed(KeyCode code);
 		bool IsReleased(KeyCode code);
 		uint32_t GetPressedFrames(KeyCode code);
+
+		bool IsTriggered(MouseButtonCode code);
+		bool IsPressed(MouseButtonCode code);
+		bool IsReleased(MouseButtonCode code);
+		uint32_t GetPressedFrames(MouseButtonCode code);
+
+		Vector2 GetMouseDelta();
+		float GetMouseWheelDelta();
+		void HandleRawInput(void* rawInputHandle);
 	}
 
 }

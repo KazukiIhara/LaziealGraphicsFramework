@@ -2,6 +2,8 @@
 
 #include <imgui_impl_win32.h>
 
+#include "LGF/Input.h"
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
 	HWND hwnd,
 	UINT msg,
@@ -239,6 +241,11 @@ LRESULT Window::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	}
 
 	Window* window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+	if (msg == WM_INPUT) {
+		Input::Internal::HandleRawInput(reinterpret_cast<void*>(lparam));
+		return 0;
+	}
 	// ImGui用のメッセージを処理
 	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
 		return true;

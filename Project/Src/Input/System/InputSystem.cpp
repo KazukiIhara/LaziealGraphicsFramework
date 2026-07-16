@@ -1,17 +1,16 @@
 #include "InputSystem.h"
 
-#include "Core/Window/System/WindowSystem.h"
+#include <vector>
 
-#pragma comment(lib, "dinput8.lib")
-#pragma comment(lib, "dxguid.lib")
+#include "Core/Window/System/WindowSystem.h"
 
 using namespace LGF;
 
 namespace {
 	InputSystem* g_inputSystem = nullptr;
 
-	bool IsKeyPressed(uint8_t keyState) {
-		return (keyState & 0x80) != 0;
+	void SetMouseButton(std::array<bool, static_cast<size_t>(MouseButtonCode::Count)>& buttons, MouseButtonCode code, bool isPressed) {
+		buttons[static_cast<size_t>(code)] = isPressed;
 	}
 }
 
@@ -27,207 +26,287 @@ bool InputSystem::Initialize(FrameworkContext& context) {
 		return false;
 	}
 
-	return InitializeKeyboard(context.window->GetWindow().GetHwnd());
+	return RegisterRawInput(context.window->GetWindow().GetHwnd());
 }
 
 bool InputSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
-	if (keyboard_ != nullptr) {
-		keyboard_->Unacquire();
-		keyboard_.Reset();
-	}
-
-	directInput_.Reset();
 	g_inputSystem = nullptr;
 
 	return true;
 }
 
 void InputSystem::BeginFrame([[maybe_unused]] FrameworkContext& context) {
-	UpdateKeyboard();
+	UpdatePressedFrames();
+}
+
+void InputSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
+	previousKeys_ = currentKeys_;
+	previousMouseButtons_ = currentMouseButtons_;
+	mouseDelta_ = {};
+	mouseWheelDelta_ = 0.0f;
 }
 
 bool InputSystem::IsTriggered(KeyCode code) const {
-	const uint8_t key = ToDirectInputKey(code);
-	return IsKeyPressed(currentKeys_[key]) && !IsKeyPressed(previousKeys_[key]);
+	const size_t index = ToIndex(code);
+	return currentKeys_[index] && !previousKeys_[index];
 }
 
 bool InputSystem::IsPressed(KeyCode code) const {
-	const uint8_t key = ToDirectInputKey(code);
-	return IsKeyPressed(currentKeys_[key]);
+	return currentKeys_[ToIndex(code)];
 }
 
 bool InputSystem::IsReleased(KeyCode code) const {
-	const uint8_t key = ToDirectInputKey(code);
-	return !IsKeyPressed(currentKeys_[key]) && IsKeyPressed(previousKeys_[key]);
+	const size_t index = ToIndex(code);
+	return !currentKeys_[index] && previousKeys_[index];
 }
 
 uint32_t InputSystem::GetPressedFrames(KeyCode code) const {
-	return pressedFrames_[ToDirectInputKey(code)];
+	return keyPressedFrames_[ToIndex(code)];
 }
 
-bool InputSystem::InitializeKeyboard(HWND hwnd) {
-	HRESULT hr = DirectInput8Create(
-		GetModuleHandle(nullptr),
-		DIRECTINPUT_VERSION,
-		IID_IDirectInput8,
-		reinterpret_cast<void**>(directInput_.GetAddressOf()),
-		nullptr
-	);
-
-	if (FAILED(hr)) {
-		return false;
-	}
-
-	hr = directInput_->CreateDevice(GUID_SysKeyboard, keyboard_.GetAddressOf(), nullptr);
-	if (FAILED(hr)) {
-		return false;
-	}
-
-	hr = keyboard_->SetDataFormat(&c_dfDIKeyboard);
-	if (FAILED(hr)) {
-		return false;
-	}
-
-	hr = keyboard_->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-	if (FAILED(hr)) {
-		return false;
-	}
-
-	keyboard_->Acquire();
-
-	return true;
+bool InputSystem::IsTriggered(MouseButtonCode code) const {
+	const size_t index = ToIndex(code);
+	return currentMouseButtons_[index] && !previousMouseButtons_[index];
 }
 
-void InputSystem::UpdateKeyboard() {
-	previousKeys_ = currentKeys_;
+bool InputSystem::IsPressed(MouseButtonCode code) const {
+	return currentMouseButtons_[ToIndex(code)];
+}
 
-	if (keyboard_ == nullptr) {
-		currentKeys_.fill(0);
-		pressedFrames_.fill(0);
+bool InputSystem::IsReleased(MouseButtonCode code) const {
+	const size_t index = ToIndex(code);
+	return !currentMouseButtons_[index] && previousMouseButtons_[index];
+}
+
+uint32_t InputSystem::GetPressedFrames(MouseButtonCode code) const {
+	return mousePressedFrames_[ToIndex(code)];
+}
+
+Vector2 InputSystem::GetMouseDelta() const {
+	return mouseDelta_;
+}
+
+float InputSystem::GetMouseWheelDelta() const {
+	return mouseWheelDelta_;
+}
+
+void InputSystem::HandleRawInput(HRAWINPUT rawInputHandle) {
+	UINT dataSize = 0;
+	GetRawInputData(rawInputHandle, RID_INPUT, nullptr, &dataSize, sizeof(RAWINPUTHEADER));
+
+	if (dataSize == 0) {
 		return;
 	}
 
-	HRESULT hr = keyboard_->GetDeviceState(static_cast<DWORD>(currentKeys_.size()), currentKeys_.data());
-	if (FAILED(hr)) {
-		hr = keyboard_->Acquire();
-		while (hr == DIERR_INPUTLOST) {
-			hr = keyboard_->Acquire();
-		}
+	std::vector<uint8_t> buffer(dataSize);
+	const UINT readSize = GetRawInputData(rawInputHandle, RID_INPUT, buffer.data(), &dataSize, sizeof(RAWINPUTHEADER));
 
-		if (FAILED(hr)) {
-			currentKeys_.fill(0);
+	if (readSize != dataSize) {
+		return;
+	}
+
+	const RAWINPUT* rawInput = reinterpret_cast<const RAWINPUT*>(buffer.data());
+
+	if (rawInput->header.dwType == RIM_TYPEKEYBOARD) {
+		HandleKeyboardInput(rawInput->data.keyboard);
+	} else if (rawInput->header.dwType == RIM_TYPEMOUSE) {
+		HandleMouseInput(rawInput->data.mouse);
+	}
+}
+
+bool InputSystem::RegisterRawInput(HWND hwnd) {
+	RAWINPUTDEVICE devices[2]{};
+
+	devices[0].usUsagePage = 0x01;
+	devices[0].usUsage = 0x06;
+	devices[0].dwFlags = 0;
+	devices[0].hwndTarget = hwnd;
+
+	devices[1].usUsagePage = 0x01;
+	devices[1].usUsage = 0x02;
+	devices[1].dwFlags = 0;
+	devices[1].hwndTarget = hwnd;
+
+	return RegisterRawInputDevices(devices, 2, sizeof(RAWINPUTDEVICE)) != FALSE;
+}
+
+void InputSystem::UpdatePressedFrames() {
+	for (size_t i = 0; i < currentKeys_.size(); ++i) {
+		if (currentKeys_[i]) {
+			++keyPressedFrames_[i];
 		} else {
-			hr = keyboard_->GetDeviceState(static_cast<DWORD>(currentKeys_.size()), currentKeys_.data());
-			if (FAILED(hr)) {
-				currentKeys_.fill(0);
-			}
+			keyPressedFrames_[i] = 0;
 		}
 	}
 
-	for (size_t i = 0; i < currentKeys_.size(); ++i) {
-		if (IsKeyPressed(currentKeys_[i])) {
-			++pressedFrames_[i];
+	for (size_t i = 0; i < currentMouseButtons_.size(); ++i) {
+		if (currentMouseButtons_[i]) {
+			++mousePressedFrames_[i];
 		} else {
-			pressedFrames_[i] = 0;
+			mousePressedFrames_[i] = 0;
 		}
 	}
 }
 
-uint8_t InputSystem::ToDirectInputKey(KeyCode code) const {
-	switch (code) {
-		case KeyCode::Space:
-			return DIK_SPACE;
-		case KeyCode::Escape:
-			return DIK_ESCAPE;
-		case KeyCode::Enter:
-			return DIK_RETURN;
-		case KeyCode::Tab:
-			return DIK_TAB;
-		case KeyCode::Backspace:
-			return DIK_BACK;
-		case KeyCode::Left:
-			return DIK_LEFT;
-		case KeyCode::Right:
-			return DIK_RIGHT;
-		case KeyCode::Up:
-			return DIK_UP;
-		case KeyCode::Down:
-			return DIK_DOWN;
-		case KeyCode::A:
-			return DIK_A;
-		case KeyCode::B:
-			return DIK_B;
-		case KeyCode::C:
-			return DIK_C;
-		case KeyCode::D:
-			return DIK_D;
-		case KeyCode::E:
-			return DIK_E;
-		case KeyCode::F:
-			return DIK_F;
-		case KeyCode::G:
-			return DIK_G;
-		case KeyCode::H:
-			return DIK_H;
-		case KeyCode::I:
-			return DIK_I;
-		case KeyCode::J:
-			return DIK_J;
-		case KeyCode::K:
-			return DIK_K;
-		case KeyCode::L:
-			return DIK_L;
-		case KeyCode::M:
-			return DIK_M;
-		case KeyCode::N:
-			return DIK_N;
-		case KeyCode::O:
-			return DIK_O;
-		case KeyCode::P:
-			return DIK_P;
-		case KeyCode::Q:
-			return DIK_Q;
-		case KeyCode::R:
-			return DIK_R;
-		case KeyCode::S:
-			return DIK_S;
-		case KeyCode::T:
-			return DIK_T;
-		case KeyCode::U:
-			return DIK_U;
-		case KeyCode::V:
-			return DIK_V;
-		case KeyCode::W:
-			return DIK_W;
-		case KeyCode::X:
-			return DIK_X;
-		case KeyCode::Y:
-			return DIK_Y;
-		case KeyCode::Z:
-			return DIK_Z;
-		case KeyCode::Num0:
-			return DIK_0;
-		case KeyCode::Num1:
-			return DIK_1;
-		case KeyCode::Num2:
-			return DIK_2;
-		case KeyCode::Num3:
-			return DIK_3;
-		case KeyCode::Num4:
-			return DIK_4;
-		case KeyCode::Num5:
-			return DIK_5;
-		case KeyCode::Num6:
-			return DIK_6;
-		case KeyCode::Num7:
-			return DIK_7;
-		case KeyCode::Num8:
-			return DIK_8;
-		case KeyCode::Num9:
-			return DIK_9;
-		default:
-			return DIK_ESCAPE;
+void InputSystem::HandleKeyboardInput(const RAWKEYBOARD& keyboard) {
+	if (keyboard.VKey == 0xFF) {
+		return;
 	}
+
+	const KeyCode keyCode = ToKeyCode(keyboard.VKey);
+	if (keyCode == KeyCode::Count) {
+		return;
+	}
+
+	currentKeys_[ToIndex(keyCode)] = (keyboard.Flags & RI_KEY_BREAK) == 0;
+}
+
+void InputSystem::HandleMouseInput(const RAWMOUSE& mouse) {
+	if ((mouse.usFlags & MOUSE_MOVE_ABSOLUTE) == 0) {
+		mouseDelta_.x += static_cast<float>(mouse.lLastX);
+		mouseDelta_.y += static_cast<float>(mouse.lLastY);
+	}
+
+	const USHORT buttonFlags = mouse.usButtonFlags;
+
+	if ((buttonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) != 0) {
+		SetMouseButton(currentMouseButtons_, MouseButtonCode::Left, true);
+	}
+	if ((buttonFlags & RI_MOUSE_LEFT_BUTTON_UP) != 0) {
+		SetMouseButton(currentMouseButtons_, MouseButtonCode::Left, false);
+	}
+	if ((buttonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN) != 0) {
+		SetMouseButton(currentMouseButtons_, MouseButtonCode::Right, true);
+	}
+	if ((buttonFlags & RI_MOUSE_RIGHT_BUTTON_UP) != 0) {
+		SetMouseButton(currentMouseButtons_, MouseButtonCode::Right, false);
+	}
+	if ((buttonFlags & RI_MOUSE_MIDDLE_BUTTON_DOWN) != 0) {
+		SetMouseButton(currentMouseButtons_, MouseButtonCode::Middle, true);
+	}
+	if ((buttonFlags & RI_MOUSE_MIDDLE_BUTTON_UP) != 0) {
+		SetMouseButton(currentMouseButtons_, MouseButtonCode::Middle, false);
+	}
+	if ((buttonFlags & RI_MOUSE_BUTTON_4_DOWN) != 0) {
+		SetMouseButton(currentMouseButtons_, MouseButtonCode::X1, true);
+	}
+	if ((buttonFlags & RI_MOUSE_BUTTON_4_UP) != 0) {
+		SetMouseButton(currentMouseButtons_, MouseButtonCode::X1, false);
+	}
+	if ((buttonFlags & RI_MOUSE_BUTTON_5_DOWN) != 0) {
+		SetMouseButton(currentMouseButtons_, MouseButtonCode::X2, true);
+	}
+	if ((buttonFlags & RI_MOUSE_BUTTON_5_UP) != 0) {
+		SetMouseButton(currentMouseButtons_, MouseButtonCode::X2, false);
+	}
+	if ((buttonFlags & RI_MOUSE_WHEEL) != 0) {
+		mouseWheelDelta_ += static_cast<float>(static_cast<SHORT>(mouse.usButtonData)) / static_cast<float>(WHEEL_DELTA);
+	}
+}
+
+KeyCode InputSystem::ToKeyCode(USHORT virtualKey) const {
+	switch (virtualKey) {
+		case VK_SPACE:
+			return KeyCode::Space;
+		case VK_ESCAPE:
+			return KeyCode::Escape;
+		case VK_RETURN:
+			return KeyCode::Enter;
+		case VK_TAB:
+			return KeyCode::Tab;
+		case VK_BACK:
+			return KeyCode::Backspace;
+		case VK_LEFT:
+			return KeyCode::Left;
+		case VK_RIGHT:
+			return KeyCode::Right;
+		case VK_UP:
+			return KeyCode::Up;
+		case VK_DOWN:
+			return KeyCode::Down;
+		case 'A':
+			return KeyCode::A;
+		case 'B':
+			return KeyCode::B;
+		case 'C':
+			return KeyCode::C;
+		case 'D':
+			return KeyCode::D;
+		case 'E':
+			return KeyCode::E;
+		case 'F':
+			return KeyCode::F;
+		case 'G':
+			return KeyCode::G;
+		case 'H':
+			return KeyCode::H;
+		case 'I':
+			return KeyCode::I;
+		case 'J':
+			return KeyCode::J;
+		case 'K':
+			return KeyCode::K;
+		case 'L':
+			return KeyCode::L;
+		case 'M':
+			return KeyCode::M;
+		case 'N':
+			return KeyCode::N;
+		case 'O':
+			return KeyCode::O;
+		case 'P':
+			return KeyCode::P;
+		case 'Q':
+			return KeyCode::Q;
+		case 'R':
+			return KeyCode::R;
+		case 'S':
+			return KeyCode::S;
+		case 'T':
+			return KeyCode::T;
+		case 'U':
+			return KeyCode::U;
+		case 'V':
+			return KeyCode::V;
+		case 'W':
+			return KeyCode::W;
+		case 'X':
+			return KeyCode::X;
+		case 'Y':
+			return KeyCode::Y;
+		case 'Z':
+			return KeyCode::Z;
+		case '0':
+			return KeyCode::Num0;
+		case '1':
+			return KeyCode::Num1;
+		case '2':
+			return KeyCode::Num2;
+		case '3':
+			return KeyCode::Num3;
+		case '4':
+			return KeyCode::Num4;
+		case '5':
+			return KeyCode::Num5;
+		case '6':
+			return KeyCode::Num6;
+		case '7':
+			return KeyCode::Num7;
+		case '8':
+			return KeyCode::Num8;
+		case '9':
+			return KeyCode::Num9;
+		default:
+			return KeyCode::Count;
+	}
+}
+
+size_t InputSystem::ToIndex(KeyCode code) const {
+	return static_cast<size_t>(code);
+}
+
+size_t InputSystem::ToIndex(MouseButtonCode code) const {
+	return static_cast<size_t>(code);
 }
 
 bool LGF::Input::Internal::IsTriggered(KeyCode code) {
@@ -248,4 +327,48 @@ uint32_t LGF::Input::Internal::GetPressedFrames(KeyCode code) {
 	}
 
 	return g_inputSystem->GetPressedFrames(code);
+}
+
+bool LGF::Input::Internal::IsTriggered(MouseButtonCode code) {
+	return g_inputSystem != nullptr && g_inputSystem->IsTriggered(code);
+}
+
+bool LGF::Input::Internal::IsPressed(MouseButtonCode code) {
+	return g_inputSystem != nullptr && g_inputSystem->IsPressed(code);
+}
+
+bool LGF::Input::Internal::IsReleased(MouseButtonCode code) {
+	return g_inputSystem != nullptr && g_inputSystem->IsReleased(code);
+}
+
+uint32_t LGF::Input::Internal::GetPressedFrames(MouseButtonCode code) {
+	if (g_inputSystem == nullptr) {
+		return 0;
+	}
+
+	return g_inputSystem->GetPressedFrames(code);
+}
+
+Vector2 LGF::Input::Internal::GetMouseDelta() {
+	if (g_inputSystem == nullptr) {
+		return {};
+	}
+
+	return g_inputSystem->GetMouseDelta();
+}
+
+float LGF::Input::Internal::GetMouseWheelDelta() {
+	if (g_inputSystem == nullptr) {
+		return 0.0f;
+	}
+
+	return g_inputSystem->GetMouseWheelDelta();
+}
+
+void LGF::Input::Internal::HandleRawInput(void* rawInputHandle) {
+	if (g_inputSystem == nullptr) {
+		return;
+	}
+
+	g_inputSystem->HandleRawInput(reinterpret_cast<HRAWINPUT>(rawInputHandle));
 }

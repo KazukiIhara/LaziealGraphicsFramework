@@ -17,3 +17,27 @@ bool KeyButton::Release() const {
 uint32_t KeyButton::PressedFrames() const {
 	return Input::Internal::GetPressedFrames(code_);
 }
+
+bool MouseButton::Trigger() const {
+	return Input::Internal::IsTriggered(code_);
+}
+
+bool MouseButton::Press() const {
+	return Input::Internal::IsPressed(code_);
+}
+
+bool MouseButton::Release() const {
+	return Input::Internal::IsReleased(code_);
+}
+
+uint32_t MouseButton::PressedFrames() const {
+	return Input::Internal::GetPressedFrames(code_);
+}
+
+Vector2 Mouse::Delta() {
+	return Input::Internal::GetMouseDelta();
+}
+
+float Mouse::WheelDelta() {
+	return Input::Internal::GetMouseWheelDelta();
+}
