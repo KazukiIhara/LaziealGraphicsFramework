@@ -71,6 +71,15 @@ void LGF::Graphics3D::Draw(const Box3D& box, const Matrix4x4& worldMatrix, const
 	);
 }
 
+void LGF::Graphics3D::Draw(const Cylinder3D& cylinder, const Matrix4x4& worldMatrix, const Vector4& color) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddCylinder(
+		cylinder,
+		worldMatrix,
+		color
+	);
+}
+
 void LGF::Graphics3D::Draw(const Line3D& line, const Matrix4x4& worldMatrix, const Vector4& color) {
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddLine(

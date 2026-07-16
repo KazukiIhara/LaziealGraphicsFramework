@@ -6,12 +6,14 @@
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 
 #include "Graphics/Drawer/3D/Primitive/Box/BoxDrawer3D.h"
+#include "Graphics/Drawer/3D/Primitive/Cylinder/CylinderDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Ground/GroundDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Line/LineDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Plane/PlaneDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Sphere/SphereDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Triangle/TriangleDrawer3D.h"
 #include "LGF/Graphics/Box3D.h"
+#include "LGF/Graphics/Cylinder3D.h"
 #include "LGF/Graphics/Ground3D.h"
 #include "LGF/Graphics/Line3D.h"
 #include "LGF/Graphics/Plane3D.h"
@@ -32,6 +34,8 @@ bool Renderer3D::Initialize() {
 	// レンダラーを作成
 	boxDrawer_ = std::make_unique<BoxDrawer3D>(context_);
 	boxDrawer_->Initialize();
+	cylinderDrawer_ = std::make_unique<CylinderDrawer3D>(context_);
+	cylinderDrawer_->Initialize();
 	groundDrawer_ = std::make_unique<GroundDrawer3D>(context_);
 	groundDrawer_->Initialize();
 	lineDrawer_ = std::make_unique<LineDrawer3D>(context_);
@@ -44,6 +48,7 @@ bool Renderer3D::Initialize() {
 	triangleDrawer_->Initialize();
 	// 更新用リストに追加
 	drawerList_.push_back(boxDrawer_.get());
+	drawerList_.push_back(cylinderDrawer_.get());
 	drawerList_.push_back(groundDrawer_.get());
 	drawerList_.push_back(lineDrawer_.get());
 	drawerList_.push_back(planeDrawer_.get());
@@ -64,6 +69,7 @@ void Renderer3D::EndFrame() {
 
 void Renderer3D::Finalize() {
 	boxDrawer_.reset();
+	cylinderDrawer_.reset();
 	groundDrawer_.reset();
 	lineDrawer_.reset();
 	planeDrawer_.reset();
@@ -106,6 +112,21 @@ void Renderer3D::AddBox(const Box3D& box, const Matrix4x4& worldMatrix, const Ve
 	};
 
 	boxDrawer_->AddBox(data);
+}
+
+void Renderer3D::AddCylinder(const Cylinder3D& cylinder, const Matrix4x4& worldMatrix, const Vector4& color) {
+	Cylinder3DForGPU data{};
+
+	data.instance.worldMatrix = worldMatrix;
+
+	data.instance.worldInverseTranspose =
+		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
+
+	data.instance.baseColor = color;
+	data.radius = cylinder.radius;
+	data.height = cylinder.height;
+
+	cylinderDrawer_->AddCylinder(data);
 }
 
 void Renderer3D::AddLine(const Line3D& line, const Matrix4x4& worldMatrix, const Vector4& color) {
