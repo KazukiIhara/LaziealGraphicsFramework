@@ -7,6 +7,9 @@
 
 namespace LGF {
 
+	/// <summary>
+	/// 3D板ポリ
+	/// </summary>
 	class Plane3D {
 	public:
 		Plane3D();

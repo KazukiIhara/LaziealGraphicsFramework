@@ -7,6 +7,9 @@
 
 namespace LGF {
 
+	/// <summary>
+	/// 3D球体
+	/// </summary>
 	class Sphere3D {
 	public:
 		Sphere3D();

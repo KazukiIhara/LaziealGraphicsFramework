@@ -7,6 +7,9 @@
 
 namespace LGF {
 
+	/// <summary>
+	/// 3D箱
+	/// </summary>
 	class Box3D {
 	public:
 		Box3D();
