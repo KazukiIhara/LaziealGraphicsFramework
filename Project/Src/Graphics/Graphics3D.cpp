@@ -62,10 +62,37 @@ void LGF::Graphics3D::Draw(const Triangle3D& triangle, const Matrix4x4& worldMat
 	);
 }
 
+void LGF::Graphics3D::Draw(const Box3D& box, const Matrix4x4& worldMatrix, const Vector4& color) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddBox(
+		box,
+		worldMatrix,
+		color
+	);
+}
+
 void LGF::Graphics3D::Draw(const Plane3D& plane, const Matrix4x4& worldMatrix, const Vector4& color) {
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddPlane(
 		plane,
+		worldMatrix,
+		color
+	);
+}
+
+void LGF::Graphics3D::Draw(const Ground3D& ground, const Matrix4x4& worldMatrix, const Vector4& color) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddGround(
+		ground,
+		worldMatrix,
+		color
+	);
+}
+
+void LGF::Graphics3D::Draw(const Sphere3D& sphere, const Matrix4x4& worldMatrix, const Vector4& color) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddSphere(
+		sphere,
 		worldMatrix,
 		color
 	);

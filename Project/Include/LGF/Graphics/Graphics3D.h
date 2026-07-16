@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <cstdint>
 
@@ -9,7 +9,10 @@ namespace LGF {
 
 	class Camera3D;
 
+	class Box3D;
+	class Ground3D;
 	class Plane3D;
+	class Sphere3D;
 	class Triangle3D;
 
 	namespace Graphics3D {
@@ -18,12 +21,12 @@ namespace LGF {
 		uint32_t GetWindowHeight();
 
 		/// <summary>
-		/// 使用するカメラをセットする
+		/// Set active camera.
 		/// </summary>
 		void SetCamera(const Camera3D& camera);
 
 		/// <summary>
-		/// 三角形描画
+		/// Draw a triangle.
 		/// </summary>
 		void Draw(
 			const Triangle3D& triangle,
@@ -32,7 +35,25 @@ namespace LGF {
 		);
 
 		void Draw(
+			const Box3D& box,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color = Color::White
+		);
+
+		void Draw(
 			const Plane3D& plane,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color = Color::White
+		);
+
+		void Draw(
+			const Ground3D& ground,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color = Color::White
+		);
+
+		void Draw(
+			const Sphere3D& sphere,
 			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
 		);
