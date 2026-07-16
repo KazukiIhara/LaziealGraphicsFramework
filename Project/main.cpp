@@ -43,6 +43,8 @@ void Main() {
 		const Vector4 sphereColor = Key::Space.Press() ? Color::Yellow : Color::Blue;
 		const Vector4 boxColor = Mouse::Left.Press() ? Color::Yellow : Color::Red;
 
+		const Vector2 cursorPos = Cursor::Pos();
+
 		Grid3D().Draw();
 		Triangle3D().Draw(triWorldMatrix, Color::Violet);
 		Sphere3D().Draw(sphereWorldMatrix, sphereColor);
@@ -55,7 +57,7 @@ void Main() {
 
 		Triangle2D({ 50.0f,50.0f }, { 100.0f,150.0f }, { 0.0f,150.0f }).Draw(Color::Red);
 		Rect2D({ 150.0f, 50.0f }, { 100.0f, 100.0f }).Draw(Color::Blue);
-		Circle2D({ 350.0f, 100.0f }, 50.0f).Draw(Color::Green);
+		Circle2D(cursorPos, 50.0f).Draw(Color::Green);
 		Line2D({ 100.0f, 220.0f }, { 400.0f, 260.0f }, 1.0f).Draw(Color::White);
 		RoundRect2D({ 450.0f, 50.0f }, { 180.0f, 100.0f }, 24.0f).Draw(Color::White);
 	}

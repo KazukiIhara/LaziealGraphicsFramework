@@ -155,6 +155,11 @@ namespace LGF {
 		float WheelDelta();
 	}
 
+	namespace Cursor {
+		Vector2 Pos();
+		Vector2 Delta();
+	}
+
 	namespace Input::Internal {
 		bool IsTriggered(KeyCode code);
 		bool IsPressed(KeyCode code);
@@ -168,6 +173,8 @@ namespace LGF {
 
 		Vector2 GetMouseDelta();
 		float GetMouseWheelDelta();
+		Vector2 GetCursorPos();
+		Vector2 GetCursorDelta();
 		void HandleRawInput(void* rawInputHandle);
 	}
 

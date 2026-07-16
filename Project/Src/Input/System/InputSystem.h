@@ -32,11 +32,14 @@ namespace LGF {
 
 		Vector2 GetMouseDelta()const;
 		float GetMouseWheelDelta()const;
+		Vector2 GetCursorPos()const;
+		Vector2 GetCursorDelta()const;
 
 		void HandleRawInput(HRAWINPUT rawInputHandle);
 
 	private:
 		bool RegisterRawInput(HWND hwnd);
+		void UpdateCursorPos();
 		void UpdatePressedFrames();
 		void HandleKeyboardInput(const RAWKEYBOARD& keyboard);
 		void HandleMouseInput(const RAWMOUSE& mouse);
@@ -55,6 +58,10 @@ namespace LGF {
 
 		Vector2 mouseDelta_{};
 		float mouseWheelDelta_ = 0.0f;
+
+		HWND hwnd_ = nullptr;
+		Vector2 cursorPos_{};
+		Vector2 previousCursorPos_{};
 	};
 
 }

@@ -26,7 +26,11 @@ bool InputSystem::Initialize(FrameworkContext& context) {
 		return false;
 	}
 
-	return RegisterRawInput(context.window->GetWindow().GetHwnd());
+	hwnd_ = context.window->GetWindow().GetHwnd();
+	UpdateCursorPos();
+	previousCursorPos_ = cursorPos_;
+
+	return RegisterRawInput(hwnd_);
 }
 
 bool InputSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
@@ -36,12 +40,14 @@ bool InputSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 }
 
 void InputSystem::BeginFrame([[maybe_unused]] FrameworkContext& context) {
+	UpdateCursorPos();
 	UpdatePressedFrames();
 }
 
 void InputSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 	previousKeys_ = currentKeys_;
 	previousMouseButtons_ = currentMouseButtons_;
+	previousCursorPos_ = cursorPos_;
 	mouseDelta_ = {};
 	mouseWheelDelta_ = 0.0f;
 }
@@ -90,6 +96,14 @@ float InputSystem::GetMouseWheelDelta() const {
 	return mouseWheelDelta_;
 }
 
+Vector2 InputSystem::GetCursorPos() const {
+	return cursorPos_;
+}
+
+Vector2 InputSystem::GetCursorDelta() const {
+	return cursorPos_ - previousCursorPos_;
+}
+
 void InputSystem::HandleRawInput(HRAWINPUT rawInputHandle) {
 	UINT dataSize = 0;
 	GetRawInputData(rawInputHandle, RID_INPUT, nullptr, &dataSize, sizeof(RAWINPUTHEADER));
@@ -128,6 +142,25 @@ bool InputSystem::RegisterRawInput(HWND hwnd) {
 	devices[1].hwndTarget = hwnd;
 
 	return RegisterRawInputDevices(devices, 2, sizeof(RAWINPUTDEVICE)) != FALSE;
+}
+
+void InputSystem::UpdateCursorPos() {
+	if (hwnd_ == nullptr) {
+		cursorPos_ = {};
+		return;
+	}
+
+	POINT point{};
+	if (!::GetCursorPos(&point)) {
+		return;
+	}
+
+	ScreenToClient(hwnd_, &point);
+
+	cursorPos_ = {
+		static_cast<float>(point.x),
+		static_cast<float>(point.y)
+	};
 }
 
 void InputSystem::UpdatePressedFrames() {
@@ -363,6 +396,22 @@ float LGF::Input::Internal::GetMouseWheelDelta() {
 	}
 
 	return g_inputSystem->GetMouseWheelDelta();
+}
+
+Vector2 LGF::Input::Internal::GetCursorPos() {
+	if (g_inputSystem == nullptr) {
+		return {};
+	}
+
+	return g_inputSystem->GetCursorPos();
+}
+
+Vector2 LGF::Input::Internal::GetCursorDelta() {
+	if (g_inputSystem == nullptr) {
+		return {};
+	}
+
+	return g_inputSystem->GetCursorDelta();
 }
 
 void LGF::Input::Internal::HandleRawInput(void* rawInputHandle) {

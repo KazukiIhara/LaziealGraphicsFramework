@@ -41,3 +41,11 @@ Vector2 Mouse::Delta() {
 float Mouse::WheelDelta() {
 	return Input::Internal::GetMouseWheelDelta();
 }
+
+Vector2 Cursor::Pos() {
+	return Input::Internal::GetCursorPos();
+}
+
+Vector2 Cursor::Delta() {
+	return Input::Internal::GetCursorDelta();
+}
