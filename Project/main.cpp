@@ -35,6 +35,7 @@ void Main() {
 		Triangle3D().Draw(triWorldMatrix, Color::Violet);
 		Sphere3D().Draw(sphereWorldMatrix, Color::Blue);
 		Box3D().Draw(boxWorldMatrix, Color::Red);
+		Line3D({ -2.3f, 1.2f, -0.4f }, { 2.3f, 1.2f, -0.4f }).Draw(Math::Identity4x4(), Color::Yellow);
 		Plane3D().Draw(planeWorldMatrix, Color::White);
 
 		Triangle2D({ 50.0f,50.0f }, { 100.0f,150.0f }, { 0.0f,150.0f }).Draw(Color::Red);

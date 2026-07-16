@@ -14,11 +14,13 @@ namespace LGF {
 	class IDrawer;
 	class BoxDrawer3D;
 	class GroundDrawer3D;
+	class LineDrawer3D;
 	class PlaneDrawer3D;
 	class SphereDrawer3D;
 	class TriangleDrawer3D;
 	class Box3D;
 	class Ground3D;
+	class Line3D;
 	class Plane3D;
 	class Sphere3D;
 	class Triangle3D;
@@ -51,6 +53,12 @@ namespace LGF {
 			const Vector4& color
 		);
 
+		void AddLine(
+			const Line3D& line,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color
+		);
+
 		void AddPlane(
 			const Plane3D& plane,
 			const Matrix4x4& worldMatrix,
@@ -78,6 +86,7 @@ namespace LGF {
 		// 描画クラス
 		std::unique_ptr<BoxDrawer3D> boxDrawer_;
 		std::unique_ptr<GroundDrawer3D> groundDrawer_;
+		std::unique_ptr<LineDrawer3D> lineDrawer_;
 		std::unique_ptr<PlaneDrawer3D> planeDrawer_;
 		std::unique_ptr<SphereDrawer3D> sphereDrawer_;
 		std::unique_ptr<TriangleDrawer3D> triangleDrawer_;

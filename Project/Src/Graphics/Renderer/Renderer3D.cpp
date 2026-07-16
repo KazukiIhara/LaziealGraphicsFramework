@@ -7,11 +7,13 @@
 
 #include "Graphics/Drawer/3D/Primitive/Box/BoxDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Ground/GroundDrawer3D.h"
+#include "Graphics/Drawer/3D/Primitive/Line/LineDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Plane/PlaneDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Sphere/SphereDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Triangle/TriangleDrawer3D.h"
 #include "LGF/Graphics/Box3D.h"
 #include "LGF/Graphics/Ground3D.h"
+#include "LGF/Graphics/Line3D.h"
 #include "LGF/Graphics/Plane3D.h"
 #include "LGF/Graphics/Sphere3D.h"
 #include "LGF/Graphics/Triangle3D.h"
@@ -32,6 +34,8 @@ bool Renderer3D::Initialize() {
 	boxDrawer_->Initialize();
 	groundDrawer_ = std::make_unique<GroundDrawer3D>(context_);
 	groundDrawer_->Initialize();
+	lineDrawer_ = std::make_unique<LineDrawer3D>(context_);
+	lineDrawer_->Initialize();
 	planeDrawer_ = std::make_unique<PlaneDrawer3D>(context_);
 	planeDrawer_->Initialize();
 	sphereDrawer_ = std::make_unique<SphereDrawer3D>(context_);
@@ -41,6 +45,7 @@ bool Renderer3D::Initialize() {
 	// 更新用リストに追加
 	drawerList_.push_back(boxDrawer_.get());
 	drawerList_.push_back(groundDrawer_.get());
+	drawerList_.push_back(lineDrawer_.get());
 	drawerList_.push_back(planeDrawer_.get());
 	drawerList_.push_back(sphereDrawer_.get());
 	drawerList_.push_back(triangleDrawer_.get());
@@ -60,6 +65,7 @@ void Renderer3D::EndFrame() {
 void Renderer3D::Finalize() {
 	boxDrawer_.reset();
 	groundDrawer_.reset();
+	lineDrawer_.reset();
 	planeDrawer_.reset();
 	sphereDrawer_.reset();
 	triangleDrawer_.reset();
@@ -100,6 +106,22 @@ void Renderer3D::AddBox(const Box3D& box, const Matrix4x4& worldMatrix, const Ve
 	};
 
 	boxDrawer_->AddBox(data);
+}
+
+void Renderer3D::AddLine(const Line3D& line, const Matrix4x4& worldMatrix, const Vector4& color) {
+	Line3DForGPU data{};
+
+	data.instance.worldMatrix = worldMatrix;
+
+	data.instance.worldInverseTranspose =
+		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
+
+	data.instance.baseColor = color;
+
+	data.start = line.start;
+	data.end = line.end;
+
+	lineDrawer_->AddLine(data);
 }
 
 void Renderer3D::AddPlane(const Plane3D& plane, const Matrix4x4& worldMatrix, const Vector4& color) {

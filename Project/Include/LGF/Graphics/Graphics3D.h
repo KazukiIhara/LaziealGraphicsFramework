@@ -11,6 +11,7 @@ namespace LGF {
 
 	class Box3D;
 	class Ground3D;
+	class Line3D;
 	class Plane3D;
 	class Sphere3D;
 	class Triangle3D;
@@ -36,6 +37,12 @@ namespace LGF {
 
 		void Draw(
 			const Box3D& box,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color = Color::White
+		);
+
+		void Draw(
+			const Line3D& line,
 			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
 		);
