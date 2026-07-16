@@ -11,8 +11,8 @@ using namespace LGF;
 RenderTexture::RenderTexture(
 	ResourceFactory& resourceFactory,
 	RTVManager& rtvManager,
-	SRVUAVManager& srvUavManager)
-	: resourceFactory_(resourceFactory),
+	SRVUAVManager& srvUavManager) :
+	resourceFactory_(resourceFactory),
 	rtvManager_(rtvManager),
 	srvUavManager_(srvUavManager) {
 }
@@ -40,8 +40,6 @@ bool RenderTexture::Resize(uint32_t width, uint32_t height) {
 	desc_.width = width;
 	desc_.height = height;
 
-	// DescriptorIndexは使い回すが、D3D12のTextureサイズは作成後に変更できない。
-	// そのためResize時はResource本体だけ作り直す。
 	return CreateResourceAndViews();
 }
 
@@ -124,8 +122,6 @@ bool RenderTexture::CreateResourceAndViews() {
 		return false;
 	}
 
-	// RTVとSRVは意図的に同じResourceを指す。
-	// これがポストエフェクトや後のGBuffer/Deferred Renderingの基本単位になる。
 	rtvManager_.CreateRTVTexture2d(rtvIndex_, resource_.Get(), desc_.rtvFormat);
 	srvUavManager_.CreateSrvTexture2d(srvIndex_, resource_.Get(), desc_.srvFormat, 1u);
 

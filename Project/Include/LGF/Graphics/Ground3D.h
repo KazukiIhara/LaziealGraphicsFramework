@@ -8,6 +8,9 @@
 
 namespace LGF {
 
+	/// <summary>
+	/// 3Dの床板ポリ
+	/// </summary>
 	class Ground3D {
 	public:
 		Ground3D();

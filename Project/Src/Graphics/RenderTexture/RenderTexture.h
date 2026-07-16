@@ -69,8 +69,6 @@ namespace LGF {
 		uint32_t srvIndex_ = 0u;
 		bool isViewAllocated_ = false;
 
-		// 現在のResourceStateをRenderTexture側で管理しておく。
-		// 呼び出し側は「RTにしたい」「SRVにしたい」という意図だけ渡せばよくなる。
 		D3D12_RESOURCE_STATES currentState_ = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	};
 }
