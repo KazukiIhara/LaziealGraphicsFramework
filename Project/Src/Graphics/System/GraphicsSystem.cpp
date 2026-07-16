@@ -140,6 +140,8 @@ void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 	for (auto& subSys : subsystems_) {
 		subSys->EndFrame();
 	}
+
+	directX_->DrawSceneToSwapChain(*pipelineManager_);
 	directX_->EndFrame();
 	isFrameRenderable_ = false;
 }

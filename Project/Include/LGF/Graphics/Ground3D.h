@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LGF/Math/MathTypes.h"
+#include "LGF/Math/MathUtils.h"
 
 #include "Transform3D.h"
 #include "Color.h"
@@ -16,7 +17,7 @@ namespace LGF {
 		~Ground3D();
 
 		void Draw(
-			const Matrix4x4& worldMatrix,
+			const Matrix4x4& worldMatrix = Math::Identity4x4(),
 			const Vector4& color = Color::White
 		)const;
 

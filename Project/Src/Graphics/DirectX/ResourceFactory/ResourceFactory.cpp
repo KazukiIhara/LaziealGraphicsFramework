@@ -70,6 +70,51 @@ ComPtr<ID3D12Resource> ResourceFactory::CreateUAVBufferResource(size_t sizeInByt
 	return resource;
 }
 
+ComPtr<ID3D12Resource> ResourceFactory::CreateRenderTargetTextureResource(
+	int32_t width,
+	int32_t height,
+	DXGI_FORMAT resourceFormat,
+	DXGI_FORMAT clearFormat,
+	const Vector4& clearColor) {
+
+	assert(width > 0);
+	assert(height > 0);
+
+	D3D12_RESOURCE_DESC resourceDesc{};
+	resourceDesc.Width = static_cast<UINT64>(width);
+	resourceDesc.Height = static_cast<UINT>(height);
+	resourceDesc.MipLevels = 1;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.Format = resourceFormat;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	D3D12_HEAP_PROPERTIES heapProperties{};
+	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	// ClearValueのFormatはリソース本体ではなくRTV側のFormatに合わせる。
+	// ここを分けておくと、後でHDRやTypelessなRenderTextureを追加しやすい。
+	D3D12_CLEAR_VALUE clearValue{};
+	clearValue.Format = clearFormat;
+	clearValue.Color[0] = clearColor.x;
+	clearValue.Color[1] = clearColor.y;
+	clearValue.Color[2] = clearColor.z;
+	clearValue.Color[3] = clearColor.w;
+
+	ComPtr<ID3D12Resource> resource = nullptr;
+	HRESULT hr = device_.GetDevice()->CreateCommittedResource(
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		D3D12_RESOURCE_STATE_RENDER_TARGET,
+		&clearValue,
+		IID_PPV_ARGS(&resource));
+	assert(SUCCEEDED(hr));
+
+	return resource;
+}
+
 ComPtr<ID3D12Resource> ResourceFactory::CreateDepthStencilTextureResource(
 	int32_t width,
 	int32_t height,

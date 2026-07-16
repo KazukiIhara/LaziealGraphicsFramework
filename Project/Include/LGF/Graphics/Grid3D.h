@@ -5,6 +5,9 @@
 
 namespace LGF {
 
+	/// <summary>
+	/// 3Dグリッド
+	/// </summary>
 	class Grid3D {
 	public:
 		Grid3D();

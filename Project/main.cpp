@@ -46,6 +46,7 @@ void Main() {
 		const Vector2 cursorPos = Cursor::Pos();
 
 		Grid3D().Draw();
+		Ground3D().Draw();
 		Triangle3D().Draw(triWorldMatrix, Color::Violet);
 		Sphere3D().Draw(sphereWorldMatrix, sphereColor);
 		Cylinder3D().Draw(cylinderWorldMatrix, Color::White);

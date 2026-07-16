@@ -21,6 +21,9 @@ namespace LGF {
 	class DepthStencil;
 	class Fence;
 	class ShaderCompiler;
+	class PipelineManager;
+	class RenderTexture;
+	class RenderTextureManager;
 
 	/// <summary>
 	/// DirectXコアシステム
@@ -38,6 +41,7 @@ namespace LGF {
 
 		bool Initialize();
 		bool BeginFrame();
+		void DrawSceneToSwapChain(PipelineManager& pipelineManager);
 		void EndFrame();
 		void Finalize();
 
@@ -71,6 +75,8 @@ namespace LGF {
 		std::unique_ptr<DepthStencil> depthStencil_;
 		std::unique_ptr<Fence> fence_;
 		std::unique_ptr<ShaderCompiler> shaderCompiler_;
+		std::unique_ptr<RenderTextureManager> renderTextureManager_;
+		RenderTexture* sceneColor_ = nullptr;
 
 		Window& window_;
 	};

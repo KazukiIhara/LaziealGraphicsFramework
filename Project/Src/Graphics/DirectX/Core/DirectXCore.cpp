@@ -14,8 +14,18 @@
 #include "Graphics/DirectX/DepthStencil/DepthStencil.h"
 #include "Graphics/DirectX/Fence/Fence.h"
 #include "Graphics/DirectX/ShaderCompiler/ShaderCompiler.h"
+#include "Graphics/Pipeline/Manager/PipelineManager.h"
+#include "Graphics/Pipeline/Pipeline.h"
+#include "Graphics/RenderTexture/RenderTexture.h"
+#include "Graphics/RenderTexture/RenderTextureManager.h"
 
 using namespace LGF;
+
+namespace {
+	constexpr char kSceneColorName[] = "SceneColor";
+	constexpr char kFullscreenCopyPipelineName[] = "FullscreenCopy";
+	constexpr char kSceneColorShaderName[] = "gSceneColor";
+}
 
 DirectXCore::DirectXCore(Window& window) :
 	window_(window) {
@@ -40,6 +50,10 @@ bool DirectXCore::Initialize() {
 	depthStencil_ = std::make_unique<DepthStencil>(*resourceFactory_, *dsvManager_);
 	fence_ = std::make_unique<Fence>(*device_, *command_);
 	shaderCompiler_ = std::make_unique<ShaderCompiler>();
+	renderTextureManager_ = std::make_unique<RenderTextureManager>(
+		*resourceFactory_,
+		*rtvManager_,
+		*srvUavManager_);
 
 	if (Device::InitializeResult::kSuccess != device_->Initialize()) {
 		return false;
@@ -61,6 +75,14 @@ bool DirectXCore::Initialize() {
 		return false;
 	}
 
+	RenderTextureDesc sceneColorDesc{};
+	sceneColorDesc.width = renderWidth_;
+	sceneColorDesc.height = renderHeight_;
+	sceneColor_ = renderTextureManager_->Create(kSceneColorName, sceneColorDesc);
+	if (!sceneColor_) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -77,17 +99,48 @@ bool DirectXCore::BeginFrame() {
 	command_->BeginFrame();
 	swapChain_->BeginFrame();
 
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = swapChain_->GetCurrentBackBufferRTVHandle();
+	// ここから通常のフレームワーク描画はSceneColorへ書き込む。
+	// SwapChainのBackBufferは、このフレーム最後のフルスクリーンコピー用に
+	// RENDER_TARGET状態のまま保持しておく。
+	sceneColor_->Transition(command_->GetList(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = sceneColor_->GetRTVHandleCPU();
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = depthStencil_->GetDSVHandleCPU();
 	command_->GetList()->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 
-	constexpr float clearColor[] = { 0.1f, 0.25f, 0.5f, 1.0f };
-	command_->GetList()->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	sceneColor_->Clear(command_->GetList());
 	command_->GetList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 	viewport_->BeginFrame(renderWidth_, renderHeight_);
 	scissorRect_->BeginFrame(renderWidth_, renderHeight_);
 	return true;
+}
+
+void DirectXCore::DrawSceneToSwapChain(PipelineManager& pipelineManager) {
+	assert(sceneColor_);
+
+	Pipeline* pipeline = pipelineManager.GetPipeline(kFullscreenCopyPipelineName);
+	assert(pipeline);
+	assert(pipeline->IsValid());
+
+	ID3D12GraphicsCommandList* commandList = command_->GetList();
+	ID3D12GraphicsCommandList6* commandList6 = command_->GetList6();
+	assert(commandList6);
+
+	// SceneColorへの描画が終わったので、最後の画面転送用にSRVへ切り替える。
+	// SwapChainのBackBufferはBeginFrame時点ですでにRenderTargetになっている。
+	sceneColor_->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = swapChain_->GetCurrentBackBufferRTVHandle();
+	commandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+
+	commandList->SetPipelineState(pipeline->GetPipelineState());
+	commandList->SetGraphicsRootSignature(pipeline->GetRootSignature());
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kSceneColorShaderName),
+		sceneColor_->GetSRVHandleGPU());
+
+	commandList6->DispatchMesh(1, 1, 1);
 }
 
 void DirectXCore::EndFrame() {
@@ -98,6 +151,11 @@ void DirectXCore::EndFrame() {
 }
 
 void DirectXCore::Finalize() {
+	if (renderTextureManager_) {
+		renderTextureManager_->Finalize();
+	}
+	sceneColor_ = nullptr;
+	renderTextureManager_.reset();
 	shaderCompiler_.reset();
 	fence_.reset();
 	depthStencil_.reset();
@@ -129,6 +187,11 @@ bool DirectXCore::Resize(uint32_t width, uint32_t height) {
 	}
 
 	depthStencil_->Resize(width, height);
+	if (!renderTextureManager_->ResizeAll(width, height)) {
+		return false;
+	}
+
+	sceneColor_ = renderTextureManager_->Get(kSceneColorName);
 	renderWidth_ = width;
 	renderHeight_ = height;
 	return true;
