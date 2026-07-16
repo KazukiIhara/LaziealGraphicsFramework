@@ -19,6 +19,7 @@
 #include "LGF/Graphics/Capsule3D.h"
 #include "LGF/Graphics/Cone3D.h"
 #include "LGF/Graphics/Cylinder3D.h"
+#include "LGF/Graphics/Grid3D.h"
 #include "LGF/Graphics/Ground3D.h"
 #include "LGF/Graphics/Line3D.h"
 #include "LGF/Graphics/Plane3D.h"

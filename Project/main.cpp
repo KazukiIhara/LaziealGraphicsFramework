@@ -11,8 +11,6 @@ void Main() {
 	Transform3D triTrans{};
 	Transform3D planeTrans{};
 	Transform3D sphereTrans{};
-	Transform3D groundTrans{};
-	groundTrans.translation = { 0.0f, 0.0f, 0.0f };
 
 	triTrans.translation = { -3.0f, 0.5f, 0.0f };
 	triTrans.rotation = Math::MakeQuaternion(Vector3(0.0f, Math::PI, 0.0f));
@@ -34,7 +32,6 @@ void Main() {
 
 		Camera3D(Vector3(0.0f, 1.0f, -10.0f)).SetScene();
 
-		Matrix4x4 groundWorldMatrix = Math::MakeAffineMatrix(groundTrans.scale, groundTrans.rotation, groundTrans.translation);
 		Matrix4x4 triWorldMatrix = Math::MakeAffineMatrix(triTrans.scale, triTrans.rotation, triTrans.translation);
 		Matrix4x4 sphereWorldMatrix = Math::MakeAffineMatrix(sphereTrans.scale, sphereTrans.rotation, sphereTrans.translation);
 		Matrix4x4 cylinderWorldMatrix = Math::MakeAffineMatrix(cylinderTrans.scale, cylinderTrans.rotation, cylinderTrans.translation);
@@ -43,7 +40,7 @@ void Main() {
 		Matrix4x4 boxWorldMatrix = Math::MakeAffineMatrix(boxTrans.scale, boxTrans.rotation, boxTrans.translation);
 		Matrix4x4 planeWorldMatrix = Math::MakeAffineMatrix(planeTrans.scale, planeTrans.rotation, planeTrans.translation);
 
-		Ground3D(6.0f, 5.0f).Draw(groundWorldMatrix, Color::Green);
+		Grid3D().Draw();
 		Triangle3D().Draw(triWorldMatrix, Color::Violet);
 		Sphere3D().Draw(sphereWorldMatrix, Color::Blue);
 		Cylinder3D().Draw(cylinderWorldMatrix, Color::White);
