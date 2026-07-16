@@ -4,15 +4,21 @@ using namespace LGF;
 
 void Main() {
 
-	Transform3D trans{};
-	trans.rotation = Math::MakeQuaternion(Vector3(0.0f, Math::PI, 0.0f));
+	Transform3D triTrans{};
+	Transform3D planeTrans{};
+	triTrans.rotation = Math::MakeQuaternion(Vector3(0.0f, Math::PI, 0.0f));
+
+	planeTrans.rotation = Math::MakeQuaternion(Vector3(-Math::PI * 0.5f, 0.0f, 0.0f));
+
 	while (System::Update()) {
 
 		Camera3D(Vector3(0.0f, 1.0f, -5.0f)).SetScene();
-		Matrix4x4 worldMatrix = Math::MakeAffineMatrix(trans.scale, trans.rotation, trans.translation);
 
-		Triangle3D().Draw(worldMatrix, Color::Violet);
-		Plane3D().Draw(worldMatrix, Color::White);
+		Matrix4x4 triWorldMatrix = Math::MakeAffineMatrix(triTrans.scale, triTrans.rotation, triTrans.translation);
+		Matrix4x4 planeWorldMatrix = Math::MakeAffineMatrix(planeTrans.scale, planeTrans.rotation, planeTrans.translation);
+
+		Triangle3D().Draw(triWorldMatrix, Color::Violet);
+		Plane3D(5.0f, 5.0f).Draw(planeWorldMatrix, Color::White);
 
 		Triangle2D({ 50.0f,50.0f }, { 100.0f,150.0f }, { 0.0f,150.0f }).Draw(Color::Red);
 		Rect2D({ 150.0f, 50.0f }, { 100.0f, 100.0f }).Draw(Color::Blue);
