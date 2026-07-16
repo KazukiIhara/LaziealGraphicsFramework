@@ -1,5 +1,8 @@
 #include "DirectXCore.h"
 
+#include <cassert>
+#include <vector>
+
 #include "Core/Window/Window.h"
 #include "Graphics/DirectX/Device/Device.h"
 #include "Graphics/DirectX/Command/Command.h"
@@ -23,8 +26,15 @@ using namespace LGF;
 
 namespace {
 	constexpr char kSceneColorName[] = "SceneColor";
+	constexpr char kGBufferAlbedoName[] = "GBufferAlbedo";
+	constexpr char kGBufferNormalName[] = "GBufferNormal";
 	constexpr char kFullscreenCopyPipelineName[] = "FullscreenCopy";
+	constexpr char kFullscreenDepthPipelineName[] = "FullscreenDepth";
+	constexpr char kFullscreenLightingPipelineName[] = "FullscreenLighting";
 	constexpr char kSceneColorShaderName[] = "gSceneColor";
+	constexpr char kDepthTextureShaderName[] = "gDepthTexture";
+	constexpr char kGBufferAlbedoShaderName[] = "gGBufferAlbedo";
+	constexpr char kGBufferNormalShaderName[] = "gGBufferNormal";
 }
 
 DirectXCore::DirectXCore(Window& window) :
@@ -47,7 +57,7 @@ bool DirectXCore::Initialize() {
 	viewport_ = std::make_unique<Viewport>(*command_);
 	scissorRect_ = std::make_unique<ScissorRect>(*command_);
 	swapChain_ = std::make_unique<SwapChain>(window_, *device_, *command_, *rtvManager_, *viewport_, *scissorRect_);
-	depthStencil_ = std::make_unique<DepthStencil>(*resourceFactory_, *dsvManager_);
+	depthStencil_ = std::make_unique<DepthStencil>(*resourceFactory_, *dsvManager_, *srvUavManager_);
 	fence_ = std::make_unique<Fence>(*device_, *command_);
 	shaderCompiler_ = std::make_unique<ShaderCompiler>();
 	renderTextureManager_ = std::make_unique<RenderTextureManager>(
@@ -83,6 +93,26 @@ bool DirectXCore::Initialize() {
 		return false;
 	}
 
+	RenderTextureDesc gBufferAlbedoDesc{};
+	gBufferAlbedoDesc.width = renderWidth_;
+	gBufferAlbedoDesc.height = renderHeight_;
+	gBufferAlbedo_ = renderTextureManager_->Create(kGBufferAlbedoName, gBufferAlbedoDesc);
+	if (!gBufferAlbedo_) {
+		return false;
+	}
+
+	RenderTextureDesc gBufferNormalDesc{};
+	gBufferNormalDesc.width = renderWidth_;
+	gBufferNormalDesc.height = renderHeight_;
+	gBufferNormalDesc.resourceFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	gBufferNormalDesc.rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	gBufferNormalDesc.srvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	gBufferNormalDesc.clearColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+	gBufferNormal_ = renderTextureManager_->Create(kGBufferNormalName, gBufferNormalDesc);
+	if (!gBufferNormal_) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -99,21 +129,95 @@ bool DirectXCore::BeginFrame() {
 	command_->BeginFrame();
 	swapChain_->BeginFrame();
 
-	// ここから通常のフレームワーク描画はSceneColorへ書き込む。
-	// SwapChainのBackBufferは、このフレーム最後のフルスクリーンコピー用に
-	// RENDER_TARGET状態のまま保持しておく。
-	sceneColor_->Transition(command_->GetList(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+	RenderTexture* renderTargets[] = { gBufferAlbedo_, gBufferNormal_ };
+	SetRenderTargets(renderTargets);
+	ClearRenderTargets(renderTargets);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = sceneColor_->GetRTVHandleCPU();
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = depthStencil_->GetDSVHandleCPU();
-	command_->GetList()->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
-
-	sceneColor_->Clear(command_->GetList());
 	command_->GetList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 	viewport_->BeginFrame(renderWidth_, renderHeight_);
 	scissorRect_->BeginFrame(renderWidth_, renderHeight_);
 	return true;
+}
+
+void DirectXCore::SetRenderTargets(std::span<RenderTexture* const> renderTextures, bool useDepthStencil) {
+	assert(!renderTextures.empty());
+
+	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvHandles;
+	rtvHandles.reserve(renderTextures.size());
+
+	// RenderTextureをRenderTarget状態へ遷移
+	for (RenderTexture* renderTexture : renderTextures) {
+		assert(renderTexture);
+		renderTexture->Transition(command_->GetList(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+		rtvHandles.push_back(renderTexture->GetRTVHandleCPU());
+	}
+
+	// DepthStencilの設定
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle{};
+	D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandlePtr = nullptr;
+	if (useDepthStencil) {
+		depthStencil_->Transition(command_->GetList(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		dsvHandle = depthStencil_->GetDSVHandleCPU();
+		dsvHandlePtr = &dsvHandle;
+	}
+
+	// RenderTarget配列の設定
+	command_->GetList()->OMSetRenderTargets(
+		static_cast<UINT>(rtvHandles.size()),
+		rtvHandles.data(),
+		false,
+		dsvHandlePtr);
+}
+
+void DirectXCore::ClearRenderTargets(std::span<RenderTexture* const> renderTextures) {
+	assert(!renderTextures.empty());
+
+	// RenderTexture配列のクリア
+	for (RenderTexture* renderTexture : renderTextures) {
+		assert(renderTexture);
+		renderTexture->Clear(command_->GetList());
+	}
+}
+
+void DirectXCore::DrawLightingToSceneColor(PipelineManager& pipelineManager) {
+	assert(sceneColor_);
+	assert(gBufferAlbedo_);
+	assert(gBufferNormal_);
+
+	Pipeline* pipeline = pipelineManager.GetPipeline(kFullscreenLightingPipelineName);
+	assert(pipeline);
+	assert(pipeline->IsValid());
+
+	ID3D12GraphicsCommandList* commandList = command_->GetList();
+	ID3D12GraphicsCommandList6* commandList6 = command_->GetList6();
+	assert(commandList6);
+
+	// GBufferをShaderResource状態へ遷移
+	gBufferAlbedo_->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	gBufferNormal_->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	depthStencil_->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+	// SceneColorをRenderTarget状態へ遷移
+	sceneColor_->Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = sceneColor_->GetRTVHandleCPU();
+	commandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+
+	commandList->SetPipelineState(pipeline->GetPipelineState());
+	commandList->SetGraphicsRootSignature(pipeline->GetRootSignature());
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kGBufferAlbedoShaderName),
+		gBufferAlbedo_->GetSRVHandleGPU());
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kGBufferNormalShaderName),
+		gBufferNormal_->GetSRVHandleGPU());
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kDepthTextureShaderName),
+		depthStencil_->GetSRVHandleGPU());
+
+	commandList6->DispatchMesh(1, 1, 1);
 }
 
 void DirectXCore::DrawSceneToSwapChain(PipelineManager& pipelineManager) {
@@ -127,8 +231,7 @@ void DirectXCore::DrawSceneToSwapChain(PipelineManager& pipelineManager) {
 	ID3D12GraphicsCommandList6* commandList6 = command_->GetList6();
 	assert(commandList6);
 
-	// SceneColorへの描画が終わったので、最後の画面転送用にSRVへ切り替える。
-	// SwapChainのBackBufferはBeginFrame時点ですでにRenderTargetになっている。
+	// SceneColorをShaderResource状態へ遷移
 	sceneColor_->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = swapChain_->GetCurrentBackBufferRTVHandle();
@@ -139,6 +242,30 @@ void DirectXCore::DrawSceneToSwapChain(PipelineManager& pipelineManager) {
 	commandList->SetGraphicsRootDescriptorTable(
 		pipeline->GetRootIndex(kSceneColorShaderName),
 		sceneColor_->GetSRVHandleGPU());
+
+	commandList6->DispatchMesh(1, 1, 1);
+}
+
+void DirectXCore::DrawDepthToSwapChain(PipelineManager& pipelineManager) {
+	Pipeline* pipeline = pipelineManager.GetPipeline(kFullscreenDepthPipelineName);
+	assert(pipeline);
+	assert(pipeline->IsValid());
+
+	ID3D12GraphicsCommandList* commandList = command_->GetList();
+	ID3D12GraphicsCommandList6* commandList6 = command_->GetList6();
+	assert(commandList6);
+
+	// DepthStencilをShaderResource状態へ遷移
+	depthStencil_->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = swapChain_->GetCurrentBackBufferRTVHandle();
+	commandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+
+	commandList->SetPipelineState(pipeline->GetPipelineState());
+	commandList->SetGraphicsRootSignature(pipeline->GetRootSignature());
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kDepthTextureShaderName),
+		depthStencil_->GetSRVHandleGPU());
 
 	commandList6->DispatchMesh(1, 1, 1);
 }
@@ -155,6 +282,8 @@ void DirectXCore::Finalize() {
 		renderTextureManager_->Finalize();
 	}
 	sceneColor_ = nullptr;
+	gBufferAlbedo_ = nullptr;
+	gBufferNormal_ = nullptr;
 	renderTextureManager_.reset();
 	shaderCompiler_.reset();
 	fence_.reset();
@@ -192,6 +321,8 @@ bool DirectXCore::Resize(uint32_t width, uint32_t height) {
 	}
 
 	sceneColor_ = renderTextureManager_->Get(kSceneColorName);
+	gBufferAlbedo_ = renderTextureManager_->Get(kGBufferAlbedoName);
+	gBufferNormal_ = renderTextureManager_->Get(kGBufferNormalName);
 	renderWidth_ = width;
 	renderHeight_ = height;
 	return true;
@@ -223,4 +354,8 @@ ResourceFactory* DirectXCore::GetResourceFactory() {
 
 ShaderCompiler* DirectXCore::GetShaderCompiler() {
 	return shaderCompiler_.get();
+}
+
+RenderTextureManager* DirectXCore::GetRenderTextureManager() {
+	return renderTextureManager_.get();
 }

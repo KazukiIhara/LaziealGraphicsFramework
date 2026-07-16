@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <span>
 
 #include <d3d12.h>
 
@@ -41,7 +42,11 @@ namespace LGF {
 
 		bool Initialize();
 		bool BeginFrame();
+		void SetRenderTargets(std::span<RenderTexture* const> renderTextures, bool useDepthStencil = true);
+		void ClearRenderTargets(std::span<RenderTexture* const> renderTextures);
+		void DrawLightingToSceneColor(PipelineManager& pipelineManager);
 		void DrawSceneToSwapChain(PipelineManager& pipelineManager);
+		void DrawDepthToSwapChain(PipelineManager& pipelineManager);
 		void EndFrame();
 		void Finalize();
 
@@ -52,6 +57,7 @@ namespace LGF {
 
 		ResourceFactory* GetResourceFactory();
 		ShaderCompiler* GetShaderCompiler();
+		RenderTextureManager* GetRenderTextureManager();
 
 		ResMgr GetResMgr();
 
@@ -77,6 +83,8 @@ namespace LGF {
 		std::unique_ptr<ShaderCompiler> shaderCompiler_;
 		std::unique_ptr<RenderTextureManager> renderTextureManager_;
 		RenderTexture* sceneColor_ = nullptr;
+		RenderTexture* gBufferAlbedo_ = nullptr;
+		RenderTexture* gBufferNormal_ = nullptr;
 
 		Window& window_;
 	};

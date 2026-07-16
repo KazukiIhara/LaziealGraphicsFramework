@@ -60,12 +60,17 @@ void main(
                 sinPhi * cos(theta) * radius,
                 cosPhi * radius + yOffset,
                 sinPhi * sin(theta) * radius);
+            float3 localNormal = normalize(float3(
+                sinPhi * cos(theta),
+                cosPhi,
+                sinPhi * sin(theta)));
 
             float4 worldPos = mul(float4(localPos, 1.0f), capsule.instData.worldMatrix);
 
             uint vertexIndex = GetVertexIndex(lat, lon);
             vertices[vertexIndex].position = mul(worldPos, gCamera.viewProj);
             vertices[vertexIndex].baseColor = capsule.instData.baseColor;
+            vertices[vertexIndex].normal = ToWorldNormal(capsule.instData, localNormal);
         }
     }
 

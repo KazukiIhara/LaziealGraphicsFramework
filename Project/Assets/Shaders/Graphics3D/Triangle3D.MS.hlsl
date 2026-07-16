@@ -21,6 +21,10 @@ void main(
 
     // インデックスから三角形データを取得
     TriangleData tri = gTriangle[DTid.x];
+    float3 localNormal = normalize(cross(
+        tri.vertexOffsets[1] - tri.vertexOffsets[0],
+        tri.vertexOffsets[2] - tri.vertexOffsets[0]));
+    float3 worldNormal = ToWorldNormal(tri.instData, localNormal);
 
     for (uint i = 0; i < 3; ++i)
     {
@@ -30,6 +34,7 @@ void main(
         vertices[i].position = mul(worldPos, gCamera.viewProj);
         // 色をセット
         vertices[i].baseColor = tri.instData.baseColor;
+        vertices[i].normal = worldNormal;
     }
 
     triangles[0] = uint3(0, 1, 2);

@@ -1,10 +1,20 @@
 #include "Graphics3D.hlsli"
 
-float4 main(MSOutput3D input) : SV_Target
+struct GBufferOutput
 {
-    float4 output;
-        
-    output = input.baseColor;
-    
+    float4 albedo : SV_Target0;
+    float4 normal : SV_Target1;
+};
+
+GBufferOutput main(MSOutput3D input)
+{
+    GBufferOutput output;
+
+    // Albedoの出力
+    output.albedo = input.baseColor;
+
+    // Normalの出力
+    output.normal = float4(normalize(input.normal), 1.0f);
+
     return output;
 }

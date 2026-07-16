@@ -137,9 +137,14 @@ void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 	};
 	commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
-	for (auto& subSys : subsystems_) {
-		subSys->EndFrame();
-	}
+	camera3DSystem_->EndFrame();
+	renderer3D_->EndFrame();
+
+	directX_->DrawLightingToSceneColor(*pipelineManager_);
+
+	camera2DSystem_->EndFrame();
+	renderer2D_->EndFrame();
+	imguiSystem_->EndFrame();
 
 	directX_->DrawSceneToSwapChain(*pipelineManager_);
 	directX_->EndFrame();

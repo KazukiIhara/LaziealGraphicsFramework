@@ -1,20 +1,82 @@
 workspace "LaziealGraphicsFramework"
-    configurations { "Debug", "Develop","Release" }
+    configurations { "Debug", "Develop", "Release" }
     platforms { "x64" }
-    startproject "LaziealGraphicsFramework" -- デフォルトのスタートプロジェクトを指定
+    startproject "LaziealGraphicsFramework"
     location "../"
 
-    -- 出力ディレクトリの設定
-    targetdir "../../generated/outputs/%{cfg.buildcfg}/%{cfg.platform}"  -- 実行ファイルの出力先
-    objdir "../../generated/obj/%{prj.name}/%{cfg.buildcfg}"             -- 中間ファイルの出力先
+    -- 出力ディレクトリ
+    targetdir "../../generated/outputs/%{cfg.buildcfg}/%{cfg.platform}"
+    objdir "../../generated/obj/%{prj.name}/%{cfg.buildcfg}"
 
-project "LaziealGraphicsFramework" -- プロジェクト名
-   kind "WindowedApp" -- デスクトップアプリケーションに設定
+project "DirectXTex"
+   kind "StaticLib"
    language "C++"
-   cppdialect "C++20" -- 言語の設定
+   cppdialect "C++20"
+   location "../"
+   characterset "Unicode"
 
-   -- プロジェクトに含むファイル
-   files { 
+   -- DirectXTex本体のソース
+   files {
+      "../Externals/DirectXTex/DirectXTex/*.cpp",
+      "../Externals/DirectXTex/DirectXTex/*.h",
+      "../Externals/DirectXTex/DirectXTex/*.inl",
+   }
+
+   -- DirectXTex内部で参照するインクルードパス
+   includedirs {
+      "../Externals/DirectXTex/DirectXTex",
+      "../Externals/DirectXTex/Common",
+      "../Externals/DirectXTex/DirectXTex/Shaders/Compiled",
+   }
+
+   defines {
+      "_LIB",
+      "_UNICODE",
+      "UNICODE",
+      "_WIN32_WINNT=0x0A00",
+      "_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS",
+   }
+
+   pchheader "DirectXTexP.h"
+   pchsource "../Externals/DirectXTex/DirectXTex/DirectXTexUtil.cpp"
+
+   warnings "Off"
+   buildoptions { "/utf-8", "/Zc:twoPhase-", "/Zc:__cplusplus" }
+   floatingpoint "Fast"
+   openmp "On"
+   staticruntime "On"
+   multiprocessorcompile "On"
+
+   -- GPU圧縮用の埋め込みシェーダーを生成
+   prebuildcommands {
+      'pushd "%{wks.location}Externals\\DirectXTex\\DirectXTex\\Shaders" && call CompileShaders.cmd && popd'
+   }
+
+   filter "configurations:Debug"
+      defines { "_DEBUG" }
+      symbols "On"
+      runtime "Debug"
+
+   filter "configurations:Develop"
+      defines { "NDEBUG", "PROFILE" }
+      symbols "On"
+      optimize "Debug"
+      runtime "Release"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"
+      runtime "Release"
+
+   filter {}
+
+project "LaziealGraphicsFramework"
+   kind "WindowedApp"
+   language "C++"
+   cppdialect "C++20"
+
+   -- プロジェクトに含めるファイル
+   files {
       "../*.cpp",
 
       "../Src/**.cpp",
@@ -32,28 +94,30 @@ project "LaziealGraphicsFramework" -- プロジェクト名
       "../Externals/imgui/backends/imgui_impl_win32.cpp",
       "../Externals/imgui/backends/imgui_impl_win32.h",
    }
-   
+
    -- 追加のインクルードパス
-   includedirs { 
+   includedirs {
        "../Src",
        "../Include",
        "../Externals",
 
        "../Externals/imgui",
        "../Externals/imgui/backends",
+
+       "../Externals/DirectXTex/DirectXTex",
    }
 
-   dependson { } -- 依存していることを指定
+   dependson { "DirectXTex" }
 
-   links { }  -- リンク対象のプロジェクト
+   links { "DirectXTex" }
 
-   warnings "High" -- 警告レベル4を設定
+   warnings "High"
 
-   buildoptions { "/utf-8" } -- UTF-8でビルドする設定
+   buildoptions { "/utf-8" }
 
-   multiprocessorcompile "On" -- 複数プロセッサでのコンパイルを有効化
+   multiprocessorcompile "On"
 
-   -- ビルド後イベントのコマンド
+   -- ビルド後イベント
    postbuildcommands {
       'copy "$(WindowsSdkDir)bin\\$(TargetPlatformVersion)\\x64\\dxcompiler.dll" "$(TargetDir)dxcompiler.dll"',
       'copy "$(WindowsSdkDir)bin\\$(TargetPlatformVersion)\\x64\\dxil.dll" "$(TargetDir)dxil.dll"'
@@ -62,27 +126,26 @@ project "LaziealGraphicsFramework" -- プロジェクト名
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
-      fatalwarnings { "All" }  -- 警告をエラーとして扱う
-      staticruntime "On"  -- 静的ランタイム（/MTd）
-      linkoptions { "/IGNORE:4049", "/IGNORE:4099" } -- 指定したリンカーの警告を無視
-      libdirs { "../Externals/assimp/lib/Debug" } -- デバッグ用追加のライブラリディレクトリ
-      links { "assimp-vc143-mtd" } -- デバッグ用ライブラリ
+      fatalwarnings { "All" }
+      staticruntime "On"
+      linkoptions { "/IGNORE:4049", "/IGNORE:4099" }
+      libdirs { "../Externals/assimp/lib/Debug" }
+      links { "assimp-vc143-mtd" }
 
    filter "configurations:Develop"
-      defines { "DEBUG", "DEVELOP" }     
-      symbols "On"                       
-      optimize "Debug"                   
+      defines { "DEBUG", "DEVELOP" }
+      symbols "On"
+      optimize "Debug"
       runtime "Release"
-      staticruntime "On"                  
+      staticruntime "On"
       linkoptions { "/IGNORE:4049", "/IGNORE:4099" }
-      libdirs { "../Externals/assimp/lib/Release" }  -- Release ライブラリを流用
+      libdirs { "../Externals/assimp/lib/Release" }
       links { "assimp-vc143-mt" }
 
    filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
-      staticruntime "On"  -- 静的ランタイム（/MT）
-      linkoptions { "/IGNORE:4049", "/IGNORE:4099" } -- 指定したリンカーの警告を無視
-      libdirs { "../Externals/assimp/lib/Release" } -- リリース用追加のライブラリディレクトリ
-      links { "assimp-vc143-mt" } -- リリース用ライブラリ
- 
+      staticruntime "On"
+      linkoptions { "/IGNORE:4049", "/IGNORE:4099" }
+      libdirs { "../Externals/assimp/lib/Release" }
+      links { "assimp-vc143-mt" }

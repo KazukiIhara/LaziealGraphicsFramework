@@ -39,6 +39,7 @@ void main(
         float4 worldPos = mul(float4(localPositions[i], 1.0f), box.instData.worldMatrix);
         vertices[i].position = mul(worldPos, gCamera.viewProj);
         vertices[i].baseColor = box.instData.baseColor;
+        vertices[i].normal = ToWorldNormal(box.instData, normalize(localPositions[i] / hs));
     }
 
     triangles[0] = uint3(0, 2, 1);

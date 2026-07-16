@@ -53,12 +53,14 @@ void main(
                 sinPhi * cos(theta),
                 cos(phi),
                 sinPhi * sin(theta)) * sphere.radius;
+            float3 localNormal = normalize(localPos);
 
             float4 worldPos = mul(float4(localPos, 1.0f), sphere.instData.worldMatrix);
 
             uint vertexIndex = GetVertexIndex(lat, lon);
             vertices[vertexIndex].position = mul(worldPos, gCamera.viewProj);
             vertices[vertexIndex].baseColor = sphere.instData.baseColor;
+            vertices[vertexIndex].normal = ToWorldNormal(sphere.instData, localNormal);
         }
     }
 

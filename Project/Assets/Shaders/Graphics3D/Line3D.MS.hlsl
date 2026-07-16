@@ -28,9 +28,11 @@ void main(
 
     vertices[0].position = mul(startWorldPos, gCamera.viewProj);
     vertices[0].baseColor = lineData.instData.baseColor;
+    vertices[0].normal = ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f));
 
     vertices[1].position = mul(endWorldPos, gCamera.viewProj);
     vertices[1].baseColor = lineData.instData.baseColor;
+    vertices[1].normal = ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f));
 
     lines[0] = uint2(0, 1);
 }

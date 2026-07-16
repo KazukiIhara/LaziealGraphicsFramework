@@ -45,13 +45,16 @@ void main(
 
         vertices[i].position = ToClipPosition(cone, float3(x, -halfHeight, z));
         vertices[i].baseColor = cone.instData.baseColor;
+        vertices[i].normal = ToWorldNormal(cone.instData, normalize(float3(x, cone.radius / cone.height, z)));
     }
 
     vertices[kBottomCenterIndex].position = ToClipPosition(cone, float3(0.0f, -halfHeight, 0.0f));
     vertices[kBottomCenterIndex].baseColor = cone.instData.baseColor;
+    vertices[kBottomCenterIndex].normal = ToWorldNormal(cone.instData, float3(0.0f, -1.0f, 0.0f));
 
     vertices[kTipIndex].position = ToClipPosition(cone, float3(0.0f, halfHeight, 0.0f));
     vertices[kTipIndex].baseColor = cone.instData.baseColor;
+    vertices[kTipIndex].normal = ToWorldNormal(cone.instData, float3(0.0f, 1.0f, 0.0f));
 
     uint triIndex = 0;
 

@@ -45,16 +45,20 @@ void main(
 
         vertices[i].position = ToClipPosition(cylinder, float3(x, -halfHeight, z));
         vertices[i].baseColor = cylinder.instData.baseColor;
+        vertices[i].normal = ToWorldNormal(cylinder.instData, normalize(float3(x, 0.0f, z)));
 
         vertices[kSegments + i].position = ToClipPosition(cylinder, float3(x, halfHeight, z));
         vertices[kSegments + i].baseColor = cylinder.instData.baseColor;
+        vertices[kSegments + i].normal = ToWorldNormal(cylinder.instData, normalize(float3(x, 0.0f, z)));
     }
 
     vertices[kBottomCenterIndex].position = ToClipPosition(cylinder, float3(0.0f, -halfHeight, 0.0f));
     vertices[kBottomCenterIndex].baseColor = cylinder.instData.baseColor;
+    vertices[kBottomCenterIndex].normal = ToWorldNormal(cylinder.instData, float3(0.0f, -1.0f, 0.0f));
 
     vertices[kTopCenterIndex].position = ToClipPosition(cylinder, float3(0.0f, halfHeight, 0.0f));
     vertices[kTopCenterIndex].baseColor = cylinder.instData.baseColor;
+    vertices[kTopCenterIndex].normal = ToWorldNormal(cylinder.instData, float3(0.0f, 1.0f, 0.0f));
 
     uint triIndex = 0;
 

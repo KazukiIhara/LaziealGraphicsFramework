@@ -19,6 +19,7 @@ void main(
     SetMeshOutputCounts(4, 2);
 
     GroundData ground = gGround[DTid.x];
+    float3 worldNormal = ToWorldNormal(ground.instData, float3(0.0f, 1.0f, 0.0f));
 
     for (uint i = 0; i < 4; ++i)
     {
@@ -26,6 +27,7 @@ void main(
         float4 worldPos = mul(localPos, ground.instData.worldMatrix);
         vertices[i].position = mul(worldPos, gCamera.viewProj);
         vertices[i].baseColor = ground.instData.baseColor;
+        vertices[i].normal = worldNormal;
     }
 
     triangles[0] = uint3(0, 1, 2);
