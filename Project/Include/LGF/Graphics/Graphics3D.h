@@ -10,6 +10,8 @@ namespace LGF {
 	class Camera3D;
 
 	class Box3D;
+	class Capsule3D;
+	class Cone3D;
 	class Cylinder3D;
 	class Ground3D;
 	class Line3D;
@@ -38,6 +40,18 @@ namespace LGF {
 
 		void Draw(
 			const Box3D& box,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color = Color::White
+		);
+
+		void Draw(
+			const Capsule3D& capsule,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color = Color::White
+		);
+
+		void Draw(
+			const Cone3D& cone,
 			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
 		);

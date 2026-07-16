@@ -13,6 +13,8 @@ namespace LGF {
 
 	class IDrawer;
 	class BoxDrawer3D;
+	class CapsuleDrawer3D;
+	class ConeDrawer3D;
 	class CylinderDrawer3D;
 	class GroundDrawer3D;
 	class LineDrawer3D;
@@ -20,6 +22,8 @@ namespace LGF {
 	class SphereDrawer3D;
 	class TriangleDrawer3D;
 	class Box3D;
+	class Capsule3D;
+	class Cone3D;
 	class Cylinder3D;
 	class Ground3D;
 	class Line3D;
@@ -51,6 +55,18 @@ namespace LGF {
 
 		void AddBox(
 			const Box3D& box,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color
+		);
+
+		void AddCapsule(
+			const Capsule3D& capsule,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color
+		);
+
+		void AddCone(
+			const Cone3D& cone,
 			const Matrix4x4& worldMatrix,
 			const Vector4& color
 		);
@@ -93,6 +109,8 @@ namespace LGF {
 
 		// 描画クラス
 		std::unique_ptr<BoxDrawer3D> boxDrawer_;
+		std::unique_ptr<CapsuleDrawer3D> capsuleDrawer_;
+		std::unique_ptr<ConeDrawer3D> coneDrawer_;
 		std::unique_ptr<CylinderDrawer3D> cylinderDrawer_;
 		std::unique_ptr<GroundDrawer3D> groundDrawer_;
 		std::unique_ptr<LineDrawer3D> lineDrawer_;

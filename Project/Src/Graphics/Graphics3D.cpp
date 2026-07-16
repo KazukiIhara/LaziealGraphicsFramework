@@ -71,6 +71,24 @@ void LGF::Graphics3D::Draw(const Box3D& box, const Matrix4x4& worldMatrix, const
 	);
 }
 
+void LGF::Graphics3D::Draw(const Capsule3D& capsule, const Matrix4x4& worldMatrix, const Vector4& color) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddCapsule(
+		capsule,
+		worldMatrix,
+		color
+	);
+}
+
+void LGF::Graphics3D::Draw(const Cone3D& cone, const Matrix4x4& worldMatrix, const Vector4& color) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddCone(
+		cone,
+		worldMatrix,
+		color
+	);
+}
+
 void LGF::Graphics3D::Draw(const Cylinder3D& cylinder, const Matrix4x4& worldMatrix, const Vector4& color) {
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddCylinder(

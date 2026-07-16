@@ -5,6 +5,8 @@ using namespace LGF;
 void Main() {
 
 	Transform3D boxTrans{};
+	Transform3D capsuleTrans{};
+	Transform3D coneTrans{};
 	Transform3D cylinderTrans{};
 	Transform3D triTrans{};
 	Transform3D planeTrans{};
@@ -12,33 +14,41 @@ void Main() {
 	Transform3D groundTrans{};
 	groundTrans.translation = { 0.0f, 0.0f, 0.0f };
 
-	triTrans.translation = { -2.0f, 0.5f, 0.0f };
+	triTrans.translation = { -3.0f, 0.5f, 0.0f };
 	triTrans.rotation = Math::MakeQuaternion(Vector3(0.0f, Math::PI, 0.0f));
 
-	sphereTrans.translation = { -1.0f, 0.5f, 0.0f };
+	sphereTrans.translation = { -2.0f, 0.5f, 0.0f };
 
-	cylinderTrans.translation = { 0.0f, 0.5f, 0.0f };
+	cylinderTrans.translation = { -1.0f, 0.5f, 0.0f };
 
-	boxTrans.translation = { 1.0f, 0.5f, 0.0f };
+	capsuleTrans.translation = { 0.0f, 0.5f, 0.0f };
 
-	planeTrans.translation = { 2.0f, 0.5f, 0.0f };
+	coneTrans.translation = { 1.0f, 0.5f, 0.0f };
+
+	boxTrans.translation = { 2.0f, 0.5f, 0.0f };
+
+	planeTrans.translation = { 3.0f, 0.5f, 0.0f };
 	planeTrans.rotation = Math::MakeQuaternion(Vector3(0.0f, Math::PI, 0.0f));
 
 	while (System::Update()) {
 
-		Camera3D(Vector3(0.0f, 1.0f, -5.0f)).SetScene();
+		Camera3D(Vector3(0.0f, 1.0f, -10.0f)).SetScene();
 
 		Matrix4x4 groundWorldMatrix = Math::MakeAffineMatrix(groundTrans.scale, groundTrans.rotation, groundTrans.translation);
 		Matrix4x4 triWorldMatrix = Math::MakeAffineMatrix(triTrans.scale, triTrans.rotation, triTrans.translation);
 		Matrix4x4 sphereWorldMatrix = Math::MakeAffineMatrix(sphereTrans.scale, sphereTrans.rotation, sphereTrans.translation);
 		Matrix4x4 cylinderWorldMatrix = Math::MakeAffineMatrix(cylinderTrans.scale, cylinderTrans.rotation, cylinderTrans.translation);
+		Matrix4x4 capsuleWorldMatrix = Math::MakeAffineMatrix(capsuleTrans.scale, capsuleTrans.rotation, capsuleTrans.translation);
+		Matrix4x4 coneWorldMatrix = Math::MakeAffineMatrix(coneTrans.scale, coneTrans.rotation, coneTrans.translation);
 		Matrix4x4 boxWorldMatrix = Math::MakeAffineMatrix(boxTrans.scale, boxTrans.rotation, boxTrans.translation);
 		Matrix4x4 planeWorldMatrix = Math::MakeAffineMatrix(planeTrans.scale, planeTrans.rotation, planeTrans.translation);
 
-		Ground3D(5.0f, 5.0f).Draw(groundWorldMatrix, Color::Green);
+		Ground3D(6.0f, 5.0f).Draw(groundWorldMatrix, Color::Green);
 		Triangle3D().Draw(triWorldMatrix, Color::Violet);
 		Sphere3D().Draw(sphereWorldMatrix, Color::Blue);
 		Cylinder3D().Draw(cylinderWorldMatrix, Color::White);
+		Capsule3D().Draw(capsuleWorldMatrix, Color::White);
+		Cone3D().Draw(coneWorldMatrix, Color::Violet);
 		Box3D().Draw(boxWorldMatrix, Color::Red);
 		Line3D({ -2.3f, 1.2f, -0.4f }, { 2.3f, 1.2f, -0.4f }).Draw(Math::Identity4x4(), Color::Yellow);
 		Plane3D().Draw(planeWorldMatrix, Color::White);

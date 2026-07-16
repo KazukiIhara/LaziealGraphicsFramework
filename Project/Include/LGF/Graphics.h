@@ -16,6 +16,8 @@
 #include "LGF/Graphics/Camera3D.h"
 #include "LGF/Graphics/Transform3D.h"
 #include "LGF/Graphics/Box3D.h"
+#include "LGF/Graphics/Capsule3D.h"
+#include "LGF/Graphics/Cone3D.h"
 #include "LGF/Graphics/Cylinder3D.h"
 #include "LGF/Graphics/Ground3D.h"
 #include "LGF/Graphics/Line3D.h"

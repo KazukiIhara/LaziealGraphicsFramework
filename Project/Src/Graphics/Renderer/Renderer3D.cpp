@@ -6,6 +6,8 @@
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 
 #include "Graphics/Drawer/3D/Primitive/Box/BoxDrawer3D.h"
+#include "Graphics/Drawer/3D/Primitive/Capsule/CapsuleDrawer3D.h"
+#include "Graphics/Drawer/3D/Primitive/Cone/ConeDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Cylinder/CylinderDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Ground/GroundDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Line/LineDrawer3D.h"
@@ -13,6 +15,8 @@
 #include "Graphics/Drawer/3D/Primitive/Sphere/SphereDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Triangle/TriangleDrawer3D.h"
 #include "LGF/Graphics/Box3D.h"
+#include "LGF/Graphics/Capsule3D.h"
+#include "LGF/Graphics/Cone3D.h"
 #include "LGF/Graphics/Cylinder3D.h"
 #include "LGF/Graphics/Ground3D.h"
 #include "LGF/Graphics/Line3D.h"
@@ -34,6 +38,10 @@ bool Renderer3D::Initialize() {
 	// レンダラーを作成
 	boxDrawer_ = std::make_unique<BoxDrawer3D>(context_);
 	boxDrawer_->Initialize();
+	capsuleDrawer_ = std::make_unique<CapsuleDrawer3D>(context_);
+	capsuleDrawer_->Initialize();
+	coneDrawer_ = std::make_unique<ConeDrawer3D>(context_);
+	coneDrawer_->Initialize();
 	cylinderDrawer_ = std::make_unique<CylinderDrawer3D>(context_);
 	cylinderDrawer_->Initialize();
 	groundDrawer_ = std::make_unique<GroundDrawer3D>(context_);
@@ -48,6 +56,8 @@ bool Renderer3D::Initialize() {
 	triangleDrawer_->Initialize();
 	// 更新用リストに追加
 	drawerList_.push_back(boxDrawer_.get());
+	drawerList_.push_back(capsuleDrawer_.get());
+	drawerList_.push_back(coneDrawer_.get());
 	drawerList_.push_back(cylinderDrawer_.get());
 	drawerList_.push_back(groundDrawer_.get());
 	drawerList_.push_back(lineDrawer_.get());
@@ -69,6 +79,8 @@ void Renderer3D::EndFrame() {
 
 void Renderer3D::Finalize() {
 	boxDrawer_.reset();
+	capsuleDrawer_.reset();
+	coneDrawer_.reset();
 	cylinderDrawer_.reset();
 	groundDrawer_.reset();
 	lineDrawer_.reset();
@@ -112,6 +124,36 @@ void Renderer3D::AddBox(const Box3D& box, const Matrix4x4& worldMatrix, const Ve
 	};
 
 	boxDrawer_->AddBox(data);
+}
+
+void Renderer3D::AddCapsule(const Capsule3D& capsule, const Matrix4x4& worldMatrix, const Vector4& color) {
+	Capsule3DForGPU data{};
+
+	data.instance.worldMatrix = worldMatrix;
+
+	data.instance.worldInverseTranspose =
+		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
+
+	data.instance.baseColor = color;
+	data.radius = capsule.radius;
+	data.height = capsule.height;
+
+	capsuleDrawer_->AddCapsule(data);
+}
+
+void Renderer3D::AddCone(const Cone3D& cone, const Matrix4x4& worldMatrix, const Vector4& color) {
+	Cone3DForGPU data{};
+
+	data.instance.worldMatrix = worldMatrix;
+
+	data.instance.worldInverseTranspose =
+		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
+
+	data.instance.baseColor = color;
+	data.radius = cone.radius;
+	data.height = cone.height;
+
+	coneDrawer_->AddCone(data);
 }
 
 void Renderer3D::AddCylinder(const Cylinder3D& cylinder, const Matrix4x4& worldMatrix, const Vector4& color) {
