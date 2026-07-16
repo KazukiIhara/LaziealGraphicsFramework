@@ -4,6 +4,7 @@
 
 #include "Core/Window/System/WindowSystem.h"
 #include "Graphics/System/GraphicsSystem.h"
+#include "Input/System/InputSystem.h"
 
 using namespace LGF;
 
@@ -22,6 +23,10 @@ bool Framework::Initialize() {
 	std::unique_ptr<GraphicsSystem> graphicsSys = std::make_unique<GraphicsSystem>();
 	context_.graphics = graphicsSys.get();
 	systems_.push_back(std::move(graphicsSys));
+
+	std::unique_ptr<InputSystem> inputSys = std::make_unique<InputSystem>();
+	context_.input = inputSys.get();
+	systems_.push_back(std::move(inputSys));
 
 	// 各システムを初期化
 	for (const auto& system : systems_) {

@@ -40,9 +40,11 @@ void Main() {
 		Matrix4x4 boxWorldMatrix = Math::MakeAffineMatrix(boxTrans.scale, boxTrans.rotation, boxTrans.translation);
 		Matrix4x4 planeWorldMatrix = Math::MakeAffineMatrix(planeTrans.scale, planeTrans.rotation, planeTrans.translation);
 
+		const Vector4 sphereColor = Key::Space.Press() ? Color::Yellow : Color::Blue;
+
 		Grid3D().Draw();
 		Triangle3D().Draw(triWorldMatrix, Color::Violet);
-		Sphere3D().Draw(sphereWorldMatrix, Color::Blue);
+		Sphere3D().Draw(sphereWorldMatrix, sphereColor);
 		Cylinder3D().Draw(cylinderWorldMatrix, Color::White);
 		Capsule3D().Draw(capsuleWorldMatrix, Color::White);
 		Cone3D().Draw(coneWorldMatrix, Color::Violet);
