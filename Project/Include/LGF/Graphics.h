@@ -2,6 +2,7 @@
 
 #include "LGF/Graphics/Color.h"
 #include "LGF/Graphics/BlendMode.h"
+#include "LGF/Graphics/Texture.h"
 #include "LGF/Graphics/Material.h"
 
 #include "LGF/Graphics/Camera2D.h"

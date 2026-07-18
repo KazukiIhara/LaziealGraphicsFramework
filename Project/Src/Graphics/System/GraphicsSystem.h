@@ -14,6 +14,7 @@ namespace LGF {
 	class Renderer3D;
 	class Camera2DSystem;
 	class Renderer2D;
+	class TextureManager;
 
 	class ImGuiSystem;
 
@@ -39,6 +40,7 @@ namespace LGF {
 		std::unique_ptr<DirectXCore> directX_;
 		// パイプラインマネージャ
 		std::unique_ptr<PipelineManager> pipelineManager_;
+		std::unique_ptr<TextureManager> textureManager_;
 		// カメラ3Dシステム
 		std::unique_ptr<Camera3DSystem> camera3DSystem_;
 		// 3D描画クラス
