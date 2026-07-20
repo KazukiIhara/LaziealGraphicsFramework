@@ -5,14 +5,25 @@
 
 namespace LGF {
 
+	enum class TextureDimension : uint8_t {
+		Auto,
+		Texture2D,
+		TextureCube,
+	};
+
 	enum class TextureColorSpace : uint8_t {
 		SRGB,
 		Linear,
 	};
 
 	struct TextureLoadDesc {
+		TextureDimension dimension = TextureDimension::Auto;
 		TextureColorSpace colorSpace = TextureColorSpace::SRGB;
 		bool generateMipMaps = true;
+
+		static TextureLoadDesc Color();
+		static TextureLoadDesc NormalMap();
+		static TextureLoadDesc Cubemap();
 	};
 
 	/// <summary>
@@ -24,15 +35,10 @@ namespace LGF {
 		~Texture();
 
 		const std::string& GetFilePath()const;
-		uint32_t GetWidth()const;
-		uint32_t GetHeight()const;
-		uint32_t GetSrvIndex()const;
+
+		// テクスチャのデータは名前をキーにマネージャから持ってくる
 
 	private:
 		std::string filePath_;
-		uint32_t width_ = 0;
-		uint32_t height_ = 0;
-		bool isCubemap_ = false;
-		uint32_t srvIndex_ = 0;
 	};
 }

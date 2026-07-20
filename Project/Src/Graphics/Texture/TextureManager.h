@@ -40,6 +40,9 @@ namespace LGF {
 		const TextureData& Find(const std::string& filePath);
 
 	private:
+
+
+	private:
 		std::unordered_map<std::string, TextureData> textures_;
 	};
 
