@@ -1,28 +1,52 @@
 #include "LGF/Graphics/Texture.h"
 
-#include "Graphics/Texture/TextureInternal.h"
+#include <cassert>
 
-using namespace LGF;
+#include "TextureSystemInternal.h"
+#include "TextureManager.h"
 
-Texture::Texture(const std::string& filePath, const TextureLoadDesc& desc) {
-	*this = TextureInternal::Load(filePath, desc);
+namespace {
+	LGF::TextureManager* g_textureManager = nullptr;
 }
 
-Texture::Texture(Handle handle) : handle_(handle) {
+void LGF::TextureSystem::Internal::SetTextureManager(TextureManager* textureManager) {
+	assert(textureManager != nullptr);
+	g_textureManager = textureManager;
 }
 
-bool Texture::IsValid() const {
-	return TextureInternal::IsValid(*this);
+void LGF::TextureSystem::Internal::ResetTextureManager() {
+	g_textureManager = nullptr;
 }
 
-uint32_t Texture::Width() const {
-	return TextureInternal::GetWidth(*this);
+LGF::Texture::Texture(const std::string& name, const TextureLoadDesc& desc) {
+	assert(g_textureManager != nullptr);
+	g_textureManager->Load(name, desc);
+	const DirectX::TexMetadata metaData =
+		g_textureManager->Find(name).metaData;
+
+	width_ = metaData.width;
+	height_ = metaData.height;
+	isCubemap_ = metaData.IsCubemap();
+
+	srvIndex_ = g_textureManager->Find(name).srvIndex;
+
+	filePath_ = name;
 }
 
-uint32_t Texture::Height() const {
-	return TextureInternal::GetHeight(*this);
+LGF::Texture::~Texture() = default;
+
+const std::string& LGF::Texture::GetFilePath() const {
+	return filePath_;
 }
 
-bool Texture::IsCubeMap() const {
-	return TextureInternal::IsCubeMap(*this);
+uint32_t LGF::Texture::GetWidth()const {
+	return width_;
+}
+
+uint32_t LGF::Texture::GetHeight()const {
+	return height_;
+}
+
+uint32_t LGF::Texture::GetSrvIndex() const {
+	return srvIndex_;
 }

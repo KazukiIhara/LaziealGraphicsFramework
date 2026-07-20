@@ -15,27 +15,24 @@ namespace LGF {
 		bool generateMipMaps = true;
 	};
 
+	/// <summary>
+	/// テクスチャクラス
+	/// </summary>
 	class Texture {
 	public:
-		Texture() = default;
-		explicit Texture(const std::string& filePath, const TextureLoadDesc& desc = {});
+		Texture(const std::string& filePath, const TextureLoadDesc& desc = {});
+		~Texture();
 
-		bool IsValid() const;
-		uint32_t Width() const;
-		uint32_t Height() const;
-		bool IsCubeMap() const;
+		const std::string& GetFilePath()const;
+		uint32_t GetWidth()const;
+		uint32_t GetHeight()const;
+		uint32_t GetSrvIndex()const;
 
 	private:
-		struct Handle {
-			uint32_t index = 0;
-			uint32_t generation = 0;
-		};
-
-		explicit Texture(Handle handle);
-
-		Handle handle_{};
-
-		friend class TextureManager;
+		std::string filePath_;
+		uint32_t width_ = 0;
+		uint32_t height_ = 0;
+		bool isCubemap_ = false;
+		uint32_t srvIndex_ = 0;
 	};
-
 }

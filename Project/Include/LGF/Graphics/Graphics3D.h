@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <cstdint>
 
@@ -24,14 +24,8 @@ namespace LGF {
 		uint32_t GetWindowWidth();
 		uint32_t GetWindowHeight();
 
-		/// <summary>
-		/// Set active camera.
-		/// </summary>
 		void SetCamera(const Camera3D& camera);
 
-		/// <summary>
-		/// Draw a triangle.
-		/// </summary>
 		void Draw(
 			const Triangle3D& triangle,
 			const Matrix4x4& worldMatrix,

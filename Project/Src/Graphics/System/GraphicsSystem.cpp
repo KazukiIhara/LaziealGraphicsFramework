@@ -12,7 +12,7 @@
 #include "Graphics/DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
 #include "Graphics/ImGui/ImGuiSystem.h"
 #include "Graphics/Texture/TextureManager.h"
-#include "Graphics/Texture/TextureInternal.h"
+#include "Graphics/Texture/TextureSystemInternal.h"
 
 #include "Graphics/Graphics3DContext.h"
 #include "Graphics/Graphics3DInternal.h"
@@ -33,11 +33,12 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 		return false;
 	}
 
-	textureManager_ = std::make_unique<TextureManager>(*directX_);
+	// テクスチャマネージャ初期化
+	textureManager_ = std::make_unique<TextureManager>();
 	if (!textureManager_->Initialize()) {
 		return false;
 	}
-	TextureInternal::SetManager(textureManager_.get());
+	TextureSystem::Internal::SetTextureManager(textureManager_.get());
 
 	// パイプラインマネージャ初期化
 	pipelineManager_ = std::make_unique<PipelineManager>(*directX_);
@@ -98,7 +99,8 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 }
 
 bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
-	TextureInternal::ResetManager();
+	TextureSystem::Internal::ResetTextureManager();
+
 	Graphics3D::Internal::ResetRenderer3D();
 	Graphics3D::Internal::ResetCamera3DSystem();
 	Graphics3D::Internal::ResetWindowSystem();
