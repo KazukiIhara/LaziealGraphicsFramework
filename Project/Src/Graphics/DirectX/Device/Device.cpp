@@ -32,6 +32,17 @@ Device::InitializeResult Device::Initialize() {
 
 	// MeshShader対応を記録
 	CheckMeshShaderSupport();
+	// 3D マテリアルのテクスチャ参照は SM 6.6 のヒープ直接参照を使用する。
+	D3D12_FEATURE_DATA_SHADER_MODEL shaderModel{ D3D_SHADER_MODEL_6_6 };
+	D3D12_FEATURE_DATA_D3D12_OPTIONS options{};
+	if (!deviceCaps_.isMeshShaderSupported ||
+		FAILED(device_->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shaderModel, sizeof(shaderModel))) ||
+		shaderModel.HighestShaderModel < D3D_SHADER_MODEL_6_6 ||
+		FAILED(device_->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &options, sizeof(options))) ||
+		options.ResourceBindingTier < D3D12_RESOURCE_BINDING_TIER_3) {
+		Logger::Log("Mesh shaders, Shader Model 6.6 and Resource Binding Tier 3 are required.\n");
+		return InitializeResult::kRequiredFeaturesUnsupported;
+	}
 	// InfoQueueを設定
 	SetupInfoQueue();
 

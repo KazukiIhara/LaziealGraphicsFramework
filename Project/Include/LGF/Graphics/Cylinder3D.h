@@ -4,6 +4,7 @@
 
 #include "Transform3D.h"
 #include "Color.h"
+#include "Material.h"
 
 namespace LGF {
 
@@ -18,6 +19,8 @@ namespace LGF {
 			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
 		)const;
+
+		void Draw(const Matrix4x4& worldMatrix, const Material3D& material) const;
 
 	public:
 		float radius = 0.5f;

@@ -3,6 +3,11 @@
 using namespace LGF;
 
 void Main() {
+	Material3D checkerMaterial{};
+	checkerMaterial.baseColorTexture = Texture("Assets/Textures/Checker.bmp");
+	Material3D groundMaterial = checkerMaterial;
+	groundMaterial.uvScale = { 8.0f, 8.0f };
+	DirectionalLight directionalLight({ 1.0f, -1.0f, 0.5f }, Color::White, 1.5f);
 
 	Transform3D boxTrans{};
 	Transform3D capsuleTrans{};
@@ -31,6 +36,7 @@ void Main() {
 	while (System::Update()) {
 
 		Camera3D(Vector3(0.0f, 1.0f, -10.0f)).SetScene();
+		directionalLight.SetScene();
 
 		Matrix4x4 triWorldMatrix = Math::MakeAffineMatrix(triTrans.scale, triTrans.rotation, triTrans.translation);
 		Matrix4x4 sphereWorldMatrix = Math::MakeAffineMatrix(sphereTrans.scale, sphereTrans.rotation, sphereTrans.translation);
@@ -46,13 +52,15 @@ void Main() {
 		const Vector2 cursorPos = Cursor::Pos();
 
 		Grid3D().Draw();
-		Ground3D().Draw();
+		Ground3D().Draw(Math::Identity4x4(), groundMaterial);
 		Triangle3D().Draw(triWorldMatrix, Color::Violet);
-		Sphere3D().Draw(sphereWorldMatrix, sphereColor);
+		checkerMaterial.color = sphereColor;
+		Sphere3D().Draw(sphereWorldMatrix, checkerMaterial);
 		Cylinder3D().Draw(cylinderWorldMatrix, Color::White);
 		Capsule3D().Draw(capsuleWorldMatrix, Color::White);
 		Cone3D().Draw(coneWorldMatrix, Color::Violet);
-		Box3D().Draw(boxWorldMatrix, boxColor);
+		checkerMaterial.color = boxColor;
+		Box3D().Draw(boxWorldMatrix, checkerMaterial);
 		Line3D({ -2.3f, 1.2f, -0.4f }, { 2.3f, 1.2f, -0.4f }).Draw(Math::Identity4x4(), Color::Yellow);
 		Plane3D().Draw(planeWorldMatrix, Color::White);
 

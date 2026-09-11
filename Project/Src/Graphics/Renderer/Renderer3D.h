@@ -6,11 +6,13 @@
 #include "Graphics/System/IGraphicsSubsystem.h"
 
 #include "LGF/Math/MathTypes.h"
+#include "LGF/Graphics/Material.h"
 
 #include "Graphics/Graphics3DContext.h"
 
 namespace LGF {
 
+	struct InstanceData3D;
 	class IDrawer;
 	class BoxDrawer3D;
 	class CapsuleDrawer3D;
@@ -50,58 +52,59 @@ namespace LGF {
 		void AddTriangle(
 			const Triangle3D& triangle,
 			const Matrix4x4& worldMatrix,
-			const Vector4& color
+			const Material3D& material
 		);
 
 		void AddBox(
 			const Box3D& box,
 			const Matrix4x4& worldMatrix,
-			const Vector4& color
+			const Material3D& material
 		);
 
 		void AddCapsule(
 			const Capsule3D& capsule,
 			const Matrix4x4& worldMatrix,
-			const Vector4& color
+			const Material3D& material
 		);
 
 		void AddCone(
 			const Cone3D& cone,
 			const Matrix4x4& worldMatrix,
-			const Vector4& color
+			const Material3D& material
 		);
 
 		void AddCylinder(
 			const Cylinder3D& cylinder,
 			const Matrix4x4& worldMatrix,
-			const Vector4& color
+			const Material3D& material
 		);
 
 		void AddLine(
 			const Line3D& line,
 			const Matrix4x4& worldMatrix,
-			const Vector4& color
+			const Material3D& material
 		);
 
 		void AddPlane(
 			const Plane3D& plane,
 			const Matrix4x4& worldMatrix,
-			const Vector4& color
+			const Material3D& material
 		);
 
 		void AddGround(
 			const Ground3D& ground,
 			const Matrix4x4& worldMatrix,
-			const Vector4& color
+			const Material3D& material
 		);
 
 		void AddSphere(
 			const Sphere3D& sphere,
 			const Matrix4x4& worldMatrix,
-			const Vector4& color
+			const Material3D& material
 		);
 
 	private:
+		static void ApplyMaterial(InstanceData3D& instance, const Material3D& material);
 		// 参照
 		Graphics3DContext context_;
 		// 全更新用リスト

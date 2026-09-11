@@ -21,6 +21,7 @@
 #include "Graphics/Pipeline/Pipeline.h"
 #include "Graphics/RenderTexture/RenderTexture.h"
 #include "Graphics/RenderTexture/RenderTextureManager.h"
+#include "Graphics/Light/System/DirectionalLightSystem.h"
 
 using namespace LGF;
 
@@ -35,6 +36,7 @@ namespace {
 	constexpr char kDepthTextureShaderName[] = "gDepthTexture";
 	constexpr char kGBufferAlbedoShaderName[] = "gGBufferAlbedo";
 	constexpr char kGBufferNormalShaderName[] = "gGBufferNormal";
+	constexpr char kDirectionalLightShaderName[] = "DirectionalLightData";
 }
 
 DirectXCore::DirectXCore(Window& window) :
@@ -181,7 +183,7 @@ void DirectXCore::ClearRenderTargets(std::span<RenderTexture* const> renderTextu
 	}
 }
 
-void DirectXCore::DrawLightingToSceneColor(PipelineManager& pipelineManager) {
+void DirectXCore::DrawLightingToSceneColor(PipelineManager& pipelineManager, DirectionalLightSystem& lightSystem) {
 	assert(sceneColor_);
 	assert(gBufferAlbedo_);
 	assert(gBufferNormal_);
@@ -216,6 +218,7 @@ void DirectXCore::DrawLightingToSceneColor(PipelineManager& pipelineManager) {
 	commandList->SetGraphicsRootDescriptorTable(
 		pipeline->GetRootIndex(kDepthTextureShaderName),
 		depthStencil_->GetSRVHandleGPU());
+	lightSystem.Bind(commandList, pipeline->GetRootIndex(kDirectionalLightShaderName));
 
 	commandList6->DispatchMesh(1, 1, 1);
 }

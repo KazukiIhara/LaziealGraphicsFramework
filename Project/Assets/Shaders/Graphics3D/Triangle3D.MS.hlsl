@@ -34,6 +34,8 @@ void main(
         vertices[i].position = mul(worldPos, gCamera.viewProj);
         // 色をセット
         vertices[i].baseColor = tri.instData.baseColor;
+        vertices[i].uv = (i == 0 ? float2(0.5f, 0.0f) : (i == 1 ? float2(0.0f, 1.0f) : float2(1.0f, 1.0f))) * tri.instData.uvScale + tri.instData.uvOffset;
+        vertices[i].textureIndex = tri.instData.textureIndex;
         vertices[i].normal = worldNormal;
     }
 

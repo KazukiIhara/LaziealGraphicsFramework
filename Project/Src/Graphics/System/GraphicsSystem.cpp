@@ -6,6 +6,7 @@
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
+#include "Graphics/Light/System/DirectionalLightSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
 #include "Graphics/Camera/System/Camera2DSystem.h"
 #include "Graphics/Renderer/Renderer2D.h"
@@ -34,7 +35,7 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	}
 
 	// テクスチャマネージャ初期化
-	textureManager_ = std::make_unique<TextureManager>();
+	textureManager_ = std::make_unique<TextureManager>(*directX_);
 	if (!textureManager_->Initialize()) {
 		return false;
 	}
@@ -51,6 +52,14 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	Graphics3D::Internal::SetCamera3DSystem(camera3DSystem_.get());
 	// サブシステムリストに追加
 	subsystems_.push_back(camera3DSystem_.get());
+
+	// 平行光源システム初期化
+	directionalLightSystem_ = std::make_unique<DirectionalLightSystem>(*directX_);
+	if (!directionalLightSystem_->Initialize()) {
+		return false;
+	}
+	Graphics3D::Internal::SetDirectionalLightSystem(directionalLightSystem_.get());
+	subsystems_.push_back(directionalLightSystem_.get());
 
 	// 3Dレンダラークラス初期化
 	Graphics3DContext graphics3DContext{
@@ -103,6 +112,7 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 
 	Graphics3D::Internal::ResetRenderer3D();
 	Graphics3D::Internal::ResetCamera3DSystem();
+	Graphics3D::Internal::ResetDirectionalLightSystem();
 	Graphics3D::Internal::ResetWindowSystem();
 
 	Graphics2D::Internal::ResetWindowSystem();
@@ -119,6 +129,7 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 	renderer2D_.reset();
 	camera2DSystem_.reset();
 	renderer3D_.reset();
+	directionalLightSystem_.reset();
 	camera3DSystem_.reset();
 	pipelineManager_.reset();
 	textureManager_.reset();
@@ -151,9 +162,10 @@ void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 	commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
 	camera3DSystem_->EndFrame();
+	directionalLightSystem_->EndFrame();
 	renderer3D_->EndFrame();
 
-	directX_->DrawLightingToSceneColor(*pipelineManager_);
+	directX_->DrawLightingToSceneColor(*pipelineManager_, *directionalLightSystem_);
 
 	camera2DSystem_->EndFrame();
 	renderer2D_->EndFrame();

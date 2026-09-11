@@ -25,6 +25,7 @@ namespace LGF {
 	class PipelineManager;
 	class RenderTexture;
 	class RenderTextureManager;
+	class DirectionalLightSystem;
 
 	/// <summary>
 	/// DirectXコアシステム
@@ -44,7 +45,7 @@ namespace LGF {
 		bool BeginFrame();
 		void SetRenderTargets(std::span<RenderTexture* const> renderTextures, bool useDepthStencil = true);
 		void ClearRenderTargets(std::span<RenderTexture* const> renderTextures);
-		void DrawLightingToSceneColor(PipelineManager& pipelineManager);
+		void DrawLightingToSceneColor(PipelineManager& pipelineManager, DirectionalLightSystem& lightSystem);
 		void DrawSceneToSwapChain(PipelineManager& pipelineManager);
 		void DrawDepthToSwapChain(PipelineManager& pipelineManager);
 		void EndFrame();

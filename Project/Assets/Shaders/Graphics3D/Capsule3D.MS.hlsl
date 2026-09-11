@@ -70,6 +70,8 @@ void main(
             uint vertexIndex = GetVertexIndex(lat, lon);
             vertices[vertexIndex].position = mul(worldPos, gCamera.viewProj);
             vertices[vertexIndex].baseColor = capsule.instData.baseColor;
+            vertices[vertexIndex].uv = float2(u, v) * capsule.instData.uvScale + capsule.instData.uvOffset;
+            vertices[vertexIndex].textureIndex = capsule.instData.textureIndex;
             vertices[vertexIndex].normal = ToWorldNormal(capsule.instData, localNormal);
         }
     }

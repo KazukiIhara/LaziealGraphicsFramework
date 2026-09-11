@@ -1,80 +1,45 @@
 #include "Graphics3D.hlsli"
 
 static const uint kSegments = 32;
-static const uint kVertexCount = kSegments * 2 + 2;
-static const uint kBottomCenterIndex = kSegments * 2;
-static const uint kTopCenterIndex = kSegments * 2 + 1;
-static const uint kTriangleCount = kSegments * 4;
-static const float kPI = 3.14159265358979323846f;
-
-struct CylinderData
-{
-    InstanceData3D instData;
-    float radius;
-    float height;
-    float2 padding;
-};
-
+static const uint kRing = kSegments + 1;
+static const uint kBottomCenter = kRing * 4;
+static const uint kTopCenter = kBottomCenter + 1;
+struct CylinderData { InstanceData3D instData; float radius; float height; float2 padding; };
 ConstantBuffer<CameraData3D> gCamera : register(b0);
 StructuredBuffer<CylinderData> gCylinder : register(t0);
 
-float4 ToClipPosition(CylinderData cylinder, float3 localPosition)
-{
-    float4 worldPos = mul(float4(localPosition, 1.0f), cylinder.instData.worldMatrix);
-    return mul(worldPos, gCamera.viewProj);
-}
-
 [outputtopology("triangle")]
 [numthreads(1, 1, 1)]
-void main(
-    uint3 DTid : SV_DispatchThreadID,
-    out vertices MSOutput3D vertices[kVertexCount],
-    out indices uint3 triangles[kTriangleCount])
+void main(uint3 id : SV_DispatchThreadID,
+    out vertices MSOutput3D vertices[kRing * 4 + 2],
+    out indices uint3 triangles[kSegments * 4])
 {
-    SetMeshOutputCounts(kVertexCount, kTriangleCount);
-
-    CylinderData cylinder = gCylinder[DTid.x];
-
-    float halfHeight = cylinder.height * 0.5f;
-
-    for (uint i = 0; i < kSegments; ++i)
+    SetMeshOutputCounts(kRing * 4 + 2, kSegments * 4);
+    CylinderData cylinder = gCylinder[id.x];
+    float h = cylinder.height * 0.5f;
+    for (uint i = 0; i <= kSegments; ++i)
     {
-        float theta = ((float)i / (float)kSegments) * kPI * 2.0f;
-        float x = cos(theta) * cylinder.radius;
-        float z = sin(theta) * cylinder.radius;
-
-        vertices[i].position = ToClipPosition(cylinder, float3(x, -halfHeight, z));
-        vertices[i].baseColor = cylinder.instData.baseColor;
-        vertices[i].normal = ToWorldNormal(cylinder.instData, normalize(float3(x, 0.0f, z)));
-
-        vertices[kSegments + i].position = ToClipPosition(cylinder, float3(x, halfHeight, z));
-        vertices[kSegments + i].baseColor = cylinder.instData.baseColor;
-        vertices[kSegments + i].normal = ToWorldNormal(cylinder.instData, normalize(float3(x, 0.0f, z)));
+        float u = (float)i / kSegments;
+        float angle = u * 6.28318530718f;
+        float3 n = float3(cos(angle), 0, sin(angle));
+        float3 bottom = float3(n.x * cylinder.radius, -h, n.z * cylinder.radius);
+        float3 top = float3(bottom.x, h, bottom.z);
+        vertices[i] = MakeVertex(cylinder.instData, gCamera, bottom, n, float2(u, 1));
+        vertices[kRing+i] = MakeVertex(cylinder.instData, gCamera, top, n, float2(u, 0));
+        vertices[kRing*2+i] = MakeVertex(cylinder.instData, gCamera, bottom,
+            float3(0,-1,0), n.xz * 0.5f + 0.5f);
+        vertices[kRing*3+i] = MakeVertex(cylinder.instData, gCamera, top,
+            float3(0,1,0), n.xz * 0.5f + 0.5f);
     }
-
-    vertices[kBottomCenterIndex].position = ToClipPosition(cylinder, float3(0.0f, -halfHeight, 0.0f));
-    vertices[kBottomCenterIndex].baseColor = cylinder.instData.baseColor;
-    vertices[kBottomCenterIndex].normal = ToWorldNormal(cylinder.instData, float3(0.0f, -1.0f, 0.0f));
-
-    vertices[kTopCenterIndex].position = ToClipPosition(cylinder, float3(0.0f, halfHeight, 0.0f));
-    vertices[kTopCenterIndex].baseColor = cylinder.instData.baseColor;
-    vertices[kTopCenterIndex].normal = ToWorldNormal(cylinder.instData, float3(0.0f, 1.0f, 0.0f));
-
-    uint triIndex = 0;
-
+    vertices[kBottomCenter] = MakeVertex(cylinder.instData, gCamera,
+        float3(0,-h,0), float3(0,-1,0), float2(0.5f,0.5f));
+    vertices[kTopCenter] = MakeVertex(cylinder.instData, gCamera,
+        float3(0,h,0), float3(0,1,0), float2(0.5f,0.5f));
     for (uint i = 0; i < kSegments; ++i)
     {
-        uint next = (i + 1) % kSegments;
-
-        uint bottom0 = i;
-        uint bottom1 = next;
-        uint top0 = kSegments + i;
-        uint top1 = kSegments + next;
-
-        triangles[triIndex++] = uint3(bottom0, top0, bottom1);
-        triangles[triIndex++] = uint3(bottom1, top0, top1);
-
-        triangles[triIndex++] = uint3(kBottomCenterIndex, bottom0, bottom1);
-        triangles[triIndex++] = uint3(kTopCenterIndex, top1, top0);
+        triangles[i*4] = uint3(i, kRing+i, i+1);
+        triangles[i*4+1] = uint3(i+1, kRing+i, kRing+i+1);
+        triangles[i*4+2] = uint3(kBottomCenter, kRing*2+i, kRing*2+i+1);
+        triangles[i*4+3] = uint3(kTopCenter, kRing*3+i+1, kRing*3+i);
     }
 }

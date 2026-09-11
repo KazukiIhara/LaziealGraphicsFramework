@@ -2,6 +2,14 @@ Texture2D<float4> gGBufferAlbedo : register(t0);
 Texture2D<float4> gGBufferNormal : register(t1);
 Texture2D<float> gDepthTexture : register(t2);
 
+cbuffer DirectionalLightData : register(b0)
+{
+	float3 gDirectionalLightDirection;
+	float gDirectionalLightIntensity;
+	float3 gDirectionalLightColor;
+	float gDirectionalLightPadding;
+};
+
 struct FullscreenVertex
 {
 	float4 position : SV_Position;
@@ -23,11 +31,11 @@ float4 main(FullscreenVertex input) : SV_Target0
 	}
 
 	// 平行光源の計算
-	float3 lightDir = normalize(float3(0.0f, -1.0f, 0.0f));
-	float diffuse = saturate(dot(normal, -lightDir));
+	float diffuse = saturate(dot(normal, -gDirectionalLightDirection));
 
 	// Lighting結果の出力
 	float3 ambient = albedo.rgb * 0.12f;
-	float3 lighting = ambient + albedo.rgb * diffuse;
+	float3 directional = albedo.rgb * gDirectionalLightColor * gDirectionalLightIntensity * diffuse;
+	float3 lighting = ambient + directional;
 	return float4(lighting, albedo.a);
 }

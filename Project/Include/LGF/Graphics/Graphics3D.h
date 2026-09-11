@@ -4,10 +4,12 @@
 
 #include "LGF/Math/Matrix4x4.h"
 #include "LGF/Graphics/Color.h"
+#include "LGF/Graphics/Material.h"
 
 namespace LGF {
 
 	class Camera3D;
+	class DirectionalLight;
 
 	class Box3D;
 	class Capsule3D;
@@ -25,6 +27,7 @@ namespace LGF {
 		uint32_t GetWindowHeight();
 
 		void SetCamera(const Camera3D& camera);
+		void SetDirectionalLight(const DirectionalLight& light);
 
 		void Draw(
 			const Triangle3D& triangle,
@@ -79,6 +82,16 @@ namespace LGF {
 			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
 		);
+
+		void Draw(const Triangle3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
+		void Draw(const Box3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
+		void Draw(const Capsule3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
+		void Draw(const Cone3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
+		void Draw(const Cylinder3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
+		void Draw(const Line3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
+		void Draw(const Plane3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
+		void Draw(const Ground3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
+		void Draw(const Sphere3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
 
 	}
 

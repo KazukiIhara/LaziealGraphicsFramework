@@ -8,6 +8,7 @@
 #include "Graphics/Drawer/BaseDrawer.h"
 
 #include "LGF/Math/Vector4.h"
+#include "LGF/Math/Vector2.h"
 #include "LGF/Math/Matrix4x4.h"
 
 #include "Graphics/Graphics3DContext.h"
@@ -21,7 +22,12 @@ namespace LGF {
 		Matrix4x4 worldMatrix;
 		Matrix4x4 worldInverseTranspose;
 		Vector4 baseColor;
+		Vector2 uvScale = { 1.0f, 1.0f };
+		Vector2 uvOffset{};
+		uint32_t textureIndex = UINT32_MAX;
+		uint32_t padding[3]{};
 	};
+	static_assert(sizeof(InstanceData3D) == 176);
 
 	/// <summary>
 	/// 3D描画基底クラス

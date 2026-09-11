@@ -11,6 +11,7 @@ namespace LGF {
 	class DirectXCore;
 	class PipelineManager;
 	class Camera3DSystem;
+	class DirectionalLightSystem;
 	class Renderer3D;
 	class Camera2DSystem;
 	class Renderer2D;
@@ -43,6 +44,7 @@ namespace LGF {
 		std::unique_ptr<TextureManager> textureManager_;
 		// カメラ3Dシステム
 		std::unique_ptr<Camera3DSystem> camera3DSystem_;
+		std::unique_ptr<DirectionalLightSystem> directionalLightSystem_;
 		// 3D描画クラス
 		std::unique_ptr<Renderer3D> renderer3D_;
 		// カメラ2Dシステム

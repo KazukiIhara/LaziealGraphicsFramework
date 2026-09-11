@@ -27,6 +27,8 @@ void main(
         float4 worldPos = mul(localPos, ground.instData.worldMatrix);
         vertices[i].position = mul(worldPos, gCamera.viewProj);
         vertices[i].baseColor = ground.instData.baseColor;
+        vertices[i].uv = float2(i / 2, 1 - i % 2) * ground.instData.uvScale + ground.instData.uvOffset;
+        vertices[i].textureIndex = ground.instData.textureIndex;
         vertices[i].normal = worldNormal;
     }
 

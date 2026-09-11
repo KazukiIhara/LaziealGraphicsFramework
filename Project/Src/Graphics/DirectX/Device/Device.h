@@ -25,6 +25,7 @@ namespace LGF {
 			kFactoryCreateFailed,
 			kAdapterNotFound,
 			kDeviceCreateFailed,
+			kRequiredFeaturesUnsupported,
 		};
 
 	public:

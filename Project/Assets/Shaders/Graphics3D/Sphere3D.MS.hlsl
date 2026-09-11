@@ -60,6 +60,8 @@ void main(
             uint vertexIndex = GetVertexIndex(lat, lon);
             vertices[vertexIndex].position = mul(worldPos, gCamera.viewProj);
             vertices[vertexIndex].baseColor = sphere.instData.baseColor;
+            vertices[vertexIndex].uv = float2(u, v) * sphere.instData.uvScale + sphere.instData.uvOffset;
+            vertices[vertexIndex].textureIndex = sphere.instData.textureIndex;
             vertices[vertexIndex].normal = ToWorldNormal(sphere.instData, localNormal);
         }
     }

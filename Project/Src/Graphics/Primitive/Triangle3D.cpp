@@ -15,3 +15,7 @@ Triangle3D::~Triangle3D() = default;
 void Triangle3D::Draw(const Matrix4x4& worldMatrix, const Vector4& color) const {
 	Graphics3D::Draw(*this, worldMatrix, color);
 }
+
+void Triangle3D::Draw(const Matrix4x4& worldMatrix, const Material3D& material) const {
+	Graphics3D::Draw(*this, worldMatrix, material);
+}

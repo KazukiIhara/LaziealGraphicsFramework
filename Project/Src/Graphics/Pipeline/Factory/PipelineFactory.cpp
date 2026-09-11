@@ -297,6 +297,7 @@ PipelineFactory::RootSignatureBuildResult PipelineFactory::CreateRootSignature(c
 
 	// 全シェーダーから見つけたリソースをまとめる配列
 	std::vector<ResourceInfo> resources;
+	bool usesResourceHeap = false;
 
 	// シェーダーblobを全走査
 	for (const auto& [stageName, blob] : shaderBlobs) {
@@ -331,6 +332,7 @@ PipelineFactory::RootSignatureBuildResult PipelineFactory::CreateRootSignature(c
 		// シェーダー情報を取得
 		hr = reflection->GetDesc(&shaderDesc);
 		assert(SUCCEEDED(hr));
+		usesResourceHeap |= (reflection->GetRequiresFlags() & D3D_SHADER_REQUIRES_RESOURCE_DESCRIPTOR_HEAP_INDEXING) != 0;
 
 		// シェーダーが使っているリソースを全走査
 		for (UINT i = 0; i < shaderDesc.BoundResources; ++i) {
@@ -372,6 +374,7 @@ PipelineFactory::RootSignatureBuildResult PipelineFactory::CreateRootSignature(c
 	std::vector<D3D12_DESCRIPTOR_RANGE> descriptorRanges;
 
 	std::vector<RootParameterInfo> rootParamInfos;
+	std::vector<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
 
 	// 再確保を防ぐ
 	rootParams.reserve(resources.size());
@@ -381,6 +384,19 @@ PipelineFactory::RootSignatureBuildResult PipelineFactory::CreateRootSignature(c
 	// Reflection結果からRootParameterを生成
 	for (const ResourceInfo& resource : resources) {
 		D3D12_ROOT_PARAMETER rootParam{};
+		if (resource.type == D3D_SIT_SAMPLER) {
+			D3D12_STATIC_SAMPLER_DESC sampler{};
+			sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+			sampler.AddressU = sampler.AddressV = sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+			sampler.MaxAnisotropy = 1;
+			sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+			sampler.MaxLOD = D3D12_FLOAT32_MAX;
+			sampler.ShaderRegister = resource.bindPoint;
+			sampler.RegisterSpace = resource.space;
+			sampler.ShaderVisibility = resource.visibility;
+			staticSamplers.push_back(sampler);
+			continue;
+		}
 
 		// ConstantBuffer
 		if (resource.type == D3D_SIT_CBUFFER) {
@@ -446,7 +462,11 @@ PipelineFactory::RootSignatureBuildResult PipelineFactory::CreateRootSignature(c
 	D3D12_ROOT_SIGNATURE_DESC rootSigDesc{};
 	rootSigDesc.NumParameters = static_cast<UINT>(rootParams.size());
 	rootSigDesc.pParameters = rootParams.data();
-	rootSigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+	rootSigDesc.NumStaticSamplers = static_cast<UINT>(staticSamplers.size());
+	rootSigDesc.pStaticSamplers = staticSamplers.data();
+	rootSigDesc.Flags = usesResourceHeap
+		? D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED
+		: D3D12_ROOT_SIGNATURE_FLAG_NONE;
 
 	// RootSignatureをシリアライズ
 	ComPtr<ID3DBlob> sigBlob;

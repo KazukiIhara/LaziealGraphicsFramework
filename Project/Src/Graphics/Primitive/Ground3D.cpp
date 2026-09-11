@@ -21,3 +21,7 @@ Ground3D::~Ground3D() = default;
 void Ground3D::Draw(const Matrix4x4& worldMatrix, const Vector4& color) const {
 	Graphics3D::Draw(*this, worldMatrix, color);
 }
+
+void Ground3D::Draw(const Matrix4x4& worldMatrix, const Material3D& material) const {
+	Graphics3D::Draw(*this, worldMatrix, material);
+}

@@ -1,6 +1,7 @@
 #include "LGF/Graphics/Texture.h"
 
 #include <cassert>
+#include <stdexcept>
 
 #include "TextureSystemInternal.h"
 #include "TextureManager.h"
@@ -19,8 +20,12 @@ void LGF::TextureSystem::Internal::ResetTextureManager() {
 }
 
 LGF::Texture::Texture(const std::string& name, const TextureLoadDesc& desc) {
-	assert(g_textureManager != nullptr);
-	g_textureManager->Load(name, desc);
+	if (!g_textureManager) {
+		throw std::runtime_error("Texture must be loaded after framework initialization.");
+	}
+	const auto& data = g_textureManager->Load(name, desc);
+	srvIndex_ = data.srvIndex;
+	isCubeMap_ = data.metaData.IsCubemap();
 	filePath_ = name;
 }
 

@@ -31,14 +31,21 @@ namespace LGF {
 	/// </summary>
 	class Texture {
 	public:
+		// 未指定のテクスチャ。Material3D では単色描画になる。
+		Texture() = default;
+		// UTF-8 パスを同期ロード。失敗時は std::exception 派生の例外を送出する。
 		Texture(const std::string& filePath, const TextureLoadDesc& desc = {});
 		~Texture();
 
 		const std::string& GetFilePath()const;
+		bool IsValid() const { return srvIndex_ != UINT32_MAX; }
 
-		// テクスチャのデータは名前をキーにマネージャから持ってくる
+		// GPU リソースはフレームワーク終了まで内部で共有する。
 
 	private:
+		friend class Renderer3D;
 		std::string filePath_;
+		uint32_t srvIndex_ = UINT32_MAX;
+		bool isCubeMap_ = false;
 	};
 }

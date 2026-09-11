@@ -19,6 +19,49 @@
 ・スペキュラーマップの実装  
 
 
+### テクスチャ付き3D描画
+
+`Main()` 内でテクスチャを読み込み、`Material3D` を `Draw()` に渡します。
+
+```cpp
+Material3D material{};
+material.baseColorTexture = Texture("Assets/Textures/Checker.bmp");
+material.color = Color::White;
+material.uvScale = { 4.0f, 4.0f };
+
+while (System::Update()) {
+    Camera3D(Vector3(0.0f, 1.0f, -5.0f)).SetScene();
+    Box3D().Draw(Math::Identity4x4(), material);
+}
+```
+
+- `Triangle3D`・`Box3D`・`Plane3D`・`Ground3D`・`Sphere3D`・`Capsule3D`・`Cone3D`・`Cylinder3D`・`Line3D` に対応しています。従来の色指定 `Draw(matrix, color)` も使用できます。
+- `baseColorTexture` 未指定時は単色、指定時はテクスチャと `color` を乗算します。今回は不透明なベースカラー描画が対象で、透過・法線マップ・PBR は未実装です。
+- UV は各形状で生成します。箱は面ごと、球・カプセルは経緯度、円柱・円錐は側面と底面を分離しています。`uvScale` と `uvOffset` で調整し、リピート＋線形ミップフィルタで描画します。
+- BMP・PNG・JPEG などの WIC 対応画像、DDS・TGA・HDR を読み込めます。単一2Dテクスチャ／単一キューブマップが対象です。キューブマップは読み込めますが、`baseColorTexture` には指定できません。
+- 色画像は既定で sRGB、データ用画像は `TextureLoadDesc::NormalMap()` で Linear として読み込めます。これは読み込み設定であり、法線マップ描画を有効にするものではありません。
+- ミップ生成は既定で有効です。DDS などの既存ミップは保持し、`generateMipMaps = false` では新規生成しません。
+- パスは UTF-8、相対パスは作業ディレクトリ基準です。通常は `Project` を作業ディレクトリにします。同じ正規化パスと読み込み設定はキャッシュし、GPU リソースはフレームワーク終了まで保持します。
+- 初回ロードはGPU転送完了を待つ同期処理です。毎フレームのロードは避けてください。失敗時は例外を送出します。
+- 異なるテクスチャを同じ形状のまとめ描画で扱うため、Shader Model 6.6 と Resource Binding Tier 3 が必要です。起動時に対応状況を確認します。
+
+### 平行光源
+
+`DirectionalLight` で光の進む方向・色・強度を指定し、描画するフレーム内で `SetScene()` を呼びます。
+
+```cpp
+DirectionalLight light({ 1.0f, -1.0f, 0.5f }, Color::White, 1.5f);
+
+while (System::Update()) {
+    Camera3D(Vector3(0.0f, 1.0f, -5.0f)).SetScene();
+    light.SetScene();
+    Box3D().Draw();
+}
+```
+
+- `direction` は光が進む向きで、内部で正規化されます。ゼロベクトルの場合は既定の下向き光源を使用します。
+- `intensity` は `0` 以上として扱い、負の値は `0` に補正します。
+
 # Lazieal Game Engine
 
 ・シーンマネージャの実装  
@@ -28,4 +71,4 @@
 ・Blenderのアドオンを使ってシーンを作成でき、ホットリロードができる  
 ・Effekseerで作成したエフェクトをインポートでき、ホットリロードできる  
 ・Figmaで作成したUIをインポートでき、ホットリロードできる  
-・外部パラメータを変更できるexeを別途用意し、ImGuiで動的にパラメータを変更できるようにする  
+・外部パラメータを変更できるexeを別途用意し、ImGuiで動的にパラメータを変更できるようにする

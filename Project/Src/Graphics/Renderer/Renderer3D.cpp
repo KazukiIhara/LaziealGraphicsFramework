@@ -1,6 +1,7 @@
 #include "Renderer3D.h"
 
 #include <algorithm>
+#include <stdexcept>
 
 #include "Graphics/Drawer/IDrawer.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
@@ -89,7 +90,7 @@ void Renderer3D::Finalize() {
 	triangleDrawer_.reset();
 }
 
-void Renderer3D::AddTriangle(const Triangle3D& triangle, const Matrix4x4& worldMatrix, const Vector4& color) {
+void Renderer3D::AddTriangle(const Triangle3D& triangle, const Matrix4x4& worldMatrix, const Material3D& material) {
 	Triangle3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -97,7 +98,7 @@ void Renderer3D::AddTriangle(const Triangle3D& triangle, const Matrix4x4& worldM
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 
 	std::ranges::copy(
 		triangle.vertices,
@@ -107,7 +108,7 @@ void Renderer3D::AddTriangle(const Triangle3D& triangle, const Matrix4x4& worldM
 	triangleDrawer_->AddTriangle(data);
 }
 
-void Renderer3D::AddBox(const Box3D& box, const Matrix4x4& worldMatrix, const Vector4& color) {
+void Renderer3D::AddBox(const Box3D& box, const Matrix4x4& worldMatrix, const Material3D& material) {
 	Box3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -115,7 +116,7 @@ void Renderer3D::AddBox(const Box3D& box, const Matrix4x4& worldMatrix, const Ve
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 
 	data.halfSize = {
 		box.width * 0.5f,
@@ -126,7 +127,7 @@ void Renderer3D::AddBox(const Box3D& box, const Matrix4x4& worldMatrix, const Ve
 	boxDrawer_->AddBox(data);
 }
 
-void Renderer3D::AddCapsule(const Capsule3D& capsule, const Matrix4x4& worldMatrix, const Vector4& color) {
+void Renderer3D::AddCapsule(const Capsule3D& capsule, const Matrix4x4& worldMatrix, const Material3D& material) {
 	Capsule3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -134,14 +135,14 @@ void Renderer3D::AddCapsule(const Capsule3D& capsule, const Matrix4x4& worldMatr
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 	data.radius = capsule.radius;
 	data.height = capsule.height;
 
 	capsuleDrawer_->AddCapsule(data);
 }
 
-void Renderer3D::AddCone(const Cone3D& cone, const Matrix4x4& worldMatrix, const Vector4& color) {
+void Renderer3D::AddCone(const Cone3D& cone, const Matrix4x4& worldMatrix, const Material3D& material) {
 	Cone3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -149,14 +150,14 @@ void Renderer3D::AddCone(const Cone3D& cone, const Matrix4x4& worldMatrix, const
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 	data.radius = cone.radius;
 	data.height = cone.height;
 
 	coneDrawer_->AddCone(data);
 }
 
-void Renderer3D::AddCylinder(const Cylinder3D& cylinder, const Matrix4x4& worldMatrix, const Vector4& color) {
+void Renderer3D::AddCylinder(const Cylinder3D& cylinder, const Matrix4x4& worldMatrix, const Material3D& material) {
 	Cylinder3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -164,14 +165,14 @@ void Renderer3D::AddCylinder(const Cylinder3D& cylinder, const Matrix4x4& worldM
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 	data.radius = cylinder.radius;
 	data.height = cylinder.height;
 
 	cylinderDrawer_->AddCylinder(data);
 }
 
-void Renderer3D::AddLine(const Line3D& line, const Matrix4x4& worldMatrix, const Vector4& color) {
+void Renderer3D::AddLine(const Line3D& line, const Matrix4x4& worldMatrix, const Material3D& material) {
 	Line3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -179,7 +180,7 @@ void Renderer3D::AddLine(const Line3D& line, const Matrix4x4& worldMatrix, const
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 
 	data.start = line.start;
 	data.end = line.end;
@@ -187,7 +188,7 @@ void Renderer3D::AddLine(const Line3D& line, const Matrix4x4& worldMatrix, const
 	lineDrawer_->AddLine(data);
 }
 
-void Renderer3D::AddPlane(const Plane3D& plane, const Matrix4x4& worldMatrix, const Vector4& color) {
+void Renderer3D::AddPlane(const Plane3D& plane, const Matrix4x4& worldMatrix, const Material3D& material) {
 	Plane3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -195,7 +196,7 @@ void Renderer3D::AddPlane(const Plane3D& plane, const Matrix4x4& worldMatrix, co
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 
 	const float halfWidth = plane.width * 0.5f;
 	const float halfHeight = plane.height * 0.5f;
@@ -208,7 +209,7 @@ void Renderer3D::AddPlane(const Plane3D& plane, const Matrix4x4& worldMatrix, co
 	planeDrawer_->AddPlane(data);
 }
 
-void Renderer3D::AddGround(const Ground3D& ground, const Matrix4x4& worldMatrix, const Vector4& color) {
+void Renderer3D::AddGround(const Ground3D& ground, const Matrix4x4& worldMatrix, const Material3D& material) {
 	Ground3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -216,7 +217,7 @@ void Renderer3D::AddGround(const Ground3D& ground, const Matrix4x4& worldMatrix,
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 
 	const float halfWidth = ground.width * 0.5f;
 	const float halfDepth = ground.depth * 0.5f;
@@ -229,7 +230,7 @@ void Renderer3D::AddGround(const Ground3D& ground, const Matrix4x4& worldMatrix,
 	groundDrawer_->AddGround(data);
 }
 
-void Renderer3D::AddSphere(const Sphere3D& sphere, const Matrix4x4& worldMatrix, const Vector4& color) {
+void Renderer3D::AddSphere(const Sphere3D& sphere, const Matrix4x4& worldMatrix, const Material3D& material) {
 	Sphere3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -237,8 +238,18 @@ void Renderer3D::AddSphere(const Sphere3D& sphere, const Matrix4x4& worldMatrix,
 	data.instance.worldInverseTranspose =
 		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 	data.radius = sphere.radius;
 
 	sphereDrawer_->AddSphere(data);
+}
+
+void Renderer3D::ApplyMaterial(InstanceData3D& instance, const Material3D& material) {
+    if (material.baseColorTexture.isCubeMap_) {
+        throw std::invalid_argument("Material3D baseColorTexture must be a Texture2D.");
+    }
+    instance.baseColor = material.color;
+    instance.textureIndex = material.baseColorTexture.srvIndex_;
+    instance.uvScale = material.uvScale;
+    instance.uvOffset = material.uvOffset;
 }

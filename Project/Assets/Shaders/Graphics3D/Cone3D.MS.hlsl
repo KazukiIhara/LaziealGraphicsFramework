@@ -1,68 +1,46 @@
 #include "Graphics3D.hlsli"
 
 static const uint kSegments = 32;
-static const uint kBottomCenterIndex = kSegments;
-static const uint kTipIndex = kSegments + 1;
-static const uint kVertexCount = kSegments + 2;
-static const uint kTriangleCount = kSegments * 2;
-static const float kPI = 3.14159265358979323846f;
-
-struct ConeData
-{
-    InstanceData3D instData;
-    float radius;
-    float height;
-    float2 padding;
-};
-
+static const uint kRing = kSegments + 1;
+static const uint kBottomRing = kRing + kSegments;
+static const uint kBottomCenter = kBottomRing + kRing;
+struct ConeData { InstanceData3D instData; float radius; float height; float2 padding; };
 ConstantBuffer<CameraData3D> gCamera : register(b0);
 StructuredBuffer<ConeData> gCone : register(t0);
 
-float4 ToClipPosition(ConeData cone, float3 localPosition)
-{
-    float4 worldPos = mul(float4(localPosition, 1.0f), cone.instData.worldMatrix);
-    return mul(worldPos, gCamera.viewProj);
-}
-
 [outputtopology("triangle")]
 [numthreads(1, 1, 1)]
-void main(
-    uint3 DTid : SV_DispatchThreadID,
-    out vertices MSOutput3D vertices[kVertexCount],
-    out indices uint3 triangles[kTriangleCount])
+void main(uint3 id : SV_DispatchThreadID,
+    out vertices MSOutput3D vertices[kBottomCenter + 1],
+    out indices uint3 triangles[kSegments * 2])
 {
-    SetMeshOutputCounts(kVertexCount, kTriangleCount);
-
-    ConeData cone = gCone[DTid.x];
-
-    float halfHeight = cone.height * 0.5f;
-
-    for (uint i = 0; i < kSegments; ++i)
+    SetMeshOutputCounts(kBottomCenter + 1, kSegments * 2);
+    ConeData cone = gCone[id.x];
+    float h = cone.height * 0.5f;
+    for (uint i = 0; i <= kSegments; ++i)
     {
-        float theta = ((float)i / (float)kSegments) * kPI * 2.0f;
-        float x = cos(theta) * cone.radius;
-        float z = sin(theta) * cone.radius;
-
-        vertices[i].position = ToClipPosition(cone, float3(x, -halfHeight, z));
-        vertices[i].baseColor = cone.instData.baseColor;
-        vertices[i].normal = ToWorldNormal(cone.instData, normalize(float3(x, cone.radius / cone.height, z)));
+        float u = (float)i / kSegments;
+        float angle = u * 6.28318530718f;
+        float2 radial = float2(cos(angle), sin(angle));
+        float3 position = float3(radial.x * cone.radius, -h, radial.y * cone.radius);
+        float3 normal = normalize(float3(radial.x * cone.height, cone.radius, radial.y * cone.height));
+        vertices[i] = MakeVertex(cone.instData, gCamera, position, normal, float2(u,1));
+        vertices[kBottomRing+i] = MakeVertex(cone.instData, gCamera, position,
+            float3(0,-1,0), radial * 0.5f + 0.5f);
+        if (i < kSegments)
+        {
+            float tipU = ((float)i + 0.5f) / kSegments;
+            float tipAngle = tipU * 6.28318530718f;
+            float3 tipNormal = normalize(float3(cos(tipAngle)*cone.height, cone.radius, sin(tipAngle)*cone.height));
+            vertices[kRing+i] = MakeVertex(cone.instData, gCamera,
+                float3(0,h,0), tipNormal, float2(tipU,0));
+        }
     }
-
-    vertices[kBottomCenterIndex].position = ToClipPosition(cone, float3(0.0f, -halfHeight, 0.0f));
-    vertices[kBottomCenterIndex].baseColor = cone.instData.baseColor;
-    vertices[kBottomCenterIndex].normal = ToWorldNormal(cone.instData, float3(0.0f, -1.0f, 0.0f));
-
-    vertices[kTipIndex].position = ToClipPosition(cone, float3(0.0f, halfHeight, 0.0f));
-    vertices[kTipIndex].baseColor = cone.instData.baseColor;
-    vertices[kTipIndex].normal = ToWorldNormal(cone.instData, float3(0.0f, 1.0f, 0.0f));
-
-    uint triIndex = 0;
-
+    vertices[kBottomCenter] = MakeVertex(cone.instData, gCamera,
+        float3(0,-h,0), float3(0,-1,0), float2(0.5f,0.5f));
     for (uint i = 0; i < kSegments; ++i)
     {
-        uint next = (i + 1) % kSegments;
-
-        triangles[triIndex++] = uint3(i, kTipIndex, next);
-        triangles[triIndex++] = uint3(kBottomCenterIndex, i, next);
+        triangles[i*2] = uint3(i, kRing+i, i+1);
+        triangles[i*2+1] = uint3(kBottomCenter, kBottomRing+i, kBottomRing+i+1);
     }
 }

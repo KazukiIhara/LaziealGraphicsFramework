@@ -23,3 +23,7 @@ Box3D::~Box3D() = default;
 void Box3D::Draw(const Matrix4x4& worldMatrix, const Vector4& color) const {
 	Graphics3D::Draw(*this, worldMatrix, color);
 }
+
+void Box3D::Draw(const Matrix4x4& worldMatrix, const Material3D& material) const {
+	Graphics3D::Draw(*this, worldMatrix, material);
+}

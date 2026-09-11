@@ -14,11 +14,12 @@
 #include "LGF/Graphics/Texture.h"
 
 namespace LGF {
+	class DirectXCore;
 
 	struct TextureData {
 		ComPtr<ID3D12Resource> resource;
-		DirectX::TexMetadata metaData;
-		uint32_t srvIndex;
+		DirectX::TexMetadata metaData{};
+		uint32_t srvIndex = UINT32_MAX;
 	};
 
 	/// <summary>
@@ -26,24 +27,18 @@ namespace LGF {
 	/// </summary>
 	class TextureManager {
 	public:
-		TextureManager();
+		explicit TextureManager(DirectXCore& directX);
 		~TextureManager();
 
 		bool Initialize();
 
 		void Finalize();
 
-		void Load(const std::string& filePath, const TextureLoadDesc& desc);
-
-		void LoadAll();
-
-		const TextureData& Find(const std::string& filePath);
+		const TextureData& Load(const std::string& filePath, const TextureLoadDesc& desc);
 
 	private:
-
-
-	private:
-		std::unordered_map<std::string, TextureData> textures_;
+		std::unordered_map<std::wstring, TextureData> textures_;
+		DirectXCore& directX_;
 	};
 
 }

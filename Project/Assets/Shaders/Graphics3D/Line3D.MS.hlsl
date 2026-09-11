@@ -28,10 +28,14 @@ void main(
 
     vertices[0].position = mul(startWorldPos, gCamera.viewProj);
     vertices[0].baseColor = lineData.instData.baseColor;
+    vertices[0].uv = float2(0, 0.5f) * lineData.instData.uvScale + lineData.instData.uvOffset;
+    vertices[0].textureIndex = lineData.instData.textureIndex;
     vertices[0].normal = ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f));
 
     vertices[1].position = mul(endWorldPos, gCamera.viewProj);
     vertices[1].baseColor = lineData.instData.baseColor;
+    vertices[1].uv = float2(1, 0.5f) * lineData.instData.uvScale + lineData.instData.uvOffset;
+    vertices[1].textureIndex = lineData.instData.textureIndex;
     vertices[1].normal = ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f));
 
     lines[0] = uint2(0, 1);
