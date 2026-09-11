@@ -70,6 +70,48 @@ project "DirectXTex"
 
    filter {}
 
+project "ImGui"
+   kind "StaticLib"
+   language "C++"
+   cppdialect "C++20"
+
+   files {
+      "../Externals/imgui/*.cpp",
+      "../Externals/imgui/*.h",
+      "../Externals/imgui/backends/imgui_impl_dx12.cpp",
+      "../Externals/imgui/backends/imgui_impl_dx12.h",
+      "../Externals/imgui/backends/imgui_impl_win32.cpp",
+      "../Externals/imgui/backends/imgui_impl_win32.h",
+   }
+
+   includedirs {
+      "../Externals/imgui",
+      "../Externals/imgui/backends",
+   }
+
+   warnings "High"
+   buildoptions { "/utf-8" }
+   staticruntime "On"
+   multiprocessorcompile "On"
+
+   filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+      runtime "Debug"
+
+   filter "configurations:Develop"
+      defines { "DEBUG", "DEVELOP" }
+      symbols "On"
+      optimize "Debug"
+      runtime "Release"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"
+      runtime "Release"
+
+   filter {}
+
 project "LaziealGraphicsFramework"
    kind "WindowedApp"
    language "C++"
@@ -85,14 +127,6 @@ project "LaziealGraphicsFramework"
       "../Include/**.cpp",
       "../Include/**.h",
 
-      "../Externals/imgui/*.cpp",
-      "../Externals/imgui/*.h",
-
-      "../Externals/imgui/backends/imgui_impl_dx12.cpp",
-      "../Externals/imgui/backends/imgui_impl_dx12.h",
-
-      "../Externals/imgui/backends/imgui_impl_win32.cpp",
-      "../Externals/imgui/backends/imgui_impl_win32.h",
    }
 
    -- 追加のインクルードパス
@@ -107,9 +141,9 @@ project "LaziealGraphicsFramework"
        "../Externals/DirectXTex/DirectXTex",
    }
 
-   dependson { "DirectXTex" }
+   dependson { "DirectXTex", "ImGui" }
 
-   links { "DirectXTex" }
+   links { "DirectXTex", "ImGui" }
 
    warnings "High"
 
