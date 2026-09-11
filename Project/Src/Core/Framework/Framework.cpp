@@ -3,6 +3,7 @@
 #include <ranges>
 
 #include "Core/Window/System/WindowSystem.h"
+#include "Core/Time/TimeSystem.h"
 #include "Graphics/System/GraphicsSystem.h"
 #include "Input/System/InputSystem.h"
 
@@ -27,6 +28,11 @@ bool Framework::Initialize() {
 	std::unique_ptr<InputSystem> inputSys = std::make_unique<InputSystem>();
 	context_.input = inputSys.get();
 	systems_.push_back(std::move(inputSys));
+
+	// 時間システムはBeginFrameで最初に更新されるよう末尾へ登録
+	std::unique_ptr<TimeSystem> timeSys = std::make_unique<TimeSystem>();
+	context_.time = timeSys.get();
+	systems_.push_back(std::move(timeSys));
 
 	// 各システムを初期化
 	for (const auto& system : systems_) {
@@ -75,6 +81,10 @@ bool Framework::Finalize() {
 	}
 
 	return true;
+}
+
+double Framework::GetDeltaTime() const {
+	return context_.time ? context_.time->GetDeltaTime() : 0.0;
 }
 
 void Framework::BeginFrame() {

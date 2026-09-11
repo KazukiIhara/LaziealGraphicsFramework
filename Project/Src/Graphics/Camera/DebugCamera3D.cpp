@@ -5,6 +5,7 @@
 
 #include "LGF/Input.h"
 #include "LGF/Math/MathConstants.h"
+#include "LGF/System.h"
 
 using namespace LGF;
 
@@ -13,25 +14,19 @@ namespace {
 	constexpr float kInitialPitch = 15.0f * Math::DEG_TO_RAD;
 	constexpr float kPitchLimit = 89.0f * Math::DEG_TO_RAD;
 	constexpr float kMinimumDistance = 0.1f;
-	constexpr float kMaximumDeltaTime = 0.1f;
 
 }
 
 DebugCamera3D::DebugCamera3D(float distance, const Camera3D::Param& param) :
 	Camera3D({}, 0.0f, kInitialPitch, param),
-	distance(std::max(distance, kMinimumDistance)),
-	previousUpdateTime_(std::chrono::steady_clock::now()) {
+	distance(std::max(distance, kMinimumDistance)) {
 	UpdateTranslation();
 }
 
 DebugCamera3D::~DebugCamera3D() = default;
 
 void DebugCamera3D::Update() {
-	const auto currentTime = std::chrono::steady_clock::now();
-	const float deltaTime = std::min(
-		std::chrono::duration<float>(currentTime - previousUpdateTime_).count(),
-		kMaximumDeltaTime);
-	previousUpdateTime_ = currentTime;
+	const float deltaTime = static_cast<float>(System::DeltaTime());
 
 	const float horizontalInput =
 		static_cast<float>(Key::Left.Press()) - static_cast<float>(Key::Right.Press());

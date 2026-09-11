@@ -12,3 +12,7 @@ namespace LGF::Detail {
 bool LGF::System::Update() {
 	return Detail::GetFramework().Update();
 }
+
+double LGF::System::DeltaTime() {
+	return Detail::GetFramework().GetDeltaTime();
+}

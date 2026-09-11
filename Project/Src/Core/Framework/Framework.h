@@ -21,6 +21,8 @@ namespace LGF {
 		bool Update();
 		bool Finalize();
 
+		double GetDeltaTime() const;
+
 	private:
 		// フレーム開始処理
 		void BeginFrame();

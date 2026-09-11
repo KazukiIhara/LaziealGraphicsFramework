@@ -1,7 +1,5 @@
 #pragma once
 
-#include <chrono>
-
 #include "LGF/Graphics/Camera3D.h"
 
 namespace LGF {
@@ -31,8 +29,6 @@ namespace LGF {
 
 	private:
 		void UpdateTranslation();
-
-		std::chrono::steady_clock::time_point previousUpdateTime_;
 	};
 
 }
