@@ -112,6 +112,56 @@ project "ImGui"
 
    filter {}
 
+-- Microsoft DirectXMesh may2026 (MIT)
+project "DirectXMesh"
+   kind "StaticLib"
+   language "C++"
+   cppdialect "C++20"
+   location "../"
+   characterset "Unicode"
+
+   files {
+      "../Externals/DirectXMesh/DirectXMesh/*.cpp",
+      "../Externals/DirectXMesh/DirectXMesh/*.h",
+      "../Externals/DirectXMesh/DirectXMesh/*.inl",
+   }
+
+   includedirs {
+      "../Externals/DirectXMesh/DirectXMesh",
+   }
+
+   defines {
+      "_LIB",
+      "_UNICODE",
+      "UNICODE",
+      "_WIN32_WINNT=0x0A00",
+      "_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS",
+   }
+
+   warnings "Off"
+   buildoptions { "/utf-8", "/Zc:__cplusplus" }
+   floatingpoint "Fast"
+   staticruntime "On"
+   multiprocessorcompile "On"
+
+   filter "configurations:Debug"
+      defines { "_DEBUG" }
+      symbols "On"
+      runtime "Debug"
+
+   filter "configurations:Develop"
+      defines { "NDEBUG", "PROFILE" }
+      symbols "On"
+      optimize "Debug"
+      runtime "Release"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"
+      runtime "Release"
+
+   filter {}
+
 project "LaziealGraphicsFramework"
    kind "WindowedApp"
    language "C++"
@@ -134,6 +184,8 @@ project "LaziealGraphicsFramework"
        "../Src",
        "../Include",
        "../Externals",
+	   "../Externals/assimp/include",
+	   "../Externals/DirectXMesh/DirectXMesh",
 
        "../Externals/imgui",
        "../Externals/imgui/backends",
@@ -141,9 +193,9 @@ project "LaziealGraphicsFramework"
        "../Externals/DirectXTex/DirectXTex",
    }
 
-   dependson { "DirectXTex", "ImGui" }
+   dependson { "DirectXTex", "DirectXMesh", "ImGui" }
 
-   links { "DirectXTex", "ImGui" }
+   links { "DirectXTex", "DirectXMesh", "ImGui" }
 
    warnings "High"
 

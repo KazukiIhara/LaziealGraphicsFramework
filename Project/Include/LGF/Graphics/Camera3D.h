@@ -33,7 +33,7 @@ namespace LGF {
 			float pitch = {},
 			const Param& param = {});
 
-		~Camera3D();
+		virtual ~Camera3D();
 
 		void SetScene()const;
 

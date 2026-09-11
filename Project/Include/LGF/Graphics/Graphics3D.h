@@ -17,6 +17,7 @@ namespace LGF {
 	class Cylinder3D;
 	class Ground3D;
 	class Line3D;
+	class Model;
 	class Plane3D;
 	class Sphere3D;
 	class Triangle3D;
@@ -79,6 +80,12 @@ namespace LGF {
 
 		void Draw(
 			const Sphere3D& sphere,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color = Color::White
+		);
+
+		void Draw(
+			const Model& model,
 			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
 		);

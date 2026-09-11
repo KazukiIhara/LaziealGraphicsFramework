@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstdint>
+#include <cstddef>
 #include <unordered_map>
 #include <vector>
 
@@ -35,8 +36,21 @@ namespace LGF {
 		void Finalize();
 
 		const TextureData& Load(const std::string& filePath, const TextureLoadDesc& desc);
+		const TextureData& LoadFromMemory(
+			const std::wstring& cacheKey,
+			const void* data,
+			size_t size,
+			const TextureLoadDesc& desc
+		);
 
 	private:
+		const TextureData& Store(
+			std::wstring key,
+			const std::string& debugName,
+			DirectX::ScratchImage image,
+			const TextureLoadDesc& desc
+		);
+
 		std::unordered_map<std::wstring, TextureData> textures_;
 		DirectXCore& directX_;
 	};

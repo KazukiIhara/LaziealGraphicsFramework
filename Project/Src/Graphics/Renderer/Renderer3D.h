@@ -20,6 +20,7 @@ namespace LGF {
 	class CylinderDrawer3D;
 	class GroundDrawer3D;
 	class LineDrawer3D;
+	class ModelDrawer3D;
 	class PlaneDrawer3D;
 	class SphereDrawer3D;
 	class TriangleDrawer3D;
@@ -29,6 +30,7 @@ namespace LGF {
 	class Cylinder3D;
 	class Ground3D;
 	class Line3D;
+	class Model;
 	class Plane3D;
 	class Sphere3D;
 	class Triangle3D;
@@ -103,6 +105,12 @@ namespace LGF {
 			const Material3D& material
 		);
 
+		void AddModel(
+			const Model& model,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color
+		);
+
 	private:
 		static void ApplyMaterial(InstanceData3D& instance, const Material3D& material);
 		// 参照
@@ -117,6 +125,7 @@ namespace LGF {
 		std::unique_ptr<CylinderDrawer3D> cylinderDrawer_;
 		std::unique_ptr<GroundDrawer3D> groundDrawer_;
 		std::unique_ptr<LineDrawer3D> lineDrawer_;
+		std::unique_ptr<ModelDrawer3D> modelDrawer_;
 		std::unique_ptr<PlaneDrawer3D> planeDrawer_;
 		std::unique_ptr<SphereDrawer3D> sphereDrawer_;
 		std::unique_ptr<TriangleDrawer3D> triangleDrawer_;

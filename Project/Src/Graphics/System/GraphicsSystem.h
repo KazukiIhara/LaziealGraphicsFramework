@@ -16,6 +16,7 @@ namespace LGF {
 	class Camera2DSystem;
 	class Renderer2D;
 	class TextureManager;
+	class ModelManager;
 
 	class ImGuiSystem;
 
@@ -42,6 +43,7 @@ namespace LGF {
 		// パイプラインマネージャ
 		std::unique_ptr<PipelineManager> pipelineManager_;
 		std::unique_ptr<TextureManager> textureManager_;
+		std::unique_ptr<ModelManager> modelManager_;
 		// カメラ3Dシステム
 		std::unique_ptr<Camera3DSystem> camera3DSystem_;
 		std::unique_ptr<DirectionalLightSystem> directionalLightSystem_;

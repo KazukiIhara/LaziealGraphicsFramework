@@ -4,6 +4,7 @@
 #include "LGF/Graphics/BlendMode.h"
 #include "LGF/Graphics/Texture.h"
 #include "LGF/Graphics/Material.h"
+#include "LGF/Graphics/Model.h"
 #include "LGF/Graphics/DirectionalLight.h"
 
 #include "LGF/Graphics/Camera2D.h"
@@ -16,6 +17,7 @@
 #include "LGF/Graphics/Graphics2D.h"
 
 #include "LGF/Graphics/Camera3D.h"
+#include "LGF/Graphics/DebugCamera3D.h"
 #include "LGF/Graphics/Transform3D.h"
 #include "LGF/Graphics/Box3D.h"
 #include "LGF/Graphics/Capsule3D.h"

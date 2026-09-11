@@ -14,6 +14,8 @@
 #include "Graphics/ImGui/ImGuiSystem.h"
 #include "Graphics/Texture/TextureManager.h"
 #include "Graphics/Texture/TextureSystemInternal.h"
+#include "Graphics/Model/ModelManager.h"
+#include "Graphics/Model/ModelSystemInternal.h"
 
 #include "Graphics/Graphics3DContext.h"
 #include "Graphics/Graphics3DInternal.h"
@@ -40,6 +42,13 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 		return false;
 	}
 	TextureSystem::Internal::SetTextureManager(textureManager_.get());
+
+	// 静的モデルマネージャ初期化
+	modelManager_ = std::make_unique<ModelManager>(*directX_, *textureManager_);
+	if (!modelManager_->Initialize()) {
+		return false;
+	}
+	ModelSystem::Internal::SetModelManager(modelManager_.get());
 
 	// パイプラインマネージャ初期化
 	pipelineManager_ = std::make_unique<PipelineManager>(*directX_);
@@ -108,6 +117,7 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 }
 
 bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
+	ModelSystem::Internal::ResetModelManager();
 	TextureSystem::Internal::ResetTextureManager();
 
 	Graphics3D::Internal::ResetRenderer3D();
@@ -123,6 +133,7 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 		subSys->Finalize();
 	}
 	pipelineManager_->Finalize();
+	modelManager_->Finalize();
 	textureManager_->Finalize();
 	directX_->Finalize();
 
@@ -132,6 +143,7 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 	directionalLightSystem_.reset();
 	camera3DSystem_.reset();
 	pipelineManager_.reset();
+	modelManager_.reset();
 	textureManager_.reset();
 	directX_.reset();
 	return true;

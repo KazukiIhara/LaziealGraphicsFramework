@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <stdexcept>
 #include <format>
+#include <utility>
 
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/DirectX/ResourceFactory/ResourceFactory.h"
@@ -50,18 +51,69 @@ const TextureData& TextureManager::Load(const std::string& filePath, const Textu
         check(DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_FORCE_RGB, nullptr, image), "LoadWIC");
     }
 
-    const auto& metadata = image.GetMetadata();
+    return Store(std::move(key), filePath, std::move(image), desc);
+}
+
+const TextureData& TextureManager::LoadFromMemory(
+    const std::wstring& cacheKey,
+    const void* data,
+    size_t size,
+    const TextureLoadDesc& desc) {
+
+    if (cacheKey.empty()) {
+        throw std::invalid_argument("Texture memory cache key must not be empty.");
+    }
+    if (!data || size == 0) {
+        throw std::invalid_argument("Texture memory data must not be empty.");
+    }
+
+    const auto key = std::format(L"memory:{}|{}|{}|{}", cacheKey,
+        static_cast<int>(desc.dimension), static_cast<int>(desc.colorSpace), desc.generateMipMaps);
+    if (const auto it = textures_.find(key); it != textures_.end()) {
+        return it->second;
+    }
+
+    DirectX::ScratchImage image;
+    const HRESULT hr = DirectX::LoadFromWICMemory(
+        static_cast<const uint8_t*>(data),
+        size,
+        DirectX::WIC_FLAGS_FORCE_RGB,
+        nullptr,
+        image);
+    if (FAILED(hr)) {
+        throw std::runtime_error(std::format(
+            "Embedded texture: LoadWICMemory failed (0x{:08X}).",
+            static_cast<uint32_t>(hr)));
+    }
+
+    return Store(std::move(key), "embedded texture", std::move(image), desc);
+}
+
+const TextureData& TextureManager::Store(
+    std::wstring key,
+    const std::string& debugName,
+    DirectX::ScratchImage image,
+    const TextureLoadDesc& desc) {
+
+    const auto check = [&debugName](HRESULT hr, const char* operation) {
+        if (FAILED(hr)) {
+            throw std::runtime_error(std::format("Texture '{}': {} failed (0x{:08X}).",
+                debugName, operation, static_cast<uint32_t>(hr)));
+        }
+    };
+
+    const auto metadata = image.GetMetadata();
     const bool cube = metadata.IsCubemap();
     if (metadata.dimension != DirectX::TEX_DIMENSION_TEXTURE2D ||
         metadata.arraySize != (cube ? 6u : 1u) ||
         (desc.dimension == TextureDimension::Texture2D && cube) ||
         (desc.dimension == TextureDimension::TextureCube && !cube)) {
-        throw std::runtime_error("Texture '" + filePath + "': expected a single Texture2D or cubemap.");
+        throw std::runtime_error("Texture '" + debugName + "': expected a single Texture2D or cubemap.");
     }
     const DXGI_FORMAT format = desc.colorSpace == TextureColorSpace::SRGB
         ? DirectX::MakeSRGB(metadata.format) : DirectX::MakeLinear(metadata.format);
     if (!image.OverrideFormat(format)) {
-        throw std::runtime_error("Texture '" + filePath + "': unsupported color-space format.");
+        throw std::runtime_error("Texture '" + debugName + "': unsupported color-space format.");
     }
 
     // DDS の既存ミップは保持。圧縮画像にミップがない場合は展開して生成する。
@@ -89,7 +141,7 @@ const TextureData& TextureManager::Load(const std::string& filePath, const Textu
     D3D12_FEATURE_DATA_FORMAT_SUPPORT support{ texture.metaData.format };
     check(device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support)), "CheckFormatSupport");
     if (!(support.Support1 & D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE)) {
-        throw std::runtime_error("Texture '" + filePath + "': format does not support filtered sampling.");
+        throw std::runtime_error("Texture '" + debugName + "': format does not support filtered sampling.");
     }
     check(DirectX::CreateTexture(device, texture.metaData, &texture.resource), "CreateTexture");
 

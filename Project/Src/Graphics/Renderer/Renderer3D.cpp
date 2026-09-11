@@ -12,6 +12,7 @@
 #include "Graphics/Drawer/3D/Primitive/Cylinder/CylinderDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Ground/GroundDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Line/LineDrawer3D.h"
+#include "Graphics/Drawer/3D/Model/ModelDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Plane/PlaneDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Sphere/SphereDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Triangle/TriangleDrawer3D.h"
@@ -21,6 +22,7 @@
 #include "LGF/Graphics/Cylinder3D.h"
 #include "LGF/Graphics/Ground3D.h"
 #include "LGF/Graphics/Line3D.h"
+#include "LGF/Graphics/Model.h"
 #include "LGF/Graphics/Plane3D.h"
 #include "LGF/Graphics/Sphere3D.h"
 #include "LGF/Graphics/Triangle3D.h"
@@ -49,6 +51,8 @@ bool Renderer3D::Initialize() {
 	groundDrawer_->Initialize();
 	lineDrawer_ = std::make_unique<LineDrawer3D>(context_);
 	lineDrawer_->Initialize();
+	modelDrawer_ = std::make_unique<ModelDrawer3D>(context_);
+	modelDrawer_->Initialize();
 	planeDrawer_ = std::make_unique<PlaneDrawer3D>(context_);
 	planeDrawer_->Initialize();
 	sphereDrawer_ = std::make_unique<SphereDrawer3D>(context_);
@@ -62,6 +66,7 @@ bool Renderer3D::Initialize() {
 	drawerList_.push_back(cylinderDrawer_.get());
 	drawerList_.push_back(groundDrawer_.get());
 	drawerList_.push_back(lineDrawer_.get());
+	drawerList_.push_back(modelDrawer_.get());
 	drawerList_.push_back(planeDrawer_.get());
 	drawerList_.push_back(sphereDrawer_.get());
 	drawerList_.push_back(triangleDrawer_.get());
@@ -85,6 +90,7 @@ void Renderer3D::Finalize() {
 	cylinderDrawer_.reset();
 	groundDrawer_.reset();
 	lineDrawer_.reset();
+	modelDrawer_.reset();
 	planeDrawer_.reset();
 	sphereDrawer_.reset();
 	triangleDrawer_.reset();
@@ -242,6 +248,18 @@ void Renderer3D::AddSphere(const Sphere3D& sphere, const Matrix4x4& worldMatrix,
 	data.radius = sphere.radius;
 
 	sphereDrawer_->AddSphere(data);
+}
+
+void Renderer3D::AddModel(
+	const Model& model,
+	const Matrix4x4& worldMatrix,
+	const Vector4& color) {
+
+	modelDrawer_->AddModel(
+		model.resource_,
+		worldMatrix,
+		Math::Transpose(Math::Inverse(worldMatrix)),
+		color);
 }
 
 void Renderer3D::ApplyMaterial(InstanceData3D& instance, const Material3D& material) {

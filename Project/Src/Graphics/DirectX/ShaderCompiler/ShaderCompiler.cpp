@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <format>
+#include <stdexcept>
 #include <vector>
 
 #include "Core/Logger/Logger.h"
@@ -36,7 +37,12 @@ ComPtr<ID3DBlob> ShaderCompiler::Compile(const std::wstring& filePath, const wch
 	// HLSLファイルの読み込み
 	ComPtr<IDxcBlobEncoding> shaderSource = nullptr;
 	HRESULT hr = dxcUtils_->LoadFile(filePath.c_str(), nullptr, &shaderSource);
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr) || !shaderSource) {
+		throw std::runtime_error(std::format(
+			"Failed to load shader '{}' (0x{:08X}).",
+			Logger::ConvertString(filePath),
+			static_cast<uint32_t>(hr)));
+	}
 
 	DxcBuffer shaderSourceBuffer{};
 	shaderSourceBuffer.Ptr = shaderSource->GetBufferPointer();
@@ -62,20 +68,37 @@ ComPtr<ID3DBlob> ShaderCompiler::Compile(const std::wstring& filePath, const wch
 		static_cast<UINT>(arguments.size()),
 		includeHandler_.Get(),
 		IID_PPV_ARGS(&shaderResult));
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr) || !shaderResult) {
+		throw std::runtime_error(std::format(
+			"Failed to invoke shader compiler for '{}' (0x{:08X}).",
+			Logger::ConvertString(filePath),
+			static_cast<uint32_t>(hr)));
+	}
 
-	// コンパイルエラーをログ出力
+	// DXCの診断メッセージをログ出力
 	ComPtr<IDxcBlobUtf8> shaderError = nullptr;
 	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
 	if (shaderError && shaderError->GetStringLength() > 0) {
 		Logger::Log(shaderError->GetStringPointer());
-		assert(false); // エラーがあれば止める
+	}
+
+	HRESULT compileStatus = E_FAIL;
+	hr = shaderResult->GetStatus(&compileStatus);
+	if (FAILED(hr) || FAILED(compileStatus)) {
+		throw std::runtime_error(std::format(
+			"Shader compilation failed for '{}'.",
+			Logger::ConvertString(filePath)));
 	}
 
 	// バイナリを取得
 	ComPtr<ID3DBlob> shaderBlob = nullptr;
 	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr) || !shaderBlob) {
+		throw std::runtime_error(std::format(
+			"Shader compiler produced no object for '{}' (0x{:08X}).",
+			Logger::ConvertString(filePath),
+			static_cast<uint32_t>(hr)));
+	}
 
 	// コンパイル終了ログ
 	Logger::Log(Logger::ConvertString(std::format(L"Compile Succeeded, path:{}, profile:{}\n", filePath, profile)));
