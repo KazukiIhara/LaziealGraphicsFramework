@@ -63,6 +63,28 @@ while (System::Update()) {
 - 初回ロードはGPU転送完了を待つ同期処理です。毎フレームのロードは避けてください。失敗時は例外を送出します。
 - 異なるテクスチャを同じ形状のまとめ描画で扱うため、Shader Model 6.6 と Resource Binding Tier 3 が必要です。起動時に対応状況を確認します。
 
+### HDRからDDSへの変換
+
+同梱しているMicrosoft DirectXTex公式の`Texconv`プロジェクトをビルドし、`.hdr`ファイルを`Project/Tools/Texconv/ConvertHDRToDDS.bat`へドラッグ＆ドロップすると、同じ場所へLinearな`R16G16B16A16_FLOAT`のDDSを生成できます。複数ファイルにも対応し、既存DDSは既定でスキップします。
+
+生成物はフルMip付きの正距円筒図法2Dテクスチャです。Cubemap変換やIBL用のDiffuse Irradiance・Specular PrefilterはSkybox／IBL側で別途行います。
+
+### Skybox
+
+正距円筒図法のLinear HDR DDSを`Skybox`へ読み込み、描画するフレーム内で`SetScene()`を呼びます。背景はHDRの`SceneColor`へ出力されるため、ExposureとACESトーンマッピングが適用されます。
+
+```cpp
+Skybox skybox("Assets/Textures/Environment/StoryStudio02/story_studio_02_2k.dds");
+skybox.intensity = 1.0f;
+skybox.rotation = 0.0f;
+
+while (System::Update()) {
+    skybox.SetScene();
+}
+```
+
+`intensity`はHDR輝度へ乗算する係数、`rotation`はY軸周りのラジアン角です。現時点では背景表示のみで、モデルへのIBLとCubemap事前生成は未実装です。
+
 ### 静的モデル描画
 
 `Model` はAssimp経由で静的モデルを同期ロードします。現在は三角形メッシュ、頂点位置、法線、タンジェント、UV、ベースカラー、ベースカラー・法線・Metallic-Roughness・AOテクスチャに対応しています。

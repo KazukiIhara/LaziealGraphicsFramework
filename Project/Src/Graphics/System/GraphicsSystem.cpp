@@ -7,6 +7,7 @@
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
+#include "Graphics/Skybox/System/SkyboxSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
 #include "Graphics/Camera/System/Camera2DSystem.h"
 #include "Graphics/Renderer/Renderer2D.h"
@@ -71,6 +72,14 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	Graphics3D::Internal::SetDirectionalLightSystem(directionalLightSystem_.get());
 	subsystems_.push_back(directionalLightSystem_.get());
 
+	// Skyboxシステム初期化
+	skyboxSystem_ = std::make_unique<SkyboxSystem>(*directX_);
+	if (!skyboxSystem_->Initialize()) {
+		return false;
+	}
+	Graphics3D::Internal::SetSkyboxSystem(skyboxSystem_.get());
+	subsystems_.push_back(skyboxSystem_.get());
+
 	// 3Dレンダラークラス初期化
 	Graphics3DContext graphics3DContext{
 		*directX_,
@@ -124,6 +133,7 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 	Graphics3D::Internal::ResetRenderer3D();
 	Graphics3D::Internal::ResetCamera3DSystem();
 	Graphics3D::Internal::ResetDirectionalLightSystem();
+	Graphics3D::Internal::ResetSkyboxSystem();
 	Graphics3D::Internal::ResetWindowSystem();
 	Graphics3D::Internal::ResetDirectXCore();
 
@@ -143,6 +153,7 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 	camera2DSystem_.reset();
 	renderer3D_.reset();
 	directionalLightSystem_.reset();
+	skyboxSystem_.reset();
 	camera3DSystem_.reset();
 	pipelineManager_.reset();
 	modelManager_.reset();
@@ -177,12 +188,14 @@ void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 
 	camera3DSystem_->EndFrame();
 	directionalLightSystem_->EndFrame();
+	skyboxSystem_->EndFrame();
 	renderer3D_->EndFrame();
 
 	directX_->DrawLightingToSceneColor(
 		*pipelineManager_,
 		*directionalLightSystem_,
-		*camera3DSystem_);
+		*camera3DSystem_,
+		*skyboxSystem_);
 	directX_->DrawSceneToSwapChain(*pipelineManager_);
 
 	// 2DとImGuiはトーンマッピング後のSwapChainへ描画する。

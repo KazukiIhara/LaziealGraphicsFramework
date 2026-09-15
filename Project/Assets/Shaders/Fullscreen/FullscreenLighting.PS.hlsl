@@ -14,6 +14,16 @@ struct CameraData3D
 
 ConstantBuffer<CameraData3D> gCamera : register(b1);
 
+cbuffer SkyboxData : register(b2)
+{
+	uint gSkyboxTextureIndex;
+	float gSkyboxIntensity;
+	float gSkyboxRotation;
+	float gSkyboxPadding;
+};
+
+SamplerState gSkyboxSampler : register(s0);
+
 cbuffer DirectionalLightData : register(b0)
 {
 	float3 gDirectionalLightDirection;
@@ -28,6 +38,7 @@ struct FullscreenVertex
 };
 
 static const float kPi = 3.14159265359f;
+static const float kTwoPi = kPi * 2.0f;
 
 float3 FresnelSchlick(float cosTheta, float3 reflectanceAtNormal)
 {
@@ -74,6 +85,28 @@ float3 ReconstructWorldPosition(int2 pixel, float depth)
 	return worldPosition.xyz / max(worldPosition.w, 1.0e-6f);
 }
 
+float3 SampleSkybox(int2 pixel)
+{
+	if (gSkyboxTextureIndex == 0xffffffffu)
+	{
+		return 0.0f;
+	}
+
+	const float3 farPosition = ReconstructWorldPosition(pixel, 1.0f);
+	const float3 direction = normalize(farPosition - gCamera.worldPos);
+	float2 uv;
+	uv.x = frac(atan2(direction.x, direction.z) / kTwoPi + 0.5f + gSkyboxRotation / kTwoPi);
+	uv.y = acos(clamp(direction.y, -1.0f, 1.0f)) / kPi;
+
+	Texture2D<float4> skyboxTexture = ResourceDescriptorHeap[gSkyboxTextureIndex];
+	uint textureWidth;
+	uint textureHeight;
+	skyboxTexture.GetDimensions(textureWidth, textureHeight);
+	const float halfTexelY = 0.5f / max(float(textureHeight), 1.0f);
+	uv.y = clamp(uv.y, halfTexelY, 1.0f - halfTexelY);
+	return max(skyboxTexture.SampleLevel(gSkyboxSampler, uv, 0.0f).rgb, 0.0f) * gSkyboxIntensity;
+}
+
 float4 main(FullscreenVertex input) : SV_Target0
 {
 	int2 pixel = int2(input.position.xy);
@@ -88,7 +121,9 @@ float4 main(FullscreenVertex input) : SV_Target0
 	// 背景ピクセルの出力
 	if (depth >= 1.0f)
 	{
-		return albedo;
+		return gSkyboxTextureIndex == 0xffffffffu
+			? albedo
+			: float4(SampleSkybox(pixel), 1.0f);
 	}
 
 	// UnlitマテリアルはGBufferの色をそのまま出力する

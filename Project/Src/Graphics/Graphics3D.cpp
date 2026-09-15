@@ -7,14 +7,17 @@
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
+#include "Graphics/Skybox/System/SkyboxSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
 #include "LGF/Graphics/Model.h"
+#include "LGF/Graphics/Skybox.h"
 
 namespace {
 	LGF::DirectXCore* g_directX = nullptr;
 	LGF::WindowSystem* g_windowSystem = nullptr;
 	LGF::Camera3DSystem* g_camera3DSystem = nullptr;
 	LGF::DirectionalLightSystem* g_directionalLightSystem = nullptr;
+	LGF::SkyboxSystem* g_skyboxSystem = nullptr;
 	LGF::Renderer3D* g_renderer3D = nullptr;
 }
 
@@ -54,6 +57,15 @@ void LGF::Graphics3D::Internal::ResetDirectionalLightSystem() {
 	g_directionalLightSystem = nullptr;
 }
 
+void LGF::Graphics3D::Internal::SetSkyboxSystem(SkyboxSystem* skyboxSystem) {
+	assert(skyboxSystem != nullptr);
+	g_skyboxSystem = skyboxSystem;
+}
+
+void LGF::Graphics3D::Internal::ResetSkyboxSystem() {
+	g_skyboxSystem = nullptr;
+}
+
 void LGF::Graphics3D::Internal::SetRenderer3D(Renderer3D* renderer) {
 	assert(renderer != nullptr);
 	g_renderer3D = renderer;
@@ -84,6 +96,11 @@ void LGF::Graphics3D::SetCullingCamera(const Camera3D& camera) {
 void LGF::Graphics3D::SetDirectionalLight(const DirectionalLight& light) {
 	assert(g_directionalLightSystem != nullptr);
 	g_directionalLightSystem->SetLight(light);
+}
+
+void LGF::Graphics3D::SetSkybox(const Skybox& skybox) {
+	assert(g_skyboxSystem != nullptr);
+	g_skyboxSystem->SetSkybox(skybox);
 }
 
 void LGF::Graphics3D::SetExposure(float exposureEV) {

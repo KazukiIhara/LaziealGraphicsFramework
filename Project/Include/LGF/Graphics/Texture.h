@@ -4,6 +4,7 @@
 #include <string>
 
 namespace LGF {
+	class SkyboxSystem;
 
 	enum class TextureDimension : uint8_t {
 		Auto,
@@ -45,6 +46,7 @@ namespace LGF {
 
 	private:
 		friend class Renderer3D;
+		friend class SkyboxSystem;
 		std::string filePath_;
 		uint32_t srvIndex_ = UINT32_MAX;
 		bool isCubeMap_ = false;

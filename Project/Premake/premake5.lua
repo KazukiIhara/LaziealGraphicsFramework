@@ -70,6 +70,73 @@ project "DirectXTex"
 
    filter {}
 
+project "Texconv"
+   kind "ConsoleApp"
+   language "C++"
+   cppdialect "C++20"
+   location "../"
+   characterset "Unicode"
+   targetname "texconv"
+
+   files {
+      "../Externals/DirectXTex/Texconv/texconv.cpp",
+      "../Externals/DirectXTex/Texconv/ExtendedBMP.cpp",
+      "../Externals/DirectXTex/Texconv/PortablePixMap.cpp",
+      "../Externals/DirectXTex/Texconv/Texconv.rc",
+      "../Externals/DirectXTex/Common/CmdLineHelpers.h",
+      "../Externals/DirectXTex/Common/directx.ico",
+      "../Tools/Texconv/**.bat",
+      "../Tools/Texconv/**.md",
+   }
+
+   includedirs {
+      "../Externals/DirectXTex/Texconv",
+      "../Externals/DirectXTex/Common",
+      "../Externals/DirectXTex/DirectXTex",
+   }
+
+   dependson { "DirectXTex" }
+   links {
+      "DirectXTex",
+      "ole32",
+      "windowscodecs",
+      "uuid",
+      "version",
+   }
+
+   defines {
+      "WIN32",
+      "_CONSOLE",
+      "_UNICODE",
+      "UNICODE",
+      "_WIN32_WINNT=0x0A00",
+   }
+
+   warnings "High"
+   buildoptions { "/utf-8", "/Zc:twoPhase-", "/Zc:__cplusplus" }
+   floatingpoint "Fast"
+   openmp "On"
+   staticruntime "On"
+   multiprocessorcompile "On"
+
+   filter "configurations:Debug"
+      defines { "_DEBUG" }
+      symbols "On"
+      runtime "Debug"
+
+   filter "configurations:Develop"
+      defines { "NDEBUG", "PROFILE" }
+      symbols "On"
+      optimize "Debug"
+      runtime "Release"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"
+      runtime "Release"
+
+   filter {}
+
 project "ImGui"
    kind "StaticLib"
    language "C++"

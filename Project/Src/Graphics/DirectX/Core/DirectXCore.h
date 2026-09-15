@@ -29,6 +29,7 @@ namespace LGF {
 	class RenderTextureManager;
 	class DirectionalLightSystem;
 	class Camera3DSystem;
+	class SkyboxSystem;
 
 	/// <summary>
 	/// DirectXコアシステム
@@ -51,7 +52,8 @@ namespace LGF {
 		void DrawLightingToSceneColor(
 			PipelineManager& pipelineManager,
 			DirectionalLightSystem& lightSystem,
-			Camera3DSystem& cameraSystem);
+			Camera3DSystem& cameraSystem,
+			SkyboxSystem& skyboxSystem);
 		void DrawSceneToSwapChain(PipelineManager& pipelineManager);
 		void DrawDepthToSwapChain(PipelineManager& pipelineManager);
 		void SetExposure(float exposureEV);

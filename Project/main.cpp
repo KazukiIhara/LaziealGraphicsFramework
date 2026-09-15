@@ -28,6 +28,7 @@ void Main() {
 
 	DebugCamera3D camera(10.0f);
 	DirectionalLight directionalLight({ 1.0f, -1.0f, 0.5f }, Color::White, 1.5f);
+	Skybox skybox("Assets/Textures/Environment/StoryStudio02/story_studio_02_2k.dds");
 
 	while (System::Update()) {
 		Vector3 moveDirection{
@@ -44,6 +45,7 @@ void Main() {
 		camera.Update();
 		camera.SetScene();
 		directionalLight.SetScene();
+		skybox.SetScene();
 
 		ground.Draw(groundWorldMatrix, groundMaterial);
 		flightHelmet.Draw(Math::MakeAffineMatrix(

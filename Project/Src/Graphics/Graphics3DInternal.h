@@ -6,6 +6,7 @@ namespace LGF {
 	class DirectXCore;
 	class DirectionalLightSystem;
 	class Renderer3D;
+	class SkyboxSystem;
 	class WindowSystem;
 
 	namespace Graphics3D::Internal {
@@ -20,6 +21,9 @@ namespace LGF {
 
 		void SetDirectionalLightSystem(DirectionalLightSystem* lightSystem);
 		void ResetDirectionalLightSystem();
+
+		void SetSkyboxSystem(SkyboxSystem* skyboxSystem);
+		void ResetSkyboxSystem();
 
 		void SetRenderer3D(Renderer3D* renderer);
 		void ResetRenderer3D();

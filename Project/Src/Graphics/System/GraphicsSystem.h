@@ -12,6 +12,7 @@ namespace LGF {
 	class PipelineManager;
 	class Camera3DSystem;
 	class DirectionalLightSystem;
+	class SkyboxSystem;
 	class Renderer3D;
 	class Camera2DSystem;
 	class Renderer2D;
@@ -47,6 +48,7 @@ namespace LGF {
 		// カメラ3Dシステム
 		std::unique_ptr<Camera3DSystem> camera3DSystem_;
 		std::unique_ptr<DirectionalLightSystem> directionalLightSystem_;
+		std::unique_ptr<SkyboxSystem> skyboxSystem_;
 		// 3D描画クラス
 		std::unique_ptr<Renderer3D> renderer3D_;
 		// カメラ2Dシステム
