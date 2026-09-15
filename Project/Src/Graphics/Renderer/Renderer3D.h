@@ -32,7 +32,6 @@ namespace LGF {
 	class Ground3D;
 	class Line3D;
 	class Model;
-	struct ModelDebugDraw;
 	struct ModelDrawOptions;
 	class Plane3D;
 	class Sphere3D;

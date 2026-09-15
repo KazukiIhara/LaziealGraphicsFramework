@@ -125,7 +125,7 @@ void LGF::Graphics3D::Draw(const Line3D& line, const Matrix4x4& worldMatrix, con
 	g_renderer3D->AddLine(
 		line,
 		worldMatrix,
-		Material3D{ .color = color }
+		Material3D{ .color = color, .unlit = true }
 	);
 }
 
@@ -154,25 +154,6 @@ void LGF::Graphics3D::Draw(const Sphere3D& sphere, const Matrix4x4& worldMatrix,
 		worldMatrix,
 		Material3D{ .color = color }
 	);
-}
-
-void LGF::Graphics3D::Draw(
-	const Model& model,
-	const Matrix4x4& worldMatrix,
-	const Vector4& color) {
-
-	Draw(model, worldMatrix, color, ModelDrawOptions{});
-}
-
-void LGF::Graphics3D::Draw(
-	const Model& model,
-	const Matrix4x4& worldMatrix,
-	const Vector4& color,
-	const ModelDebugDraw& debugDraw) {
-
-	Draw(model, worldMatrix, color, ModelDrawOptions{
-		.debugDraw = debugDraw,
-	});
 }
 
 void LGF::Graphics3D::Draw(

@@ -17,6 +17,8 @@ namespace LGF{
 		Texture normalTexture;
 		// 0で無効、1でテクスチャ本来の強さ。
 		float normalScale = 1.0f;
+		// trueならライト計算を行わず、ベースカラーをそのまま出力する。
+		bool unlit = false;
 		// UV は scale / offset 適用後、リピート＋線形ミップフィルタでサンプリング。
 		Vector2 uvScale = { 1.0f, 1.0f };
 		Vector2 uvOffset = {};

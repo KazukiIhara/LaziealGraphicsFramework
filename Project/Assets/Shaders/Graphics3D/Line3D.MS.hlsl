@@ -34,7 +34,9 @@ void main(
     vertices[0].normalScale = lineData.instData.normalScale;
     vertices[0].worldPosition = startWorldPos.xyz;
     vertices[0].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    vertices[0].normal = ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f));
+    vertices[0].normal = float4(
+        ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f)),
+        (lineData.instData.materialFlags & kMaterialUnlit) != 0 ? 1.0f : 0.0f);
 
     vertices[1].position = mul(endWorldPos, gCamera.viewProj);
     vertices[1].baseColor = lineData.instData.baseColor;
@@ -44,7 +46,9 @@ void main(
     vertices[1].normalScale = lineData.instData.normalScale;
     vertices[1].worldPosition = endWorldPos.xyz;
     vertices[1].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    vertices[1].normal = ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f));
+    vertices[1].normal = float4(
+        ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f)),
+        (lineData.instData.materialFlags & kMaterialUnlit) != 0 ? 1.0f : 0.0f);
 
     lines[0] = uint2(0, 1);
 }

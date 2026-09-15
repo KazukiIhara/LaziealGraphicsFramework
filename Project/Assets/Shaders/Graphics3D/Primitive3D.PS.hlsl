@@ -4,8 +4,10 @@ SamplerState gBaseColorSampler : register(s0);
 
 float3 ApplyNormalMap(MSOutput3D input, float2 uvDx, float2 uvDy)
 {
-    const float3 surfaceNormal = normalize(input.normal);
-    if (input.normalTextureIndex == 0xffffffffu || input.normalScale == 0.0f)
+    const float3 surfaceNormal = normalize(input.normal.xyz);
+    if (input.normal.w > 0.5f ||
+        input.normalTextureIndex == 0xffffffffu ||
+        input.normalScale == 0.0f)
     {
         return surfaceNormal;
     }
@@ -78,7 +80,9 @@ GBufferOutput main(MSOutput3D input)
     }
 
     // Normalの出力
-    output.normal = float4(ApplyNormalMap(input, uvDx, uvDy), 1.0f);
+	output.normal = float4(
+		ApplyNormalMap(input, uvDx, uvDy),
+		input.normal.w);
 
     return output;
 }

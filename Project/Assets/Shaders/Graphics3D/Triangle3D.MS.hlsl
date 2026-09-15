@@ -40,7 +40,8 @@ void main(
         vertices[i].normalScale = tri.instData.normalScale;
         vertices[i].worldPosition = worldPos.xyz;
         vertices[i].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
-        vertices[i].normal = worldNormal;
+        vertices[i].normal.xyz = worldNormal;
+        vertices[i].normal.w = GetUnlitFlag(tri.instData);
     }
 
     triangles[0] = uint3(0, 1, 2);

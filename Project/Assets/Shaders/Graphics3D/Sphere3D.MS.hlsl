@@ -66,7 +66,8 @@ void main(
             vertices[vertexIndex].normalScale = sphere.instData.normalScale;
             vertices[vertexIndex].worldPosition = worldPos.xyz;
             vertices[vertexIndex].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
-            vertices[vertexIndex].normal = ToWorldNormal(sphere.instData, localNormal);
+            vertices[vertexIndex].normal.xyz = ToWorldNormal(sphere.instData, localNormal);
+            vertices[vertexIndex].normal.w = GetUnlitFlag(sphere.instData);
         }
     }
 

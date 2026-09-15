@@ -21,11 +21,18 @@ float4 main(FullscreenVertex input) : SV_Target0
 
 	// GBufferの取得
 	float4 albedo = gGBufferAlbedo.Load(int3(pixel, 0));
-	float3 normal = normalize(gGBufferNormal.Load(int3(pixel, 0)).xyz);
+	float4 normalData = gGBufferNormal.Load(int3(pixel, 0));
+	float3 normal = normalize(normalData.xyz);
 	float depth = gDepthTexture.Load(int3(pixel, 0));
 
 	// 背景ピクセルの出力
 	if (depth >= 1.0f)
+	{
+		return albedo;
+	}
+
+	// UnlitマテリアルはGBufferの色をそのまま出力する
+	if (normalData.w > 0.5f)
 	{
 		return albedo;
 	}

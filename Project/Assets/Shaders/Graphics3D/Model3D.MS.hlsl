@@ -70,7 +70,9 @@ void main(
             ? 0xffffffffu
             : gModel.normalTextureIndex;
         instance.normalScale = gModel.normalScale * modelInstance.normalScale;
-        instance.padding = 0;
+        instance.materialFlags = (modelInstance.drawFlags & kModelUnlit) != 0
+            ? kMaterialUnlit
+            : 0u;
 
         outputVertices[localIndex] = MakeVertex(
             instance,

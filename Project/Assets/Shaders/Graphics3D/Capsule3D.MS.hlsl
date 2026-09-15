@@ -76,7 +76,8 @@ void main(
             vertices[vertexIndex].normalScale = capsule.instData.normalScale;
             vertices[vertexIndex].worldPosition = worldPos.xyz;
             vertices[vertexIndex].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
-            vertices[vertexIndex].normal = ToWorldNormal(capsule.instData, localNormal);
+            vertices[vertexIndex].normal.xyz = ToWorldNormal(capsule.instData, localNormal);
+            vertices[vertexIndex].normal.w = GetUnlitFlag(capsule.instData);
         }
     }
 

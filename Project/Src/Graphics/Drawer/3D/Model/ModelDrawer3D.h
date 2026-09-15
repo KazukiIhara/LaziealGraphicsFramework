@@ -30,7 +30,8 @@ namespace LGF {
 			float worldOrientationSign,
 			bool showMeshletColors,
 			bool enableNormalMap,
-			float normalScale
+			float normalScale,
+			bool unlit
 		);
 
 	private:

@@ -27,7 +27,7 @@ namespace LGF {
 		uint32_t textureIndex = UINT32_MAX;
 		uint32_t normalTextureIndex = UINT32_MAX;
 		float normalScale = 1.0f;
-		uint32_t padding = 0;
+		uint32_t materialFlags = 0;
 	};
 	static_assert(sizeof(InstanceData3D) == 176);
 

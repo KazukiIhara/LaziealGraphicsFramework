@@ -30,6 +30,7 @@ material.normalTexture = Texture(
     "Assets/Models/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_Normal.png",
     TextureLoadDesc::NormalMap());
 material.normalScale = 1.0f;
+material.unlit = false;
 material.color = Color::White;
 material.uvScale = { 4.0f, 4.0f };
 
@@ -40,7 +41,8 @@ while (System::Update()) {
 ```
 
 - `Triangle3D`・`Box3D`・`Plane3D`・`Ground3D`・`Sphere3D`・`Capsule3D`・`Cone3D`・`Cylinder3D`・`Line3D` に対応しています。従来の色指定 `Draw(matrix, color)` も使用できます。
-- `baseColorTexture` 未指定時は単色、指定時はテクスチャと `color` を乗算します。`normalTexture` はタンジェント空間法線マップで、`normalScale` は `0` で無効、`1` で元の強さです。今回は不透明描画が対象で、透過・PBR は未実装です。
+- `baseColorTexture` 未指定時は単色、指定時はテクスチャと `color` を乗算します。`normalTexture` はタンジェント空間法線マップで、`normalScale` は `0` で無効、`1` で元の強さです。`unlit = true` ではライト計算を行わずベースカラーをそのまま出力します。今回は不透明描画が対象で、透過・PBR は未実装です。
+- `Line3D::Draw(matrix, color)` はデバッグ表示へ使いやすいよう、既定でUnlitです。ライトを適用したい場合は `unlit = false` の `Material3D` を明示的に渡します。
 - UV は各形状で生成します。箱は面ごと、球・カプセルは経緯度、円柱・円錐は側面と底面を分離しています。`uvScale` と `uvOffset` で調整し、リピート＋線形ミップフィルタで描画します。
 - BMP・PNG・JPEG などの WIC 対応画像、DDS・TGA・HDR を読み込めます。単一2Dテクスチャ／単一キューブマップが対象です。キューブマップは読み込めますが、`baseColorTexture` と `normalTexture` には指定できません。
 - 色画像は既定で sRGB、法線マップは `TextureLoadDesc::NormalMap()` で Linear として読み込みます。モデルに頂点タンジェントがある場合はhandednessを含めて使用し、持たないモデルや既存プリミティブではワールド位置とUVの画面微分からTBNを生成します。UVが退化してTBNを作れない箇所は頂点法線へフォールバックします。
@@ -71,6 +73,7 @@ Camera3D cullingCamera({ 0.0f, 5.0f, -10.0f }, 0.0f, 20.0f * Math::DEG_TO_RAD);
 ModelDrawOptions drawOptions{
     .enableNormalMap = true,
     .normalScale = 1.0f,
+    .unlit = false,
     .debugDraw = {
         .showMeshletColors = true,
         .showMeshletBoundingSpheres = true,
@@ -104,7 +107,7 @@ model.DrawInstanced(instances, drawOptions);
 
 - GLB内の圧縮された埋め込み画像と、モデルから相対参照される外部画像を読み込めます。
 - 読み込み時に左手座標系へ変換し、ノード変換を頂点へ適用します。glTFなどのタンジェント空間法線テクスチャと強度はマテリアルから自動的に読み込みます。現時点ではスキニング、アニメーション、PBRマテリアル描画は対象外です。
-- `ModelDrawOptions::enableNormalMap` を `false` にすると描画単位で法線マップを無効化できます。`normalScale` はモデルファイル側の法線強度へ乗算され、`color` は全インスタンス共通の色倍率として使われます。
+- `ModelDrawOptions::enableNormalMap` を `false` にすると描画単位で法線マップを無効化できます。`normalScale` はモデルファイル側の法線強度へ乗算され、`color` は全インスタンス共通の色倍率として使われます。`unlit = true` ではモデルもライト計算を行いません。
 - モデルは初回のみキャッシュされ、GPUリソースはフレームワーク終了まで保持されます。毎フレーム生成しないでください。
 
 ### 平行光源

@@ -1,4 +1,6 @@
 
+static const uint kMaterialUnlit = 1u << 0;
+
 // インスタンシング描画用のデータ
 struct InstanceData3D
 {
@@ -10,7 +12,7 @@ struct InstanceData3D
     uint textureIndex;
     uint normalTextureIndex;
     float normalScale;
-    uint padding;
+    uint materialFlags;
 };
 
 // カメラデータ
@@ -22,12 +24,17 @@ struct CameraData3D
     float4 frustumPlanes[6];
 };
 
+float GetUnlitFlag(InstanceData3D instance)
+{
+    return (instance.materialFlags & kMaterialUnlit) != 0 ? 1.0f : 0.0f;
+}
+
 // MSからPSに渡す構造体
 struct MSOutput3D
 {
     float4 position : SV_Position;
     float4 baseColor : COLOR0;
-    float3 normal : NORMAL0;
+    float4 normal : NORMAL0;
     float2 uv : TEXCOORD0;
     nointerpolation uint textureIndex : TEXCOORD1;
     nointerpolation uint normalTextureIndex : TEXCOORD2;
@@ -43,7 +50,9 @@ MSOutput3D MakeVertex(InstanceData3D instance, CameraData3D camera,
     float4 worldPosition = mul(float4(position, 1.0f), instance.worldMatrix);
     output.position = mul(worldPosition, camera.viewProj);
     output.baseColor = instance.baseColor;
-    output.normal = normalize(mul(float4(normal, 0.0f), instance.worldInverseTranspose).xyz);
+    output.normal = float4(
+        normalize(mul(float4(normal, 0.0f), instance.worldInverseTranspose).xyz),
+        GetUnlitFlag(instance));
     output.uv = uv * instance.uvScale + instance.uvOffset;
     output.textureIndex = instance.textureIndex;
     output.normalTextureIndex = instance.normalTextureIndex;

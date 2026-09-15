@@ -18,7 +18,6 @@ namespace LGF {
 	class Ground3D;
 	class Line3D;
 	class Model;
-	struct ModelDebugDraw;
 	struct ModelDrawOptions;
 	class Plane3D;
 	class Sphere3D;
@@ -86,19 +85,6 @@ namespace LGF {
 			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
 		);
-
-		void Draw(
-			const Model& model,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-			);
-
-		void Draw(
-			const Model& model,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color,
-			const ModelDebugDraw& debugDraw
-			);
 
 		void Draw(
 			const Model& model,

@@ -41,17 +41,6 @@ void LGF::Model::Draw(
 	Graphics3D::Draw(*this, worldMatrix, options.color, options);
 }
 
-void LGF::Model::Draw(
-	const Matrix4x4& worldMatrix,
-	const Vector4& color,
-	const ModelDebugDraw& debugDraw) const {
-
-	Draw(worldMatrix, ModelDrawOptions{
-		.color = color,
-		.debugDraw = debugDraw,
-	});
-}
-
 void LGF::Model::DrawInstanced(
 	std::span<const ModelInstance3D> instances,
 	const ModelDrawOptions& options) const {
@@ -67,16 +56,6 @@ void LGF::Model::DrawInstanced(
 			options);
 	}
 }
-
-void LGF::Model::DrawInstanced(
-	std::span<const ModelInstance3D> instances,
-	const ModelDebugDraw& debugDraw) const {
-
-	DrawInstanced(instances, ModelDrawOptions{
-		.debugDraw = debugDraw,
-	});
-}
-
 const std::string& LGF::Model::GetFilePath() const {
 	return filePath_;
 }

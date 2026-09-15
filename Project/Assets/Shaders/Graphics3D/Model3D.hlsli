@@ -1,6 +1,7 @@
 static const uint kMeshletsPerAmplificationGroup = 32;
 static const uint kModelDebugShowMeshletColors = 1u << 0;
 static const uint kModelDisableNormalMap = 1u << 1;
+static const uint kModelUnlit = 1u << 2;
 
 struct ModelDrawData
 {

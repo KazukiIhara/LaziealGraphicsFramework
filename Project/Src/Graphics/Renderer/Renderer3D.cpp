@@ -34,6 +34,10 @@
 
 using namespace LGF;
 
+namespace {
+	constexpr uint32_t kMaterialUnlit = 1u << 0;
+}
+
 Renderer3D::Renderer3D(Graphics3DContext context) :
 	context_(context) {
 }
@@ -278,7 +282,8 @@ void Renderer3D::AddModel(
 		Math::Determinant(worldMatrix) < 0.0f ? -1.0f : 1.0f,
 		options.debugDraw.showMeshletColors,
 		options.enableNormalMap,
-		options.normalScale);
+		options.normalScale,
+		options.unlit);
 
 	if (!options.debugDraw.showMeshletBoundingSpheres) {
 		return;
@@ -311,6 +316,7 @@ void Renderer3D::ApplyMaterial(InstanceData3D& instance, const Material3D& mater
 	instance.textureIndex = material.baseColorTexture.srvIndex_;
 	instance.normalTextureIndex = material.normalTexture.srvIndex_;
 	instance.normalScale = material.normalScale;
+	instance.materialFlags = material.unlit ? kMaterialUnlit : 0;
 	instance.uvScale = material.uvScale;
 	instance.uvOffset = material.uvOffset;
 }

@@ -42,6 +42,7 @@ namespace {
 	constexpr uint32_t kMaxAmplificationGroupCount = 65535;
 	constexpr uint32_t kDebugShowMeshletColors = 1u << 0;
 	constexpr uint32_t kDisableNormalMap = 1u << 1;
+	constexpr uint32_t kUnlit = 1u << 2;
 
 }
 
@@ -180,7 +181,8 @@ void ModelDrawer3D::AddModel(
 	float worldOrientationSign,
 	bool showMeshletColors,
 	bool enableNormalMap,
-	float normalScale) {
+	float normalScale,
+	bool unlit) {
 
 	if (!resource) {
 		throw std::invalid_argument("Model resource must not be null.");
@@ -201,6 +203,9 @@ void ModelDrawer3D::AddModel(
 	uint32_t drawFlags = showMeshletColors ? kDebugShowMeshletColors : 0;
 	if (!enableNormalMap) {
 		drawFlags |= kDisableNormalMap;
+	}
+	if (unlit) {
+		drawFlags |= kUnlit;
 	}
 	batch.instances.push_back({
 		.worldMatrix = worldMatrix,

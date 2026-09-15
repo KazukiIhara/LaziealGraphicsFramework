@@ -22,6 +22,7 @@ namespace LGF {
 		Vector4 color = Color::White;
 		bool enableNormalMap = true;
 		float normalScale = 1.0f;
+		bool unlit = false;
 		ModelDebugDraw debugDraw{};
 	};
 
@@ -47,22 +48,9 @@ namespace LGF {
 			const ModelDrawOptions& options = {}
 		) const;
 
-		// 既存コード互換用。新規コードでは ModelDrawOptions を使用する。
-		void Draw(
-			const Matrix4x4& worldMatrix,
-			const Vector4& color,
-			const ModelDebugDraw& debugDraw = {}
-		) const;
-
 		void DrawInstanced(
 			std::span<const ModelInstance3D> instances,
 			const ModelDrawOptions& options = {}
-		) const;
-
-		// 既存コード互換用。新規コードでは ModelDrawOptions を使用する。
-		void DrawInstanced(
-			std::span<const ModelInstance3D> instances,
-			const ModelDebugDraw& debugDraw
 		) const;
 
 		const std::string& GetFilePath() const;

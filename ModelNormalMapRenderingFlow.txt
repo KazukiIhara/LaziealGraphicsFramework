@@ -89,6 +89,7 @@ GLB内の圧縮されたPNG/JPEGなどはメモリから読み込む。
         "Assets/Textures/Normal.png",
         TextureLoadDesc::NormalMap());
     material.normalScale = 1.0f;
+    material.unlit = false;
     material.uvScale = { 1.0f, 1.0f };
     material.uvOffset = { 0.0f, 0.0f };
 
@@ -100,6 +101,7 @@ Material3Dで設定できる項目:
 - baseColorTexture: ベースカラーテクスチャ
 - normalTexture: タンジェント空間法線マップ
 - normalScale: 法線マップのXY成分の強度。0で無効、1で本来の強さ
+- unlit: trueならライト計算を行わず、ベースカラーをそのまま出力
 - uvScale: UVの拡大率
 - uvOffset: UVのオフセット
 
@@ -112,6 +114,7 @@ normalTextureへキューブマップは指定できない。
         .color = Color::White,
         .enableNormalMap = true,
         .normalScale = 1.0f,
+        .unlit = false,
         .debugDraw = {},
     };
 
@@ -130,6 +133,9 @@ ModelDrawOptionsで設定できる項目:
 - normalScale:
   モデルファイル内のnormalTexture.scaleへ乗算する描画側の強度。
   0にすると、enableNormalMapがtrueでも法線マップの影響はなくなる。
+
+- unlit:
+  trueならライト計算を行わず、モデルのベースカラーをそのまま出力する。
 
 - debugDraw.showMeshletColors:
   メシュレット単位の色分け表示。
@@ -158,6 +164,11 @@ ModelDrawOptionsで設定できる項目:
 同じModelを同じフレームに描画しても、enableNormalMapとnormalScaleは
 ModelInstanceDataへ保存されるため、それぞれ異なる設定で描画できる。
 
+Material3DまたはModelDrawOptionsのunlitがtrueの場合は、GBufferの法線w成分へ
+Unlitフラグを書き込み、FullscreenLightingでベースカラーをそのまま出力する。
+Line3Dの色指定Draw()はデバッグ表示へ使いやすいよう既定でUnlitになっている。
+Material3Dを明示的に渡してunlitをfalseにすれば、Line3Dにもライトを適用できる。
+
 
 4.4 インスタンシング描画
 
@@ -174,9 +185,9 @@ ModelInstanceDataへ保存されるため、それぞれ異なる設定で描画
     };
     model.DrawInstanced(instances, options);
 
-既存のDraw(worldMatrix, color, debugDraw)と
-DrawInstanced(instances, debugDraw)も互換用として残している。
-新しく書くコードではModelDrawOptionsを使用する。
+モデル描画の追加設定はModelDrawOptionsへ集約している。
+色やデバッグ表示を指定する場合も、個別の旧式オーバーロードではなく
+ModelDrawOptions::colorまたはModelDrawOptions::debugDrawを使用する。
 
 
 5. Draw()からGPU描画まで
