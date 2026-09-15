@@ -13,12 +13,19 @@ struct InstanceData3D
     uint normalTextureIndex;
     float normalScale;
     uint materialFlags;
+    uint metallicRoughnessTextureIndex;
+    uint occlusionTextureIndex;
+    float metallic;
+    float roughness;
+    float occlusionStrength;
+    float3 padding;
 };
 
 // カメラデータ
 struct CameraData3D
 {
     float4x4 viewProj;
+    float4x4 inverseViewProj;
     float3 worldPos;
     float padding;
     float4 frustumPlanes[6];
@@ -41,6 +48,8 @@ struct MSOutput3D
     nointerpolation float normalScale : TEXCOORD3;
     float3 worldPosition : TEXCOORD4;
     float4 tangent : TANGENT0;
+    nointerpolation uint2 pbrTextureIndices : TEXCOORD5;
+    nointerpolation float3 pbrFactors : TEXCOORD6;
 };
 
 MSOutput3D MakeVertex(InstanceData3D instance, CameraData3D camera,
@@ -59,6 +68,13 @@ MSOutput3D MakeVertex(InstanceData3D instance, CameraData3D camera,
     output.normalScale = instance.normalScale;
     output.worldPosition = worldPosition.xyz;
     output.tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    output.pbrTextureIndices = uint2(
+        instance.metallicRoughnessTextureIndex,
+        instance.occlusionTextureIndex);
+    output.pbrFactors = float3(
+        instance.metallic,
+        instance.roughness,
+        instance.occlusionStrength);
     return output;
 }
 

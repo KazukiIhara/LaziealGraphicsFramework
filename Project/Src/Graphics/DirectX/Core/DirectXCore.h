@@ -26,6 +26,7 @@ namespace LGF {
 	class RenderTexture;
 	class RenderTextureManager;
 	class DirectionalLightSystem;
+	class Camera3DSystem;
 
 	/// <summary>
 	/// DirectXコアシステム
@@ -45,7 +46,10 @@ namespace LGF {
 		bool BeginFrame();
 		void SetRenderTargets(std::span<RenderTexture* const> renderTextures, bool useDepthStencil = true);
 		void ClearRenderTargets(std::span<RenderTexture* const> renderTextures);
-		void DrawLightingToSceneColor(PipelineManager& pipelineManager, DirectionalLightSystem& lightSystem);
+		void DrawLightingToSceneColor(
+			PipelineManager& pipelineManager,
+			DirectionalLightSystem& lightSystem,
+			Camera3DSystem& cameraSystem);
 		void DrawSceneToSwapChain(PipelineManager& pipelineManager);
 		void DrawDepthToSwapChain(PipelineManager& pipelineManager);
 		void EndFrame();
@@ -86,6 +90,7 @@ namespace LGF {
 		RenderTexture* sceneColor_ = nullptr;
 		RenderTexture* gBufferAlbedo_ = nullptr;
 		RenderTexture* gBufferNormal_ = nullptr;
+		RenderTexture* gBufferMaterial_ = nullptr;
 
 		Window& window_;
 	};

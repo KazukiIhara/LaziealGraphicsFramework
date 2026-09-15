@@ -76,6 +76,13 @@ void main(
             vertices[vertexIndex].normalScale = capsule.instData.normalScale;
             vertices[vertexIndex].worldPosition = worldPos.xyz;
             vertices[vertexIndex].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
+            vertices[vertexIndex].pbrTextureIndices = uint2(
+                capsule.instData.metallicRoughnessTextureIndex,
+                capsule.instData.occlusionTextureIndex);
+            vertices[vertexIndex].pbrFactors = float3(
+                capsule.instData.metallic,
+                capsule.instData.roughness,
+                capsule.instData.occlusionStrength);
             vertices[vertexIndex].normal.xyz = ToWorldNormal(capsule.instData, localNormal);
             vertices[vertexIndex].normal.w = GetUnlitFlag(capsule.instData);
         }

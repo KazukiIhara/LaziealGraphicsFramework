@@ -33,6 +33,13 @@ void main(
         vertices[i].normalScale = ground.instData.normalScale;
         vertices[i].worldPosition = worldPos.xyz;
         vertices[i].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
+        vertices[i].pbrTextureIndices = uint2(
+            ground.instData.metallicRoughnessTextureIndex,
+            ground.instData.occlusionTextureIndex);
+        vertices[i].pbrFactors = float3(
+            ground.instData.metallic,
+            ground.instData.roughness,
+            ground.instData.occlusionStrength);
         vertices[i].normal.xyz = worldNormal;
         vertices[i].normal.w = GetUnlitFlag(ground.instData);
     }

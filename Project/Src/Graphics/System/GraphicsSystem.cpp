@@ -177,7 +177,10 @@ void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 	directionalLightSystem_->EndFrame();
 	renderer3D_->EndFrame();
 
-	directX_->DrawLightingToSceneColor(*pipelineManager_, *directionalLightSystem_);
+	directX_->DrawLightingToSceneColor(
+		*pipelineManager_,
+		*directionalLightSystem_,
+		*camera3DSystem_);
 
 	camera2DSystem_->EndFrame();
 	renderer2D_->EndFrame();

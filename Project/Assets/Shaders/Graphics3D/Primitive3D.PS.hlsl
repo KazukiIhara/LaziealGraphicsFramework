@@ -63,6 +63,7 @@ struct GBufferOutput
 {
     float4 albedo : SV_Target0;
     float4 normal : SV_Target1;
+    float4 material : SV_Target2;
 };
 
 GBufferOutput main(MSOutput3D input)
@@ -83,6 +84,38 @@ GBufferOutput main(MSOutput3D input)
 	output.normal = float4(
 		ApplyNormalMap(input, uvDx, uvDy),
 		input.normal.w);
+
+    float metallic = saturate(input.pbrFactors.x);
+    float roughness = saturate(input.pbrFactors.y);
+    float occlusion = 1.0f;
+    if (input.pbrTextureIndices.x != 0xffffffffu)
+    {
+        Texture2D<float4> metallicRoughnessTexture =
+            ResourceDescriptorHeap[NonUniformResourceIndex(input.pbrTextureIndices.x)];
+        const float4 metallicRoughness = metallicRoughnessTexture.SampleGrad(
+            gBaseColorSampler,
+            input.uv,
+            uvDx,
+            uvDy);
+        roughness *= metallicRoughness.g;
+        metallic *= metallicRoughness.b;
+    }
+    if (input.pbrTextureIndices.y != 0xffffffffu)
+    {
+        Texture2D<float4> occlusionTexture =
+            ResourceDescriptorHeap[NonUniformResourceIndex(input.pbrTextureIndices.y)];
+        const float sampledOcclusion = occlusionTexture.SampleGrad(
+            gBaseColorSampler,
+            input.uv,
+            uvDx,
+            uvDy).r;
+        occlusion = lerp(1.0f, sampledOcclusion, saturate(input.pbrFactors.z));
+    }
+    output.material = float4(
+        saturate(occlusion),
+        saturate(roughness),
+        saturate(metallic),
+        1.0f);
 
     return output;
 }

@@ -22,6 +22,9 @@ namespace LGF {
 		Vector4 color = Color::White;
 		bool enableNormalMap = true;
 		float normalScale = 1.0f;
+		float metallicScale = 1.0f;
+		float roughnessScale = 1.0f;
+		float occlusionStrength = 1.0f;
 		bool unlit = false;
 		ModelDebugDraw debugDraw{};
 	};

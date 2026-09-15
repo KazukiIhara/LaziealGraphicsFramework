@@ -43,12 +43,16 @@ LGF::TextureLoadDesc LGF::TextureLoadDesc::Color() {
 	};
 }
 
-LGF::TextureLoadDesc LGF::TextureLoadDesc::NormalMap() {
+LGF::TextureLoadDesc LGF::TextureLoadDesc::Data() {
 	return {
 	   .dimension = TextureDimension::Texture2D,
 	   .colorSpace = TextureColorSpace::Linear,
 	   .generateMipMaps = true,
 	};
+}
+
+LGF::TextureLoadDesc LGF::TextureLoadDesc::NormalMap() {
+	return Data();
 }
 
 LGF::TextureLoadDesc LGF::TextureLoadDesc::Cubemap() {

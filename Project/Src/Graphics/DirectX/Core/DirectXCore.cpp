@@ -22,6 +22,7 @@
 #include "Graphics/RenderTexture/RenderTexture.h"
 #include "Graphics/RenderTexture/RenderTextureManager.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
+#include "Graphics/Camera/System/Camera3DSystem.h"
 
 using namespace LGF;
 
@@ -29,6 +30,7 @@ namespace {
 	constexpr char kSceneColorName[] = "SceneColor";
 	constexpr char kGBufferAlbedoName[] = "GBufferAlbedo";
 	constexpr char kGBufferNormalName[] = "GBufferNormal";
+	constexpr char kGBufferMaterialName[] = "GBufferMaterial";
 	constexpr char kFullscreenCopyPipelineName[] = "FullscreenCopy";
 	constexpr char kFullscreenDepthPipelineName[] = "FullscreenDepth";
 	constexpr char kFullscreenLightingPipelineName[] = "FullscreenLighting";
@@ -36,7 +38,9 @@ namespace {
 	constexpr char kDepthTextureShaderName[] = "gDepthTexture";
 	constexpr char kGBufferAlbedoShaderName[] = "gGBufferAlbedo";
 	constexpr char kGBufferNormalShaderName[] = "gGBufferNormal";
+	constexpr char kGBufferMaterialShaderName[] = "gGBufferMaterial";
 	constexpr char kDirectionalLightShaderName[] = "DirectionalLightData";
+	constexpr char kCameraShaderName[] = "gCamera";
 }
 
 DirectXCore::DirectXCore(Window& window) :
@@ -115,6 +119,18 @@ bool DirectXCore::Initialize() {
 		return false;
 	}
 
+	RenderTextureDesc gBufferMaterialDesc{};
+	gBufferMaterialDesc.width = renderWidth_;
+	gBufferMaterialDesc.height = renderHeight_;
+	gBufferMaterialDesc.resourceFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	gBufferMaterialDesc.rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	gBufferMaterialDesc.srvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	gBufferMaterialDesc.clearColor = { 1.0f, 1.0f, 0.0f, 1.0f };
+	gBufferMaterial_ = renderTextureManager_->Create(kGBufferMaterialName, gBufferMaterialDesc);
+	if (!gBufferMaterial_) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -131,7 +147,7 @@ bool DirectXCore::BeginFrame() {
 	command_->BeginFrame();
 	swapChain_->BeginFrame();
 
-	RenderTexture* renderTargets[] = { gBufferAlbedo_, gBufferNormal_ };
+	RenderTexture* renderTargets[] = { gBufferAlbedo_, gBufferNormal_, gBufferMaterial_ };
 	SetRenderTargets(renderTargets);
 	ClearRenderTargets(renderTargets);
 
@@ -183,10 +199,14 @@ void DirectXCore::ClearRenderTargets(std::span<RenderTexture* const> renderTextu
 	}
 }
 
-void DirectXCore::DrawLightingToSceneColor(PipelineManager& pipelineManager, DirectionalLightSystem& lightSystem) {
+void DirectXCore::DrawLightingToSceneColor(
+	PipelineManager& pipelineManager,
+	DirectionalLightSystem& lightSystem,
+	Camera3DSystem& cameraSystem) {
 	assert(sceneColor_);
 	assert(gBufferAlbedo_);
 	assert(gBufferNormal_);
+	assert(gBufferMaterial_);
 
 	Pipeline* pipeline = pipelineManager.GetPipeline(kFullscreenLightingPipelineName);
 	assert(pipeline);
@@ -199,6 +219,7 @@ void DirectXCore::DrawLightingToSceneColor(PipelineManager& pipelineManager, Dir
 	// GBufferをShaderResource状態へ遷移
 	gBufferAlbedo_->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	gBufferNormal_->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	gBufferMaterial_->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	depthStencil_->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	// SceneColorをRenderTarget状態へ遷移
@@ -216,9 +237,13 @@ void DirectXCore::DrawLightingToSceneColor(PipelineManager& pipelineManager, Dir
 		pipeline->GetRootIndex(kGBufferNormalShaderName),
 		gBufferNormal_->GetSRVHandleGPU());
 	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kGBufferMaterialShaderName),
+		gBufferMaterial_->GetSRVHandleGPU());
+	commandList->SetGraphicsRootDescriptorTable(
 		pipeline->GetRootIndex(kDepthTextureShaderName),
 		depthStencil_->GetSRVHandleGPU());
 	lightSystem.Bind(commandList, pipeline->GetRootIndex(kDirectionalLightShaderName));
+	cameraSystem.Bind(commandList, pipeline->GetRootIndex(kCameraShaderName));
 
 	commandList6->DispatchMesh(1, 1, 1);
 }
@@ -287,6 +312,7 @@ void DirectXCore::Finalize() {
 	sceneColor_ = nullptr;
 	gBufferAlbedo_ = nullptr;
 	gBufferNormal_ = nullptr;
+	gBufferMaterial_ = nullptr;
 	renderTextureManager_.reset();
 	shaderCompiler_.reset();
 	fence_.reset();
@@ -326,6 +352,7 @@ bool DirectXCore::Resize(uint32_t width, uint32_t height) {
 	sceneColor_ = renderTextureManager_->Get(kSceneColorName);
 	gBufferAlbedo_ = renderTextureManager_->Get(kGBufferAlbedoName);
 	gBufferNormal_ = renderTextureManager_->Get(kGBufferNormalName);
+	gBufferMaterial_ = renderTextureManager_->Get(kGBufferMaterialName);
 	renderWidth_ = width;
 	renderHeight_ = height;
 	return true;

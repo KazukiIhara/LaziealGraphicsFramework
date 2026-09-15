@@ -22,6 +22,7 @@ namespace LGF {
 		bool generateMipMaps = true;
 
 		static TextureLoadDesc Color();
+		static TextureLoadDesc Data();
 		static TextureLoadDesc NormalMap();
 		static TextureLoadDesc Cubemap();
 	};

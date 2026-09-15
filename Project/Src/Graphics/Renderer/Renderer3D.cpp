@@ -283,6 +283,9 @@ void Renderer3D::AddModel(
 		options.debugDraw.showMeshletColors,
 		options.enableNormalMap,
 		options.normalScale,
+		options.metallicScale,
+		options.roughnessScale,
+		options.occlusionStrength,
 		options.unlit);
 
 	if (!options.debugDraw.showMeshletBoundingSpheres) {
@@ -299,6 +302,8 @@ void Renderer3D::AddModel(
 			data.instance.baseColor = options.debugDraw.meshletBoundingSphereColor;
 			data.instance.textureIndex = UINT32_MAX;
 			data.instance.normalTextureIndex = UINT32_MAX;
+			data.instance.metallicRoughnessTextureIndex = UINT32_MAX;
+			data.instance.occlusionTextureIndex = UINT32_MAX;
 			data.radius = bounds.radius * worldMaximumScale;
 			meshletBoundsDrawer_->AddBounds(data);
 		}
@@ -312,10 +317,21 @@ void Renderer3D::ApplyMaterial(InstanceData3D& instance, const Material3D& mater
 	if (material.normalTexture.isCubeMap_) {
 		throw std::invalid_argument("Material3D normalTexture must be a Texture2D.");
 	}
+	if (material.metallicRoughnessTexture.isCubeMap_) {
+		throw std::invalid_argument("Material3D metallicRoughnessTexture must be a Texture2D.");
+	}
+	if (material.occlusionTexture.isCubeMap_) {
+		throw std::invalid_argument("Material3D occlusionTexture must be a Texture2D.");
+	}
 	instance.baseColor = material.color;
 	instance.textureIndex = material.baseColorTexture.srvIndex_;
 	instance.normalTextureIndex = material.normalTexture.srvIndex_;
 	instance.normalScale = material.normalScale;
+	instance.metallicRoughnessTextureIndex = material.metallicRoughnessTexture.srvIndex_;
+	instance.occlusionTextureIndex = material.occlusionTexture.srvIndex_;
+	instance.metallic = std::clamp(material.metallic, 0.0f, 1.0f);
+	instance.roughness = std::clamp(material.roughness, 0.0f, 1.0f);
+	instance.occlusionStrength = std::clamp(material.occlusionStrength, 0.0f, 1.0f);
 	instance.materialFlags = material.unlit ? kMaterialUnlit : 0;
 	instance.uvScale = material.uvScale;
 	instance.uvOffset = material.uvOffset;

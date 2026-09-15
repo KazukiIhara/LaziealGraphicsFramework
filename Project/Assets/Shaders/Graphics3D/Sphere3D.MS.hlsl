@@ -66,6 +66,13 @@ void main(
             vertices[vertexIndex].normalScale = sphere.instData.normalScale;
             vertices[vertexIndex].worldPosition = worldPos.xyz;
             vertices[vertexIndex].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
+            vertices[vertexIndex].pbrTextureIndices = uint2(
+                sphere.instData.metallicRoughnessTextureIndex,
+                sphere.instData.occlusionTextureIndex);
+            vertices[vertexIndex].pbrFactors = float3(
+                sphere.instData.metallic,
+                sphere.instData.roughness,
+                sphere.instData.occlusionStrength);
             vertices[vertexIndex].normal.xyz = ToWorldNormal(sphere.instData, localNormal);
             vertices[vertexIndex].normal.w = GetUnlitFlag(sphere.instData);
         }

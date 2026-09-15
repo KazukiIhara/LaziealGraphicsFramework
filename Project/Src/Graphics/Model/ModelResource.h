@@ -40,7 +40,12 @@ namespace LGF {
 		uint32_t meshletIndexOffset = 0;
 		uint32_t baseColorTextureSrvIndex = UINT32_MAX;
 		uint32_t normalTextureSrvIndex = UINT32_MAX;
+		uint32_t metallicRoughnessTextureSrvIndex = UINT32_MAX;
+		uint32_t occlusionTextureSrvIndex = UINT32_MAX;
 		float normalScale = 1.0f;
+		float metallicFactor = 0.0f;
+		float roughnessFactor = 1.0f;
+		float occlusionStrength = 1.0f;
 		Vector4 baseColor{ 1.0f, 1.0f, 1.0f, 1.0f };
 		std::vector<ModelMeshletBounds> meshletBounds;
 	};

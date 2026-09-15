@@ -40,6 +40,13 @@ void main(
         vertices[i].normalScale = tri.instData.normalScale;
         vertices[i].worldPosition = worldPos.xyz;
         vertices[i].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
+        vertices[i].pbrTextureIndices = uint2(
+            tri.instData.metallicRoughnessTextureIndex,
+            tri.instData.occlusionTextureIndex);
+        vertices[i].pbrFactors = float3(
+            tri.instData.metallic,
+            tri.instData.roughness,
+            tri.instData.occlusionStrength);
         vertices[i].normal.xyz = worldNormal;
         vertices[i].normal.w = GetUnlitFlag(tri.instData);
     }

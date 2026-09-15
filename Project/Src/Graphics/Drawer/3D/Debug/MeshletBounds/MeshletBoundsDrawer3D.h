@@ -12,7 +12,8 @@ namespace LGF {
 		float radius = 1.0f;
 		Vector3 padding{};
 	};
-	static_assert(sizeof(MeshletBounds3DForGPU) == 192);
+	static_assert(
+		sizeof(MeshletBounds3DForGPU) == sizeof(InstanceData3D) + 16);
 
 	class MeshletBoundsDrawer3D final : public BaseDrawer3D {
 	public:

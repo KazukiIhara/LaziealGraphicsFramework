@@ -31,6 +31,9 @@ namespace LGF {
 			bool showMeshletColors,
 			bool enableNormalMap,
 			float normalScale,
+			float metallicScale,
+			float roughnessScale,
+			float occlusionStrength,
 			bool unlit
 		);
 
@@ -43,8 +46,12 @@ namespace LGF {
 			uint32_t drawFlags = 0;
 			float worldOrientationSign = 1.0f;
 			float normalScale = 1.0f;
+			float metallicScale = 1.0f;
+			float roughnessScale = 1.0f;
+			float occlusionStrength = 1.0f;
+			float padding = 0.0f;
 		};
-		static_assert(sizeof(ModelInstanceData) == 160);
+		static_assert(sizeof(ModelInstanceData) == 176);
 
 		struct ModelBatch {
 			std::shared_ptr<ModelResource> resource;

@@ -19,11 +19,12 @@ namespace LGF {
 	/// </summary>
 	struct Camera3DForGPU {
 		Matrix4x4 viewProjection;
+		Matrix4x4 inverseViewProjection;
 		Vector3 worldPosition;
 		float padding;
 		Vector4 frustumPlanes[6];
 	};
-	static_assert(sizeof(Camera3DForGPU) == 176);
+	static_assert(sizeof(Camera3DForGPU) == 240);
 
 	/// <summary>
 	/// GPUに送る3Dカメラリソースを持つクラス

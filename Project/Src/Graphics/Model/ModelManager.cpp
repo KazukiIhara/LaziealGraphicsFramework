@@ -1,5 +1,6 @@
 #include "ModelManager.h"
 
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <format>
@@ -66,6 +67,17 @@ namespace {
 	const aiTextureType kBaseColorTextureTypes[] = {
 		aiTextureType_BASE_COLOR,
 		aiTextureType_DIFFUSE,
+	};
+
+	const aiTextureType kMetallicRoughnessTextureTypes[] = {
+		aiTextureType_UNKNOWN,
+		aiTextureType_METALNESS,
+		aiTextureType_DIFFUSE_ROUGHNESS,
+	};
+
+	const aiTextureType kOcclusionTextureTypes[] = {
+		aiTextureType_AMBIENT_OCCLUSION,
+		aiTextureType_LIGHTMAP,
 	};
 
 	uint32_t LoadMaterialTexture(
@@ -396,6 +408,55 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 					AI_MATKEY_GLTF_TEXTURE_SCALE(aiTextureType_NORMALS, 0),
 					normalScale) == AI_SUCCESS) {
 					mesh.normalScale = normalScale;
+				}
+			}
+
+			// PBR情報を持たない旧形式モデルは、従来の見た目に近い非金属として扱う。
+			float metallicFactor = 0.0f;
+			material->Get(AI_MATKEY_METALLIC_FACTOR, metallicFactor);
+			mesh.metallicFactor = std::clamp(metallicFactor, 0.0f, 1.0f);
+
+			float roughnessFactor = 1.0f;
+			material->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughnessFactor);
+			mesh.roughnessFactor = std::clamp(roughnessFactor, 0.0f, 1.0f);
+
+			aiString metallicRoughnessTextureReference;
+			for (const aiTextureType type : kMetallicRoughnessTextureTypes) {
+				if (material->GetTexture(
+					type,
+					0,
+					&metallicRoughnessTextureReference) == AI_SUCCESS) {
+					mesh.metallicRoughnessTextureSrvIndex = LoadMaterialTexture(
+						textureManager_,
+						*scene,
+						path,
+						metallicRoughnessTextureReference,
+						TextureLoadDesc::Data());
+					break;
+				}
+			}
+
+			aiString occlusionTextureReference;
+			aiTextureType occlusionTextureType = aiTextureType_NONE;
+			for (const aiTextureType type : kOcclusionTextureTypes) {
+				if (material->GetTexture(type, 0, &occlusionTextureReference) == AI_SUCCESS) {
+					occlusionTextureType = type;
+					mesh.occlusionTextureSrvIndex = LoadMaterialTexture(
+						textureManager_,
+						*scene,
+						path,
+						occlusionTextureReference,
+						TextureLoadDesc::Data());
+					break;
+				}
+			}
+
+			if (occlusionTextureType != aiTextureType_NONE) {
+				float occlusionStrength = 1.0f;
+				if (material->Get(
+					AI_MATKEY_GLTF_TEXTURE_STRENGTH(occlusionTextureType, 0),
+					occlusionStrength) == AI_SUCCESS) {
+					mesh.occlusionStrength = std::clamp(occlusionStrength, 0.0f, 1.0f);
 				}
 			}
 		}

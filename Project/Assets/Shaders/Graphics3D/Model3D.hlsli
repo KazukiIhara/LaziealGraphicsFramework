@@ -14,6 +14,11 @@ struct ModelDrawData
     uint baseColorTextureIndex;
     uint normalTextureIndex;
     float normalScale;
+    uint metallicRoughnessTextureIndex;
+    uint occlusionTextureIndex;
+    float metallicFactor;
+    float roughnessFactor;
+    float occlusionStrength;
     uint instanceBufferIndex;
     uint instanceOffset;
     uint instanceCount;
@@ -21,7 +26,7 @@ struct ModelDrawData
     uint meshletIndexOffset;
     uint baseWorkIndexLow;
     uint baseWorkIndexHigh;
-    uint padding;
+    uint2 padding;
 };
 
 struct ModelInstanceData
@@ -33,6 +38,10 @@ struct ModelInstanceData
     uint drawFlags;
     float worldOrientationSign;
     float normalScale;
+    float metallicScale;
+    float roughnessScale;
+    float occlusionStrength;
+    float padding;
 };
 
 struct Meshlet

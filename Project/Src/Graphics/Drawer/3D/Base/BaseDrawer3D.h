@@ -28,8 +28,14 @@ namespace LGF {
 		uint32_t normalTextureIndex = UINT32_MAX;
 		float normalScale = 1.0f;
 		uint32_t materialFlags = 0;
+		uint32_t metallicRoughnessTextureIndex = UINT32_MAX;
+		uint32_t occlusionTextureIndex = UINT32_MAX;
+		float metallic = 0.0f;
+		float roughness = 1.0f;
+		float occlusionStrength = 1.0f;
+		float padding[3]{};
 	};
-	static_assert(sizeof(InstanceData3D) == 176);
+	static_assert(sizeof(InstanceData3D) == 208);
 
 	/// <summary>
 	/// 3D描画基底クラス

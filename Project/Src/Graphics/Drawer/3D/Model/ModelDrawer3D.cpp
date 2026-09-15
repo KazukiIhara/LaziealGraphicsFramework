@@ -27,6 +27,11 @@ namespace {
 		uint32_t baseColorTextureIndex = UINT32_MAX;
 		uint32_t normalTextureIndex = UINT32_MAX;
 		float normalScale = 1.0f;
+		uint32_t metallicRoughnessTextureIndex = UINT32_MAX;
+		uint32_t occlusionTextureIndex = UINT32_MAX;
+		float metallicFactor = 1.0f;
+		float roughnessFactor = 1.0f;
+		float occlusionStrength = 1.0f;
 		uint32_t instanceBufferIndex = UINT32_MAX;
 		uint32_t instanceOffset = 0;
 		uint32_t instanceCount = 0;
@@ -34,9 +39,9 @@ namespace {
 		uint32_t meshletIndexOffset = 0;
 		uint32_t baseWorkIndexLow = 0;
 		uint32_t baseWorkIndexHigh = 0;
-		uint32_t padding = 0;
+		uint32_t padding[2]{};
 	};
-	static_assert(sizeof(ModelDrawConstants) == 80);
+	static_assert(sizeof(ModelDrawConstants) == 104);
 
 	constexpr uint32_t kMeshletsPerAmplificationGroup = 32;
 	constexpr uint32_t kMaxAmplificationGroupCount = 65535;
@@ -134,6 +139,11 @@ void ModelDrawer3D::EndFrame() {
 				constants.baseColorTextureIndex = mesh.baseColorTextureSrvIndex;
 				constants.normalTextureIndex = mesh.normalTextureSrvIndex;
 				constants.normalScale = mesh.normalScale;
+				constants.metallicRoughnessTextureIndex = mesh.metallicRoughnessTextureSrvIndex;
+				constants.occlusionTextureIndex = mesh.occlusionTextureSrvIndex;
+				constants.metallicFactor = mesh.metallicFactor;
+				constants.roughnessFactor = mesh.roughnessFactor;
+				constants.occlusionStrength = mesh.occlusionStrength;
 				constants.instanceBufferIndex = instanceSrvIndex_;
 				constants.instanceOffset = instanceOffset;
 				constants.instanceCount = instanceCount;
@@ -182,6 +192,9 @@ void ModelDrawer3D::AddModel(
 	bool showMeshletColors,
 	bool enableNormalMap,
 	float normalScale,
+	float metallicScale,
+	float roughnessScale,
+	float occlusionStrength,
 	bool unlit) {
 
 	if (!resource) {
@@ -215,6 +228,9 @@ void ModelDrawer3D::AddModel(
 		.drawFlags = drawFlags,
 		.worldOrientationSign = worldOrientationSign,
 		.normalScale = normalScale,
+		.metallicScale = std::max(metallicScale, 0.0f),
+		.roughnessScale = std::max(roughnessScale, 0.0f),
+		.occlusionStrength = std::clamp(occlusionStrength, 0.0f, 1.0f),
 	});
 	++queuedInstanceCount_;
 }

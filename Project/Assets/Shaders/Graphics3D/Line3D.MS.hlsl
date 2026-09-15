@@ -34,6 +34,13 @@ void main(
     vertices[0].normalScale = lineData.instData.normalScale;
     vertices[0].worldPosition = startWorldPos.xyz;
     vertices[0].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    vertices[0].pbrTextureIndices = uint2(
+        lineData.instData.metallicRoughnessTextureIndex,
+        lineData.instData.occlusionTextureIndex);
+    vertices[0].pbrFactors = float3(
+        lineData.instData.metallic,
+        lineData.instData.roughness,
+        lineData.instData.occlusionStrength);
     vertices[0].normal = float4(
         ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f)),
         (lineData.instData.materialFlags & kMaterialUnlit) != 0 ? 1.0f : 0.0f);
@@ -46,6 +53,13 @@ void main(
     vertices[1].normalScale = lineData.instData.normalScale;
     vertices[1].worldPosition = endWorldPos.xyz;
     vertices[1].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    vertices[1].pbrTextureIndices = uint2(
+        lineData.instData.metallicRoughnessTextureIndex,
+        lineData.instData.occlusionTextureIndex);
+    vertices[1].pbrFactors = float3(
+        lineData.instData.metallic,
+        lineData.instData.roughness,
+        lineData.instData.occlusionStrength);
     vertices[1].normal = float4(
         ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f)),
         (lineData.instData.materialFlags & kMaterialUnlit) != 0 ? 1.0f : 0.0f);

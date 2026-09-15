@@ -73,6 +73,25 @@ void main(
         instance.materialFlags = (modelInstance.drawFlags & kModelUnlit) != 0
             ? kMaterialUnlit
             : 0u;
+        instance.metallicRoughnessTextureIndex =
+            (modelInstance.drawFlags & kModelDebugShowMeshletColors) != 0
+            ? 0xffffffffu
+            : gModel.metallicRoughnessTextureIndex;
+        instance.occlusionTextureIndex =
+            (modelInstance.drawFlags & kModelDebugShowMeshletColors) != 0
+            ? 0xffffffffu
+            : gModel.occlusionTextureIndex;
+        const bool showMeshletColors =
+            (modelInstance.drawFlags & kModelDebugShowMeshletColors) != 0;
+        instance.metallic = showMeshletColors
+            ? 0.0f
+            : saturate(gModel.metallicFactor * modelInstance.metallicScale);
+        instance.roughness = showMeshletColors
+            ? 1.0f
+            : saturate(gModel.roughnessFactor * modelInstance.roughnessScale);
+        instance.occlusionStrength = saturate(
+            gModel.occlusionStrength * modelInstance.occlusionStrength);
+        instance.padding = float3(0.0f, 0.0f, 0.0f);
 
         outputVertices[localIndex] = MakeVertex(
             instance,

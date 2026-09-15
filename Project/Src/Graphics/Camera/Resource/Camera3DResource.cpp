@@ -107,6 +107,7 @@ void Camera3DResource::Update(const Camera3D& camera) {
 
 	// データ書き込み
 	data_->viewProjection = viewMatrix * projectionMatrix;
+	data_->inverseViewProjection = Math::Inverse(data_->viewProjection);
 	data_->worldPosition = camera.translation;
 	ExtractFrustumPlanes(data_->viewProjection, data_->frustumPlanes);
 
