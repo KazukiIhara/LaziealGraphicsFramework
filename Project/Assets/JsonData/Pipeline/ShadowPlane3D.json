@@ -1,0 +1,1 @@
+{"Name":"ShadowPlane3D","PipelineKind":"MeshGraphics","Shaders":{"MS":"Graphics3D/Plane3D.MS.hlsl"},"Rasterizer":{"CullMode":"None","FillMode":"Solid"},"Blend":{"Mode":"None"},"Depth":{"Enable":true,"Write":true,"Func":"LessEqual"},"RenderTarget":{"Formats":[]},"DepthStencil":{"Format":"D32_FLOAT"},"PrimitiveTopology":"Triangle"}

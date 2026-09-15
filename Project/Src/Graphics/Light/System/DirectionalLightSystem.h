@@ -24,6 +24,7 @@ namespace LGF {
 		void Finalize() override;
 
 		void SetLight(const DirectionalLight& light);
+		const DirectionalLight& GetLight() const;
 		void Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
 
 	private:

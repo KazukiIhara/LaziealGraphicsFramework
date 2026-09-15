@@ -1,0 +1,7 @@
+{
+  "Name": "PrefilterEnvironment",
+  "PipelineKind": "Compute",
+  "Shaders": {
+    "CS": "Environment/PrefilterEnvironment.CS.hlsl"
+  }
+}

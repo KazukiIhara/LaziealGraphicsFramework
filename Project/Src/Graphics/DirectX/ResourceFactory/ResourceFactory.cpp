@@ -70,6 +70,45 @@ ComPtr<ID3D12Resource> ResourceFactory::CreateUAVBufferResource(size_t sizeInByt
 	return resource;
 }
 
+ComPtr<ID3D12Resource> ResourceFactory::CreateUAVTextureResource(
+	uint32_t width,
+	uint32_t height,
+	uint16_t arraySize,
+	uint16_t mipLevels,
+	DXGI_FORMAT format) {
+
+	assert(width > 0u);
+	assert(height > 0u);
+	assert(arraySize > 0u);
+	assert(mipLevels > 0u);
+	assert(format != DXGI_FORMAT_UNKNOWN);
+
+	D3D12_RESOURCE_DESC resourceDesc{};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDesc.Width = width;
+	resourceDesc.Height = height;
+	resourceDesc.DepthOrArraySize = arraySize;
+	resourceDesc.MipLevels = mipLevels;
+	resourceDesc.Format = format;
+	resourceDesc.SampleDesc.Count = 1u;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+	D3D12_HEAP_PROPERTIES heapProperties{};
+	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	ComPtr<ID3D12Resource> resource;
+	const HRESULT result = device_.GetDevice()->CreateCommittedResource(
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+		nullptr,
+		IID_PPV_ARGS(&resource));
+	assert(SUCCEEDED(result));
+	return resource;
+}
+
 ComPtr<ID3D12Resource> ResourceFactory::CreateRenderTargetTextureResource(
 	int32_t width,
 	int32_t height,

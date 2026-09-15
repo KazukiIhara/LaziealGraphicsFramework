@@ -17,6 +17,7 @@
 ・ソフトシャドウの実装  
 ・法線マップの実装  
 ・Metallic-Roughness PBRの実装
+・SkyboxとImage-Based Lightingの実装
 ・スペキュラーマップの実装  
 
 
@@ -67,7 +68,7 @@ while (System::Update()) {
 
 同梱しているMicrosoft DirectXTex公式の`Texconv`プロジェクトをビルドし、`.hdr`ファイルを`Project/Tools/Texconv/ConvertHDRToDDS.bat`へドラッグ＆ドロップすると、同じ場所へLinearな`R16G16B16A16_FLOAT`のDDSを生成できます。複数ファイルにも対応し、既存DDSは既定でスキップします。
 
-生成物はフルMip付きの正距円筒図法2Dテクスチャです。Cubemap変換やIBL用のDiffuse Irradiance・Specular PrefilterはSkybox／IBL側で別途行います。
+生成物はフルMip付きの正距円筒図法2Dテクスチャです。IBL用のDiffuse Irradiance Cubemap、GGX Specular Prefilter Cubemap、BRDF LUTは、最初にSkyboxを設定したフレームでGPU生成されます。
 
 ### Skybox
 
@@ -83,7 +84,15 @@ while (System::Update()) {
 }
 ```
 
-`intensity`はHDR輝度へ乗算する係数、`rotation`はY軸周りのラジアン角です。現時点では背景表示のみで、モデルへのIBLとCubemap事前生成は未実装です。
+`intensity`は背景とIBLのHDR輝度へ乗算する係数、`rotation`は背景と環境反射に適用するY軸周りのラジアン角です。同じ環境テクスチャのIBL結果はキャッシュされ、毎フレーム再生成されません。
+
+Metallic-Roughness PBRの間接光にはSplit-Sum近似を使用します。Diffuse Irradianceは拡散反射、RoughnessごとのGGX Prefilterは鏡面反射、BRDF LUTは視線角度とRoughnessに依存するBRDF積分を担当します。Skyboxを設定しないフレームは従来の最低限の環境光へフォールバックします。
+
+### シャドウマップ
+
+現在の平行光源は、モデルと面を持つ3Dプリミティブを2048x2048のD32シャドウマップへ描画し、直接光へ影を適用します。シーン側で特別な描画関数を呼ぶ必要はなく、通常の`Draw()`で登録した形状が自動的に影を落とします。`Line3D`とメシュレット境界球などのデバッグ描画は影を落としません。
+
+現段階は原点周辺を覆う単一の正射影シャドウマップとハードシャドウです。カメラ追従、描画範囲・Biasの公開設定、PCF、カスケードシャドウマップは今後の拡張対象です。
 
 ### 静的モデル描画
 

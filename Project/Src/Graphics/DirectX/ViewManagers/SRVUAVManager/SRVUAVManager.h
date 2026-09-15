@@ -34,6 +34,17 @@ namespace LGF {
 		void CreateSrvByteAddressBuffer(uint32_t viewIndex, ID3D12Resource* resource, uint32_t byteSize);
 		// StructuredBuffer用のUAVを作成
 		void CreateUavStructuredBuffer(uint32_t viewIndex, ID3D12Resource* resource, uint32_t numElements, UINT structureByteStride);
+		void CreateUavTexture2d(
+			uint32_t viewIndex,
+			ID3D12Resource* resource,
+			DXGI_FORMAT format,
+			uint32_t mipSlice);
+		void CreateUavTexture2dArray(
+			uint32_t viewIndex,
+			ID3D12Resource* resource,
+			DXGI_FORMAT format,
+			uint32_t mipSlice,
+			uint32_t arraySize);
 		// CBVを作成
 		void CreateConstantBufferView(uint32_t viewIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation, uint32_t sizeInBytes);
 

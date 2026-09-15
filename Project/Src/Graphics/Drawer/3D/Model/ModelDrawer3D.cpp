@@ -12,6 +12,7 @@
 #include "Graphics/Model/ModelResource.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Pipeline/Pipeline.h"
+#include "Graphics/Shadow/System/ShadowMapSystem.h"
 
 using namespace LGF;
 
@@ -94,14 +95,33 @@ void ModelDrawer3D::EndFrame() {
 	if (batches_.empty()) {
 		return;
 	}
+	DrawBatches(GetPipeline(), nullptr);
+
+	batches_.clear();
+	batchIndices_.clear();
+	queuedInstanceCount_ = 0;
+}
+
+void ModelDrawer3D::DrawShadow(ShadowMapSystem& shadowMap) {
+	if (batches_.empty()) {
+		return;
+	}
+	DrawBatches(GetContext().pipelineMgr.GetPipeline("ShadowModel3D"), &shadowMap);
+}
+
+void ModelDrawer3D::DrawBatches(Pipeline* pipeline, ShadowMapSystem* shadowMap) {
+	assert(pipeline);
 
 	ID3D12GraphicsCommandList6* commandList = GetContext().directX.GetCommandList6();
-	commandList->SetGraphicsRootSignature(GetPipeline()->GetRootSignature());
-	commandList->SetPipelineState(GetPipeline()->GetPipelineState());
-	GetContext().cameraSys.Bind(commandList, GetPipeline()->GetRootIndex("gCamera"));
-	GetContext().cameraSys.BindCulling(
-		commandList,
-		GetPipeline()->GetRootIndex("gCullingCamera"));
+	commandList->SetGraphicsRootSignature(pipeline->GetRootSignature());
+	commandList->SetPipelineState(pipeline->GetPipelineState());
+	if (shadowMap) {
+		shadowMap->BindCamera(commandList, pipeline->GetRootIndex("gCamera"));
+		shadowMap->BindCamera(commandList, pipeline->GetRootIndex("gCullingCamera"));
+	} else {
+		GetContext().cameraSys.Bind(commandList, pipeline->GetRootIndex("gCamera"));
+		GetContext().cameraSys.BindCulling(commandList, pipeline->GetRootIndex("gCullingCamera"));
+	}
 
 	uint32_t instanceOffset = 0;
 	uint32_t dispatchIndex = 0;
@@ -161,10 +181,10 @@ void ModelDrawer3D::EndFrame() {
 				const D3D12_GPU_VIRTUAL_ADDRESS constantAddress =
 					drawConstantResource_->GetGPUVirtualAddress() + constantOffset;
 				commandList->SetGraphicsRootConstantBufferView(
-					GetPipeline()->GetRootIndex("gModel"),
+					pipeline->GetRootIndex("gModel"),
 					constantAddress);
 				commandList->SetGraphicsRootConstantBufferView(
-					GetPipeline()->GetRootIndex("gCullingModel"),
+					pipeline->GetRootIndex("gCullingModel"),
 					constantAddress);
 				commandList->DispatchMesh(amplificationGroupCount, 1, 1);
 
@@ -177,9 +197,6 @@ void ModelDrawer3D::EndFrame() {
 		instanceOffset += instanceCount;
 	}
 
-	batches_.clear();
-	batchIndices_.clear();
-	queuedInstanceCount_ = 0;
 }
 
 void ModelDrawer3D::AddModel(

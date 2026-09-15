@@ -47,6 +47,10 @@ namespace LGF {
 			const ComPtr<ID3D12RootSignature>& rootSignature,
 			const std::vector<ShaderBlob>& shaderBlobs);
 
+		ComPtr<ID3D12PipelineState> CreateComputePipelineState(
+			const ComPtr<ID3D12RootSignature>& rootSignature,
+			const std::vector<ShaderBlob>& shaderBlobs);
+
 	private:
 		DirectXCore& directX_;
 	};

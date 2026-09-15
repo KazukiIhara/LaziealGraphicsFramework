@@ -1,0 +1,7 @@
+{
+  "Name": "IntegrateBrdf",
+  "PipelineKind": "Compute",
+  "Shaders": {
+    "CS": "Environment/IntegrateBrdf.CS.hlsl"
+  }
+}

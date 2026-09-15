@@ -2,6 +2,7 @@ Texture2D<float4> gGBufferAlbedo : register(t0);
 Texture2D<float4> gGBufferNormal : register(t1);
 Texture2D<float4> gGBufferMaterial : register(t2);
 Texture2D<float> gDepthTexture : register(t3);
+Texture2D<float> gShadowMap : register(t4);
 
 struct CameraData3D
 {
@@ -13,12 +14,17 @@ struct CameraData3D
 };
 
 ConstantBuffer<CameraData3D> gCamera : register(b1);
+ConstantBuffer<CameraData3D> gShadowCamera : register(b3);
 
 cbuffer SkyboxData : register(b2)
 {
 	uint gSkyboxTextureIndex;
+	uint gIrradianceTextureIndex;
+	uint gPrefilteredTextureIndex;
+	uint gBrdfLutTextureIndex;
 	float gSkyboxIntensity;
 	float gSkyboxRotation;
+	uint gPrefilteredMipCount;
 	float gSkyboxPadding;
 };
 
@@ -83,6 +89,47 @@ float3 ReconstructWorldPosition(int2 pixel, float depth)
 		1.0f);
 	const float4 worldPosition = mul(clipPosition, gCamera.inverseViewProj);
 	return worldPosition.xyz / max(worldPosition.w, 1.0e-6f);
+}
+
+float CalculateShadow(float3 worldPosition, float3 normal, float3 lightDirection)
+{
+	const float4 lightClip = mul(float4(worldPosition, 1.0f), gShadowCamera.viewProj);
+	if (lightClip.w <= 0.0f)
+	{
+		return 1.0f;
+	}
+
+	const float3 lightNdc = lightClip.xyz / lightClip.w;
+	const float2 shadowUv = float2(lightNdc.x * 0.5f + 0.5f, 0.5f - lightNdc.y * 0.5f);
+	if (any(shadowUv < 0.0f) || any(shadowUv > 1.0f) || lightNdc.z < 0.0f || lightNdc.z > 1.0f)
+	{
+		return 1.0f;
+	}
+
+	uint shadowWidth;
+	uint shadowHeight;
+	gShadowMap.GetDimensions(shadowWidth, shadowHeight);
+	const int2 shadowPixel = min(int2(shadowUv * float2(shadowWidth, shadowHeight)), int2(shadowWidth - 1u, shadowHeight - 1u));
+	const float storedDepth = gShadowMap.Load(int3(shadowPixel, 0));
+	const float bias = max(gShadowCamera.padding * (1.0f - saturate(dot(normal, lightDirection))), gShadowCamera.padding * 0.25f);
+	return lightNdc.z - bias <= storedDepth ? 1.0f : 0.0f;
+}
+
+float3 FresnelSchlickRoughness(float cosTheta, float3 reflectanceAtNormal, float roughness)
+{
+	return reflectanceAtNormal +
+		(max(1.0f - roughness, reflectanceAtNormal) - reflectanceAtNormal) *
+		pow(1.0f - cosTheta, 5.0f);
+}
+
+float3 RotateEnvironmentDirection(float3 direction)
+{
+	const float cosine = cos(gSkyboxRotation);
+	const float sine = sin(gSkyboxRotation);
+	return float3(
+		direction.x * cosine + direction.z * sine,
+		direction.y,
+		-direction.x * sine + direction.z * cosine);
 }
 
 float3 SampleSkybox(int2 pixel)
@@ -155,9 +202,54 @@ float4 main(FullscreenVertex input) : SV_Target0
 	const float3 diffuseWeight = (1.0f - fresnel) * (1.0f - metallic);
 	const float3 diffuse = diffuseWeight * albedo.rgb / kPi;
 	const float3 radiance = gDirectionalLightColor * gDirectionalLightIntensity;
-	const float3 directLighting = (diffuse + specular) * radiance * normalDotLight;
-	// IBL実装前の最低限の環境光。AOは間接光だけに適用する。
-	const float3 ambient = albedo.rgb * 0.03f * ambientOcclusion;
+	const float shadow = CalculateShadow(worldPosition, normal, lightDirection);
+	const float3 directLighting = (diffuse + specular) * radiance * normalDotLight * shadow;
+	float3 ambient = albedo.rgb * 0.03f * ambientOcclusion;
+	const bool hasIbl =
+		gIrradianceTextureIndex != 0xffffffffu &&
+		gPrefilteredTextureIndex != 0xffffffffu &&
+		gBrdfLutTextureIndex != 0xffffffffu &&
+		gPrefilteredMipCount > 0u;
+	if (hasIbl)
+	{
+		TextureCube<float4> irradianceTexture = ResourceDescriptorHeap[gIrradianceTextureIndex];
+		TextureCube<float4> prefilteredTexture = ResourceDescriptorHeap[gPrefilteredTextureIndex];
+		Texture2D<float2> brdfLutTexture = ResourceDescriptorHeap[gBrdfLutTextureIndex];
+
+		const float3 environmentNormal = RotateEnvironmentDirection(normal);
+		const float3 reflectionDirection = RotateEnvironmentDirection(reflect(-viewDirection, normal));
+		const float3 environmentFresnel = FresnelSchlickRoughness(
+			normalDotView,
+			reflectanceAtNormal,
+			roughness);
+		const float3 environmentDiffuseWeight =
+			(1.0f - environmentFresnel) * (1.0f - metallic);
+		const float3 irradiance = irradianceTexture.SampleLevel(
+			gSkyboxSampler,
+			environmentNormal,
+			0.0f).rgb;
+		const float3 diffuseIbl = environmentDiffuseWeight * albedo.rgb * irradiance / kPi;
+
+		const float prefilteredMip = roughness * float(gPrefilteredMipCount - 1u);
+		const float3 prefilteredColor = prefilteredTexture.SampleLevel(
+			gSkyboxSampler,
+			reflectionDirection,
+			prefilteredMip).rgb;
+		uint brdfWidth;
+		uint brdfHeight;
+		brdfLutTexture.GetDimensions(brdfWidth, brdfHeight);
+		const float2 brdfHalfTexel = 0.5f / max(float2(brdfWidth, brdfHeight), 1.0f);
+		const float2 brdfUv = clamp(
+			float2(normalDotView, roughness),
+			brdfHalfTexel,
+			1.0f - brdfHalfTexel);
+		const float2 brdf = brdfLutTexture.SampleLevel(gSkyboxSampler, brdfUv, 0.0f);
+		const float3 specularIbl = prefilteredColor *
+			(environmentFresnel * brdf.x + brdf.y);
+
+		ambient = (diffuseIbl + specularIbl) *
+			gSkyboxIntensity * ambientOcclusion;
+	}
 	const float3 lighting = ambient + directLighting;
 	return float4(lighting, albedo.a);
 }

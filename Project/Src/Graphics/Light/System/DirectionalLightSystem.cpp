@@ -31,6 +31,10 @@ void DirectionalLightSystem::SetLight(const DirectionalLight& light) {
 	light_ = light;
 }
 
+const DirectionalLight& DirectionalLightSystem::GetLight() const {
+	return light_;
+}
+
 void DirectionalLightSystem::Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx) {
 	resource_->Bind(commandList, rootParamIdx);
 }

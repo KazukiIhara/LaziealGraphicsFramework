@@ -42,6 +42,10 @@ namespace {
 			return DXGI_FORMAT_D24_UNORM_S8_UINT;
 		}
 
+		if (format == "D32_FLOAT") {
+			return DXGI_FORMAT_D32_FLOAT;
+		}
+
 		assert(false);
 		return DXGI_FORMAT_UNKNOWN;
 	}
@@ -231,6 +235,12 @@ std::unique_ptr<Pipeline> PipelineFactory::CreatePipeline(const std::string& jso
 				initParam.shaderBlobs);
 			break;
 
+		case PipelineKind::Compute:
+			initParam.pipelineState = CreateComputePipelineState(
+				initParam.rootSignature,
+				initParam.shaderBlobs);
+			break;
+
 		default:
 			assert(false);
 			break;
@@ -281,6 +291,18 @@ std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonL
 		shaderBlobs.push_back(shaderBlob);
 	}
 
+	// CSをコンパイル
+	if (!shaderParam.compute.empty()) {
+		ShaderBlob shaderBlob{};
+		shaderBlob.stageName = "CS";
+		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
+			ToWString(kShaderDirectory + shaderParam.compute),
+			L"cs_6_6");
+		assert(shaderBlob.blob != nullptr);
+
+		shaderBlobs.push_back(shaderBlob);
+	}
+
 	return shaderBlobs;
 }
 
@@ -310,6 +332,8 @@ PipelineFactory::RootSignatureBuildResult PipelineFactory::CreateRootSignature(c
 			visibility = D3D12_SHADER_VISIBILITY_PIXEL;
 		} else if (stageName == "AS") {
 			visibility = D3D12_SHADER_VISIBILITY_AMPLIFICATION;
+		} else if (stageName == "CS") {
+			visibility = D3D12_SHADER_VISIBILITY_ALL;
 		}
 
 		// リフレクション
@@ -421,12 +445,18 @@ PipelineFactory::RootSignatureBuildResult PipelineFactory::CreateRootSignature(c
 
 		// StructuredBuffer / Texture
 		if (resource.type == D3D_SIT_STRUCTURED ||
-			resource.type == D3D_SIT_TEXTURE) {
+			resource.type == D3D_SIT_TEXTURE ||
+			resource.type == D3D_SIT_UAV_RWTYPED ||
+			resource.type == D3D_SIT_UAV_RWSTRUCTURED ||
+			resource.type == D3D_SIT_UAV_RWBYTEADDRESS) {
 
 			D3D12_DESCRIPTOR_RANGE range{};
 
 			// SRVレンジを設定
-			range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+			range.RangeType =
+				(resource.type == D3D_SIT_STRUCTURED || resource.type == D3D_SIT_TEXTURE)
+				? D3D12_DESCRIPTOR_RANGE_TYPE_SRV
+				: D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 			range.NumDescriptors = resource.bindCount;
 			range.BaseShaderRegister = resource.bindPoint;
 			range.RegisterSpace = resource.space;
@@ -501,7 +531,6 @@ ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreateMeshGraphicsPipelineStat
 	const ShaderBlob* pixelShader = FindShaderBlob(shaderBlobs, "PS");
 
 	assert(meshShader != nullptr);
-	assert(pixelShader != nullptr);
 
 	struct PipelineStateStream {
 		PipelineStreamSubobject<ID3D12RootSignature*> rootSignature;
@@ -533,8 +562,10 @@ ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreateMeshGraphicsPipelineStat
 	stream.ms.value.BytecodeLength = meshShader->blob->GetBufferSize();
 
 	stream.ps.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PS;
-	stream.ps.value.pShaderBytecode = pixelShader->blob->GetBufferPointer();
-	stream.ps.value.BytecodeLength = pixelShader->blob->GetBufferSize();
+	if (pixelShader) {
+		stream.ps.value.pShaderBytecode = pixelShader->blob->GetBufferPointer();
+		stream.ps.value.BytecodeLength = pixelShader->blob->GetBufferSize();
+	}
 
 	stream.blend.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_BLEND;
 	stream.blend.value = ToBlendDesc(jsonParam.blend.mode);
@@ -589,5 +620,25 @@ ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreateMeshGraphicsPipelineStat
 		IID_PPV_ARGS(&pipelineState));
 	assert(SUCCEEDED(hr));
 
+	return pipelineState;
+}
+
+ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreateComputePipelineState(
+	const ComPtr<ID3D12RootSignature>& rootSignature,
+	const std::vector<ShaderBlob>& shaderBlobs) {
+
+	const ShaderBlob* computeShader = FindShaderBlob(shaderBlobs, "CS");
+	assert(computeShader != nullptr);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC desc{};
+	desc.pRootSignature = rootSignature.Get();
+	desc.CS.pShaderBytecode = computeShader->blob->GetBufferPointer();
+	desc.CS.BytecodeLength = computeShader->blob->GetBufferSize();
+
+	ComPtr<ID3D12PipelineState> pipelineState;
+	const HRESULT result = directX_.GetDevice()->CreateComputePipelineState(
+		&desc,
+		IID_PPV_ARGS(&pipelineState));
+	assert(SUCCEEDED(result));
 	return pipelineState;
 }

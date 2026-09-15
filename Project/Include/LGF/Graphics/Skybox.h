@@ -9,7 +9,7 @@ namespace LGF {
 	class SkyboxSystem;
 
 	/// <summary>
-	/// 正距円筒図法のHDR環境テクスチャを背景として表示するSkybox
+	/// 正距円筒図法のHDR環境テクスチャを背景とIBLに使用するSkybox
 	/// </summary>
 	class Skybox {
 	public:
@@ -19,7 +19,7 @@ namespace LGF {
 		/// <summary>このフレームで使用するSkyboxとして設定</summary>
 		void SetScene() const;
 
-		/// <summary>HDR輝度へ乗算する強度。負の値は0として扱う。</summary>
+		/// <summary>背景とIBLのHDR輝度へ乗算する強度。負の値は0として扱う。</summary>
 		float intensity = 1.0f;
 		/// <summary>Y軸周りの回転角（ラジアン）</summary>
 		float rotation = 0.0f;

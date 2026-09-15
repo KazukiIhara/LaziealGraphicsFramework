@@ -36,6 +36,7 @@ namespace LGF {
 	class Plane3D;
 	class Sphere3D;
 	class Triangle3D;
+	class ShadowMapSystem;
 
 	/// <summary>
 	/// 全3D描画をするクラス
@@ -48,6 +49,7 @@ namespace LGF {
 		bool Initialize()override;
 		void BeginFrame()override;
 		void EndFrame()override;
+		void DrawShadow(ShadowMapSystem& shadowMap);
 		void Finalize()override;
 
 		// 各Drawerに描画コマンドを積む関数群

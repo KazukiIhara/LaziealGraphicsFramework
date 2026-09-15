@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <string>
 
+struct ID3D12Resource;
+
 namespace LGF {
 	class SkyboxSystem;
 
@@ -50,5 +52,6 @@ namespace LGF {
 		std::string filePath_;
 		uint32_t srvIndex_ = UINT32_MAX;
 		bool isCubeMap_ = false;
+		ID3D12Resource* resource_ = nullptr;
 	};
 }

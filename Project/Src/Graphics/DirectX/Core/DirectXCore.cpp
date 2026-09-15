@@ -25,6 +25,7 @@
 #include "Graphics/Light/System/DirectionalLightSystem.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Skybox/System/SkyboxSystem.h"
+#include "Graphics/Shadow/System/ShadowMapSystem.h"
 
 using namespace LGF;
 
@@ -44,6 +45,8 @@ namespace {
 	constexpr char kDirectionalLightShaderName[] = "DirectionalLightData";
 	constexpr char kCameraShaderName[] = "gCamera";
 	constexpr char kSkyboxShaderName[] = "SkyboxData";
+	constexpr char kShadowMapShaderName[] = "gShadowMap";
+	constexpr char kShadowCameraShaderName[] = "gShadowCamera";
 	constexpr char kToneMappingShaderName[] = "ToneMappingData";
 	constexpr size_t kConstantBufferAlignment = 256u;
 }
@@ -224,7 +227,8 @@ void DirectXCore::DrawLightingToSceneColor(
 	PipelineManager& pipelineManager,
 	DirectionalLightSystem& lightSystem,
 	Camera3DSystem& cameraSystem,
-	SkyboxSystem& skyboxSystem) {
+	SkyboxSystem& skyboxSystem,
+	ShadowMapSystem& shadowMapSystem) {
 	assert(sceneColor_);
 	assert(gBufferAlbedo_);
 	assert(gBufferNormal_);
@@ -267,6 +271,10 @@ void DirectXCore::DrawLightingToSceneColor(
 	lightSystem.Bind(commandList, pipeline->GetRootIndex(kDirectionalLightShaderName));
 	cameraSystem.Bind(commandList, pipeline->GetRootIndex(kCameraShaderName));
 	skyboxSystem.Bind(commandList, pipeline->GetRootIndex(kSkyboxShaderName));
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kShadowMapShaderName),
+		shadowMapSystem.GetShadowMapHandleGPU());
+	shadowMapSystem.BindCamera(commandList, pipeline->GetRootIndex(kShadowCameraShaderName));
 
 	commandList6->DispatchMesh(1, 1, 1);
 }
@@ -298,6 +306,13 @@ void DirectXCore::DrawSceneToSwapChain(PipelineManager& pipelineManager) {
 		toneMappingResource_->GetGPUVirtualAddress());
 
 	commandList6->DispatchMesh(1, 1, 1);
+}
+
+void DirectXCore::RestoreGBufferRenderTargets() {
+	RenderTexture* renderTargets[] = { gBufferAlbedo_, gBufferNormal_, gBufferMaterial_ };
+	SetRenderTargets(renderTargets);
+	viewport_->BeginFrame(renderWidth_, renderHeight_);
+	scissorRect_->BeginFrame(renderWidth_, renderHeight_);
 }
 
 void DirectXCore::SetExposure(float exposureEV) {

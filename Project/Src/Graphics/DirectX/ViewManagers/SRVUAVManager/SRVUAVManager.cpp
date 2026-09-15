@@ -104,6 +104,46 @@ void SRVUAVManager::CreateUavStructuredBuffer(uint32_t viewIndex, ID3D12Resource
 		GetCPUDescriptorHandle(viewIndex));
 }
 
+void SRVUAVManager::CreateUavTexture2d(
+	uint32_t viewIndex,
+	ID3D12Resource* resource,
+	DXGI_FORMAT format,
+	uint32_t mipSlice) {
+
+	assert(resource);
+	D3D12_UNORDERED_ACCESS_VIEW_DESC desc{};
+	desc.Format = format;
+	desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+	desc.Texture2D.MipSlice = mipSlice;
+	device_.GetDevice()->CreateUnorderedAccessView(
+		resource,
+		nullptr,
+		&desc,
+		GetCPUDescriptorHandle(viewIndex));
+}
+
+void SRVUAVManager::CreateUavTexture2dArray(
+	uint32_t viewIndex,
+	ID3D12Resource* resource,
+	DXGI_FORMAT format,
+	uint32_t mipSlice,
+	uint32_t arraySize) {
+
+	assert(resource);
+	assert(arraySize > 0u);
+	D3D12_UNORDERED_ACCESS_VIEW_DESC desc{};
+	desc.Format = format;
+	desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+	desc.Texture2DArray.MipSlice = mipSlice;
+	desc.Texture2DArray.FirstArraySlice = 0u;
+	desc.Texture2DArray.ArraySize = arraySize;
+	device_.GetDevice()->CreateUnorderedAccessView(
+		resource,
+		nullptr,
+		&desc,
+		GetCPUDescriptorHandle(viewIndex));
+}
+
 void SRVUAVManager::CreateConstantBufferView(uint32_t viewIndex, D3D12_GPU_VIRTUAL_ADDRESS bufferLocation, uint32_t sizeInBytes) {
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
 	cbvDesc.BufferLocation = bufferLocation;

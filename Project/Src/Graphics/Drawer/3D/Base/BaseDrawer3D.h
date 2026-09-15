@@ -14,6 +14,8 @@
 #include "Graphics/Graphics3DContext.h"
 
 namespace LGF {
+	class Pipeline;
+	class ShadowMapSystem;
 
 	/// <summary>
 	/// 3Dインスタンシング描画用の構造体
@@ -54,6 +56,8 @@ namespace LGF {
 		/// CPUで積んだコマンドをGPUに投げる
 		/// </summary>
 		virtual void EndFrame()override = 0;
+
+		void DrawShadow(Pipeline* pipeline, ShadowMapSystem& shadowMap, const char* instanceBufferName);
 
 	protected:
 		/// <summary>

@@ -1,0 +1,7 @@
+{
+  "Name": "DiffuseIrradiance",
+  "PipelineKind": "Compute",
+  "Shaders": {
+    "CS": "Environment/DiffuseIrradiance.CS.hlsl"
+  }
+}

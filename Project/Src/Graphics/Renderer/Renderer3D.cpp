@@ -5,6 +5,7 @@
 
 #include "Graphics/Drawer/IDrawer.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
+#include "Graphics/Shadow/System/ShadowMapSystem.h"
 
 #include "Graphics/Drawer/3D/Primitive/Box/BoxDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Capsule/CapsuleDrawer3D.h"
@@ -91,6 +92,18 @@ void Renderer3D::EndFrame() {
 	for (const auto& drawer : drawerList_) {
 		drawer->EndFrame();
 	}
+}
+
+void Renderer3D::DrawShadow(ShadowMapSystem& shadowMap) {
+	boxDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowBox3D"), shadowMap, "gBox");
+	capsuleDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowCapsule3D"), shadowMap, "gCapsule");
+	coneDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowCone3D"), shadowMap, "gCone");
+	cylinderDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowCylinder3D"), shadowMap, "gCylinder");
+	groundDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowGround3D"), shadowMap, "gGround");
+	modelDrawer_->DrawShadow(shadowMap);
+	planeDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowPlane3D"), shadowMap, "gPlane");
+	sphereDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowSphere3D"), shadowMap, "gSphere");
+	triangleDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowTriangle3D"), shadowMap, "gTriangle");
 }
 
 void Renderer3D::Finalize() {

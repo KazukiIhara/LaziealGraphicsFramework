@@ -32,6 +32,13 @@ namespace LGF {
 		ComPtr<ID3D12Resource> CreateUploadBufferResource(size_t sizeInBytes);
 		// UAVバッファリソースの作成
 		ComPtr<ID3D12Resource> CreateUAVBufferResource(size_t sizeInBytes);
+		// UAVとして生成し、後からTexture2DまたはTextureCubeのSRVとして利用するテクスチャ
+		ComPtr<ID3D12Resource> CreateUAVTextureResource(
+			uint32_t width,
+			uint32_t height,
+			uint16_t arraySize,
+			uint16_t mipLevels,
+			DXGI_FORMAT format);
 
 		// RenderTarget用Texture2Dリソースの作成
 		ComPtr<ID3D12Resource> CreateRenderTargetTextureResource(

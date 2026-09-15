@@ -1,0 +1,1 @@
+{"Name":"ShadowModel3D","PipelineKind":"MeshGraphics","Shaders":{"AS":"Graphics3D/Model3D.AS.hlsl","MS":"Graphics3D/Model3D.MS.hlsl"},"Rasterizer":{"CullMode":"Back","FillMode":"Solid"},"Blend":{"Mode":"None"},"Depth":{"Enable":true,"Write":true,"Func":"LessEqual"},"RenderTarget":{"Formats":[]},"DepthStencil":{"Format":"D32_FLOAT"},"PrimitiveTopology":"Triangle"}

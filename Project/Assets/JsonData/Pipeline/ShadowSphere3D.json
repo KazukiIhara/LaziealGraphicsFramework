@@ -1,0 +1,1 @@
+{"Name":"ShadowSphere3D","PipelineKind":"MeshGraphics","Shaders":{"MS":"Graphics3D/Sphere3D.MS.hlsl"},"Rasterizer":{"CullMode":"Back","FillMode":"Solid"},"Blend":{"Mode":"None"},"Depth":{"Enable":true,"Write":true,"Func":"LessEqual"},"RenderTarget":{"Formats":[]},"DepthStencil":{"Format":"D32_FLOAT"},"PrimitiveTopology":"Triangle"}

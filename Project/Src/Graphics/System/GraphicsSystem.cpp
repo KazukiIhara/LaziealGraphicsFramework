@@ -8,6 +8,7 @@
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
 #include "Graphics/Skybox/System/SkyboxSystem.h"
+#include "Graphics/Shadow/System/ShadowMapSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
 #include "Graphics/Camera/System/Camera2DSystem.h"
 #include "Graphics/Renderer/Renderer2D.h"
@@ -72,8 +73,13 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	Graphics3D::Internal::SetDirectionalLightSystem(directionalLightSystem_.get());
 	subsystems_.push_back(directionalLightSystem_.get());
 
+	shadowMapSystem_ = std::make_unique<ShadowMapSystem>(*directX_);
+	if (!shadowMapSystem_->Initialize()) {
+		return false;
+	}
+
 	// Skyboxシステム初期化
-	skyboxSystem_ = std::make_unique<SkyboxSystem>(*directX_);
+	skyboxSystem_ = std::make_unique<SkyboxSystem>(*directX_, *pipelineManager_);
 	if (!skyboxSystem_->Initialize()) {
 		return false;
 	}
@@ -152,6 +158,7 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 	renderer2D_.reset();
 	camera2DSystem_.reset();
 	renderer3D_.reset();
+	shadowMapSystem_.reset();
 	directionalLightSystem_.reset();
 	skyboxSystem_.reset();
 	camera3DSystem_.reset();
@@ -188,14 +195,19 @@ void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 
 	camera3DSystem_->EndFrame();
 	directionalLightSystem_->EndFrame();
-	skyboxSystem_->EndFrame();
+	shadowMapSystem_->Update(directionalLightSystem_->GetLight());
+	shadowMapSystem_->BeginShadowPass();
+	renderer3D_->DrawShadow(*shadowMapSystem_);
+	shadowMapSystem_->EndShadowPass();
 	renderer3D_->EndFrame();
+	skyboxSystem_->EndFrame();
 
 	directX_->DrawLightingToSceneColor(
 		*pipelineManager_,
 		*directionalLightSystem_,
 		*camera3DSystem_,
-		*skyboxSystem_);
+		*skyboxSystem_,
+		*shadowMapSystem_);
 	directX_->DrawSceneToSwapChain(*pipelineManager_);
 
 	// 2DとImGuiはトーンマッピング後のSwapChainへ描画する。

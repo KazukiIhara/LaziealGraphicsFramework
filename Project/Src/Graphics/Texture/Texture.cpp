@@ -26,6 +26,7 @@ LGF::Texture::Texture(const std::string& name, const TextureLoadDesc& desc) {
 	const auto& data = g_textureManager->Load(name, desc);
 	srvIndex_ = data.srvIndex;
 	isCubeMap_ = data.metaData.IsCubemap();
+	resource_ = data.resource.Get();
 	filePath_ = name;
 }
 

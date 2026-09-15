@@ -12,6 +12,7 @@
 namespace LGF {
 
 	struct ModelResource;
+	class ShadowMapSystem;
 
 	class ModelDrawer3D : public BaseDrawer3D {
 	public:
@@ -20,6 +21,7 @@ namespace LGF {
 
 		void Initialize() override;
 		void EndFrame() override;
+		void DrawShadow(ShadowMapSystem& shadowMap);
 
 		void AddModel(
 			std::shared_ptr<ModelResource> resource,
@@ -68,6 +70,8 @@ namespace LGF {
 		std::vector<ModelBatch> batches_;
 		std::unordered_map<const ModelResource*, size_t> batchIndices_;
 		uint32_t queuedInstanceCount_ = 0;
+
+		void DrawBatches(Pipeline* pipeline, ShadowMapSystem* shadowMap);
 	};
 
 }
