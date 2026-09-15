@@ -3,19 +3,30 @@ static const uint kModelDebugShowMeshletColors = 1u << 0;
 
 struct ModelDrawData
 {
-    float4x4 worldMatrix;
-    float4x4 worldInverseTranspose;
-    float4 baseColor;
+    float4 meshBaseColor;
     uint vertexBufferIndex;
     uint meshletBufferIndex;
     uint meshletVertexIndexBufferIndex;
     uint meshletPrimitiveBufferIndex;
     uint meshletCullDataBufferIndex;
     uint baseColorTextureIndex;
+    uint instanceBufferIndex;
+    uint instanceOffset;
+    uint instanceCount;
     uint meshletCount;
     uint meshletIndexOffset;
-    uint debugFlags;
+    uint baseWorkIndexLow;
+    uint baseWorkIndexHigh;
+    uint3 padding;
+};
+
+struct ModelInstanceData
+{
+    float4x4 worldMatrix;
+    float4x4 worldInverseTranspose;
+    float4 color;
     float worldMaximumScale;
+    uint debugFlags;
     uint2 padding;
 };
 
@@ -35,7 +46,13 @@ struct MeshletCullData
     float apexOffset;
 };
 
+struct VisibleModelMeshlet
+{
+    uint instanceIndex;
+    uint meshletIndex;
+};
+
 struct ModelPayload
 {
-    uint meshletIndices[kMeshletsPerAmplificationGroup];
+    VisibleModelMeshlet visibleMeshlets[kMeshletsPerAmplificationGroup];
 };

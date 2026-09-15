@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <span>
 #include <string>
 
 #include "LGF/Math/Matrix4x4.h"
@@ -12,6 +13,11 @@ namespace LGF {
 		bool showMeshletColors = false;
 		bool showMeshletBoundingSpheres = false;
 		Vector4 meshletBoundingSphereColor = Color::Lime;
+	};
+
+	struct ModelInstance3D {
+		Matrix4x4 worldMatrix;
+		Vector4 color = Color::White;
 	};
 
 	struct ModelResource;
@@ -29,6 +35,11 @@ namespace LGF {
 		void Draw(
 			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White,
+			const ModelDebugDraw& debugDraw = {}
+			) const;
+
+		void DrawInstanced(
+			std::span<const ModelInstance3D> instances,
 			const ModelDebugDraw& debugDraw = {}
 			) const;
 

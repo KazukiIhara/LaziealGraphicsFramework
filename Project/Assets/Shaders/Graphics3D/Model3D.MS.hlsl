@@ -37,8 +37,12 @@ void main(
         ResourceDescriptorHeap[gModel.meshletVertexIndexBufferIndex];
     StructuredBuffer<uint> meshletPrimitiveBuffer =
         ResourceDescriptorHeap[gModel.meshletPrimitiveBufferIndex];
+    StructuredBuffer<ModelInstanceData> instanceBuffer =
+        ResourceDescriptorHeap[gModel.instanceBufferIndex];
 
-    const uint meshletIndex = payload.meshletIndices[groupId.x];
+    const VisibleModelMeshlet visibleMeshlet = payload.visibleMeshlets[groupId.x];
+    const uint meshletIndex = visibleMeshlet.meshletIndex;
+    const ModelInstanceData modelInstance = instanceBuffer[visibleMeshlet.instanceIndex];
     const Meshlet meshlet = meshletBuffer[meshletIndex];
     SetMeshOutputCounts(meshlet.vertexCount, meshlet.primitiveCount);
 
@@ -49,14 +53,14 @@ void main(
         const ModelVertex vertex = vertexBuffer[vertexIndex];
 
         InstanceData3D instance;
-        instance.worldMatrix = gModel.worldMatrix;
-        instance.worldInverseTranspose = gModel.worldInverseTranspose;
-        instance.baseColor = (gModel.debugFlags & kModelDebugShowMeshletColors) != 0
+        instance.worldMatrix = modelInstance.worldMatrix;
+        instance.worldInverseTranspose = modelInstance.worldInverseTranspose;
+        instance.baseColor = (modelInstance.debugFlags & kModelDebugShowMeshletColors) != 0
             ? GetMeshletDebugColor(gModel.meshletIndexOffset + meshletIndex)
-            : gModel.baseColor;
+            : gModel.meshBaseColor * modelInstance.color;
         instance.uvScale = float2(1.0f, 1.0f);
         instance.uvOffset = float2(0.0f, 0.0f);
-        instance.textureIndex = (gModel.debugFlags & kModelDebugShowMeshletColors) != 0
+        instance.textureIndex = (modelInstance.debugFlags & kModelDebugShowMeshletColors) != 0
             ? 0xffffffffu
             : gModel.baseColorTextureIndex;
         instance.padding = uint3(0, 0, 0);

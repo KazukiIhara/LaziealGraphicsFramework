@@ -83,6 +83,17 @@ while (System::Update()) {
 
 `SetCullingScene()` を呼ばなかったフレームは描画カメラが自動的に使われます。メシュレット境界球はカリング結果に関係なくデバッグ表示されるため、別カメラでカリングした結果も描画カメラから確認できます。`Camera3DDebugDraw::showFrustum` を切り替えると、カメラの視錐台を示すラインの表示をシーン側からON/OFFできます。
 
+同じモデルを複数描画する場合は、インスタンス配列をまとめて送れます。通常の `Draw()` を同じモデルへ複数回呼んだ場合も、内部では同じバッチへまとめられます。
+
+```cpp
+std::array<ModelInstance3D, 5> instances{};
+for (size_t i = 0; i < instances.size(); ++i) {
+    instances[i].worldMatrix = Math::MakeTranslateMatrix(
+        { static_cast<float>(i) * 2.0f, 0.0f, 0.0f });
+}
+model.DrawInstanced(instances, debugDraw);
+```
+
 - GLB内の圧縮された埋め込み画像と、モデルから相対参照される外部画像を読み込めます。
 - 読み込み時に左手座標系へ変換し、ノード変換を頂点へ適用します。現時点ではスキニング、アニメーション、法線マップ、PBRマテリアル描画は対象外です。
 - モデルは初回のみキャッシュされ、GPUリソースはフレームワーク終了まで保持されます。毎フレーム生成しないでください。

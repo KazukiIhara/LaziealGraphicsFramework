@@ -1,5 +1,6 @@
 #include "ModelDrawer3D.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <stdexcept>
@@ -17,24 +18,26 @@ using namespace LGF;
 namespace {
 
 	struct ModelDrawConstants {
-		Matrix4x4 worldMatrix;
-		Matrix4x4 worldInverseTranspose;
-		Vector4 baseColor;
+		Vector4 meshBaseColor;
 		uint32_t vertexBufferIndex = UINT32_MAX;
 		uint32_t meshletBufferIndex = UINT32_MAX;
 		uint32_t meshletVertexIndexBufferIndex = UINT32_MAX;
 		uint32_t meshletPrimitiveBufferIndex = UINT32_MAX;
 		uint32_t meshletCullDataBufferIndex = UINT32_MAX;
 		uint32_t baseColorTextureIndex = UINT32_MAX;
+		uint32_t instanceBufferIndex = UINT32_MAX;
+		uint32_t instanceOffset = 0;
+		uint32_t instanceCount = 0;
 		uint32_t meshletCount = 0;
 		uint32_t meshletIndexOffset = 0;
-		uint32_t debugFlags = 0;
-		float worldMaximumScale = 1.0f;
-		uint32_t padding[2]{};
+		uint32_t baseWorkIndexLow = 0;
+		uint32_t baseWorkIndexHigh = 0;
+		uint32_t padding[3]{};
 	};
-	static_assert(sizeof(ModelDrawConstants) == 192);
+	static_assert(sizeof(ModelDrawConstants) == 80);
 
 	constexpr uint32_t kMeshletsPerAmplificationGroup = 32;
+	constexpr uint32_t kMaxAmplificationGroupCount = 65535;
 	constexpr uint32_t kDebugShowMeshletColors = 1u << 0;
 
 }
@@ -44,14 +47,24 @@ ModelDrawer3D::ModelDrawer3D(Graphics3DContext context) :
 }
 
 ModelDrawer3D::~ModelDrawer3D() {
+	if (instanceResource_ && instanceData_) {
+		instanceResource_->Unmap(0, nullptr);
+	}
 	if (drawConstantResource_ && drawConstantData_) {
 		drawConstantResource_->Unmap(0, nullptr);
 	}
 }
 
 void ModelDrawer3D::Initialize() {
+	BaseDrawer::InitParam instanceInitParam{
+		kMaxModelInstanceCount,
+		sizeof(ModelInstanceData),
+		reinterpret_cast<void**>(&instanceData_)
+	};
+	BaseDrawer::Initialize(instanceInitParam);
+
 	drawConstantResource_ = GetContext().directX.GetResourceFactory()->CreateUploadBufferResource(
-		static_cast<size_t>(kConstantBufferStride) * kMaxMeshDrawCount);
+		static_cast<size_t>(kConstantBufferStride) * kMaxDispatchCount);
 	if (!drawConstantResource_) {
 		throw std::runtime_error("Model draw constant buffer allocation failed.");
 	}
@@ -62,14 +75,14 @@ void ModelDrawer3D::Initialize() {
 		throw std::runtime_error("Model draw constant buffer mapping failed.");
 	}
 	drawConstantData_ = static_cast<std::byte*>(mapped);
-	drawCommands_.reserve(kMaxMeshDrawCount);
+	batches_.reserve(256);
 
 	SetPipeline(GetContext().pipelineMgr.GetPipeline("Model3D"));
 	assert(GetPipeline() != nullptr);
 }
 
 void ModelDrawer3D::EndFrame() {
-	if (drawCommands_.empty()) {
+	if (batches_.empty()) {
 		return;
 	}
 
@@ -81,45 +94,76 @@ void ModelDrawer3D::EndFrame() {
 		commandList,
 		GetPipeline()->GetRootIndex("gCullingCamera"));
 
-	uint32_t drawIndex = 0;
-	for (const DrawCommand& command : drawCommands_) {
-		for (const ModelMeshResource& mesh : command.resource->meshes) {
-			ModelDrawConstants constants{};
-			constants.worldMatrix = command.worldMatrix;
-			constants.worldInverseTranspose = command.worldInverseTranspose;
-			constants.baseColor = mesh.baseColor * command.color;
-			constants.vertexBufferIndex = mesh.vertexSrvIndex;
-			constants.meshletBufferIndex = mesh.meshletSrvIndex;
-			constants.meshletVertexIndexBufferIndex = mesh.meshletVertexIndexSrvIndex;
-			constants.meshletPrimitiveBufferIndex = mesh.meshletPrimitiveSrvIndex;
-			constants.meshletCullDataBufferIndex = mesh.meshletCullDataSrvIndex;
-			constants.baseColorTextureIndex = mesh.baseColorTextureSrvIndex;
-			constants.meshletCount = mesh.meshletCount;
-			constants.meshletIndexOffset = mesh.meshletIndexOffset;
-			constants.debugFlags = command.showMeshletColors
-				? kDebugShowMeshletColors
-				: 0;
-			constants.worldMaximumScale = command.worldMaximumScale;
+	uint32_t instanceOffset = 0;
+	uint32_t dispatchIndex = 0;
+	for (const ModelBatch& batch : batches_) {
+		const uint32_t instanceCount = static_cast<uint32_t>(batch.instances.size());
+		std::memcpy(
+			instanceData_ + instanceOffset,
+			batch.instances.data(),
+			batch.instances.size() * sizeof(ModelInstanceData));
 
-			const size_t offset = static_cast<size_t>(drawIndex) * kConstantBufferStride;
-			std::memcpy(drawConstantData_ + offset, &constants, sizeof(constants));
-			commandList->SetGraphicsRootConstantBufferView(
-				GetPipeline()->GetRootIndex("gModel"),
-				drawConstantResource_->GetGPUVirtualAddress() + offset);
-			commandList->SetGraphicsRootConstantBufferView(
-				GetPipeline()->GetRootIndex("gCullingModel"),
-				drawConstantResource_->GetGPUVirtualAddress() + offset);
+		for (const ModelMeshResource& mesh : batch.resource->meshes) {
+			const uint64_t workCount =
+				static_cast<uint64_t>(instanceCount) * mesh.meshletCount;
+			uint64_t baseWorkIndex = 0;
 
-			const uint32_t amplificationGroupCount =
-				(mesh.meshletCount + kMeshletsPerAmplificationGroup - 1) /
-				kMeshletsPerAmplificationGroup;
-			commandList->DispatchMesh(amplificationGroupCount, 1, 1);
-			++drawIndex;
+			while (baseWorkIndex < workCount) {
+				if (dispatchIndex >= kMaxDispatchCount) {
+					throw std::runtime_error("Too many model mesh dispatches were submitted in one frame.");
+				}
+
+				const uint64_t remainingWorkCount = workCount - baseWorkIndex;
+				const uint64_t remainingGroupCount =
+					(remainingWorkCount + kMeshletsPerAmplificationGroup - 1) /
+					kMeshletsPerAmplificationGroup;
+				const uint32_t amplificationGroupCount = static_cast<uint32_t>(
+					std::min<uint64_t>(remainingGroupCount, kMaxAmplificationGroupCount));
+
+				ModelDrawConstants constants{};
+				constants.meshBaseColor = mesh.baseColor;
+				constants.vertexBufferIndex = mesh.vertexSrvIndex;
+				constants.meshletBufferIndex = mesh.meshletSrvIndex;
+				constants.meshletVertexIndexBufferIndex = mesh.meshletVertexIndexSrvIndex;
+				constants.meshletPrimitiveBufferIndex = mesh.meshletPrimitiveSrvIndex;
+				constants.meshletCullDataBufferIndex = mesh.meshletCullDataSrvIndex;
+				constants.baseColorTextureIndex = mesh.baseColorTextureSrvIndex;
+				constants.instanceBufferIndex = instanceSrvIndex_;
+				constants.instanceOffset = instanceOffset;
+				constants.instanceCount = instanceCount;
+				constants.meshletCount = mesh.meshletCount;
+				constants.meshletIndexOffset = mesh.meshletIndexOffset;
+				constants.baseWorkIndexLow = static_cast<uint32_t>(baseWorkIndex);
+				constants.baseWorkIndexHigh = static_cast<uint32_t>(baseWorkIndex >> 32);
+
+				const size_t constantOffset =
+					static_cast<size_t>(dispatchIndex) * kConstantBufferStride;
+				std::memcpy(
+					drawConstantData_ + constantOffset,
+					&constants,
+					sizeof(constants));
+				const D3D12_GPU_VIRTUAL_ADDRESS constantAddress =
+					drawConstantResource_->GetGPUVirtualAddress() + constantOffset;
+				commandList->SetGraphicsRootConstantBufferView(
+					GetPipeline()->GetRootIndex("gModel"),
+					constantAddress);
+				commandList->SetGraphicsRootConstantBufferView(
+					GetPipeline()->GetRootIndex("gCullingModel"),
+					constantAddress);
+				commandList->DispatchMesh(amplificationGroupCount, 1, 1);
+
+				baseWorkIndex +=
+					static_cast<uint64_t>(amplificationGroupCount) *
+					kMeshletsPerAmplificationGroup;
+				++dispatchIndex;
+			}
 		}
+		instanceOffset += instanceCount;
 	}
 
-	drawCommands_.clear();
-	queuedMeshCount_ = 0;
+	batches_.clear();
+	batchIndices_.clear();
+	queuedInstanceCount_ = 0;
 }
 
 void ModelDrawer3D::AddModel(
@@ -133,17 +177,25 @@ void ModelDrawer3D::AddModel(
 	if (!resource) {
 		throw std::invalid_argument("Model resource must not be null.");
 	}
-	if (resource->meshes.size() > kMaxMeshDrawCount - queuedMeshCount_) {
-		throw std::runtime_error("Too many model meshes were submitted in one frame.");
+	if (queuedInstanceCount_ >= kMaxModelInstanceCount) {
+		throw std::runtime_error("Too many model instances were submitted in one frame.");
 	}
 
-	queuedMeshCount_ += static_cast<uint32_t>(resource->meshes.size());
-	drawCommands_.push_back({
-		.resource = std::move(resource),
+	const ModelResource* resourceKey = resource.get();
+	const auto [batchIt, inserted] = batchIndices_.try_emplace(
+		resourceKey,
+		batches_.size());
+	if (inserted) {
+		batches_.push_back({ .resource = resource });
+	}
+
+	ModelBatch& batch = batches_[batchIt->second];
+	batch.instances.push_back({
 		.worldMatrix = worldMatrix,
 		.worldInverseTranspose = worldInverseTranspose,
 		.color = color,
 		.worldMaximumScale = worldMaximumScale,
-		.showMeshletColors = showMeshletColors,
+		.debugFlags = showMeshletColors ? kDebugShowMeshletColors : 0,
 	});
+	++queuedInstanceCount_;
 }
