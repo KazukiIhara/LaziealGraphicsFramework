@@ -1,6 +1,7 @@
 #include "DirectXCore.h"
 
 #include <cassert>
+#include <cmath>
 #include <vector>
 
 #include "Core/Window/Window.h"
@@ -31,7 +32,7 @@ namespace {
 	constexpr char kGBufferAlbedoName[] = "GBufferAlbedo";
 	constexpr char kGBufferNormalName[] = "GBufferNormal";
 	constexpr char kGBufferMaterialName[] = "GBufferMaterial";
-	constexpr char kFullscreenCopyPipelineName[] = "FullscreenCopy";
+	constexpr char kFullscreenToneMappingPipelineName[] = "FullscreenToneMapping";
 	constexpr char kFullscreenDepthPipelineName[] = "FullscreenDepth";
 	constexpr char kFullscreenLightingPipelineName[] = "FullscreenLighting";
 	constexpr char kSceneColorShaderName[] = "gSceneColor";
@@ -41,6 +42,8 @@ namespace {
 	constexpr char kGBufferMaterialShaderName[] = "gGBufferMaterial";
 	constexpr char kDirectionalLightShaderName[] = "DirectionalLightData";
 	constexpr char kCameraShaderName[] = "gCamera";
+	constexpr char kToneMappingShaderName[] = "ToneMappingData";
+	constexpr size_t kConstantBufferAlignment = 256u;
 }
 
 DirectXCore::DirectXCore(Window& window) :
@@ -91,9 +94,25 @@ bool DirectXCore::Initialize() {
 		return false;
 	}
 
+	toneMappingResource_ = resourceFactory_->CreateUploadBufferResource(kConstantBufferAlignment);
+	if (!toneMappingResource_) {
+		return false;
+	}
+	const HRESULT toneMappingMapResult = toneMappingResource_->Map(
+		0,
+		nullptr,
+		reinterpret_cast<void**>(&toneMappingForGPU_));
+	if (FAILED(toneMappingMapResult)) {
+		return false;
+	}
+	SetExposure(0.0f);
+
 	RenderTextureDesc sceneColorDesc{};
 	sceneColorDesc.width = renderWidth_;
 	sceneColorDesc.height = renderHeight_;
+	sceneColorDesc.resourceFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	sceneColorDesc.rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	sceneColorDesc.srvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	sceneColor_ = renderTextureManager_->Create(kSceneColorName, sceneColorDesc);
 	if (!sceneColor_) {
 		return false;
@@ -251,7 +270,7 @@ void DirectXCore::DrawLightingToSceneColor(
 void DirectXCore::DrawSceneToSwapChain(PipelineManager& pipelineManager) {
 	assert(sceneColor_);
 
-	Pipeline* pipeline = pipelineManager.GetPipeline(kFullscreenCopyPipelineName);
+	Pipeline* pipeline = pipelineManager.GetPipeline(kFullscreenToneMappingPipelineName);
 	assert(pipeline);
 	assert(pipeline->IsValid());
 
@@ -270,8 +289,19 @@ void DirectXCore::DrawSceneToSwapChain(PipelineManager& pipelineManager) {
 	commandList->SetGraphicsRootDescriptorTable(
 		pipeline->GetRootIndex(kSceneColorShaderName),
 		sceneColor_->GetSRVHandleGPU());
+	commandList->SetGraphicsRootConstantBufferView(
+		pipeline->GetRootIndex(kToneMappingShaderName),
+		toneMappingResource_->GetGPUVirtualAddress());
 
 	commandList6->DispatchMesh(1, 1, 1);
+}
+
+void DirectXCore::SetExposure(float exposureEV) {
+	if (!toneMappingForGPU_) {
+		return;
+	}
+
+	toneMappingForGPU_->exposureEV = std::isfinite(exposureEV) ? exposureEV : 0.0f;
 }
 
 void DirectXCore::DrawDepthToSwapChain(PipelineManager& pipelineManager) {
@@ -309,6 +339,8 @@ void DirectXCore::Finalize() {
 	if (renderTextureManager_) {
 		renderTextureManager_->Finalize();
 	}
+	toneMappingForGPU_ = nullptr;
+	toneMappingResource_.Reset();
 	sceneColor_ = nullptr;
 	gBufferAlbedo_ = nullptr;
 	gBufferNormal_ = nullptr;

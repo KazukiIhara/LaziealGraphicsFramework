@@ -55,6 +55,7 @@ bool GraphicsSystem::Initialize(FrameworkContext& context) {
 	pipelineManager_->Initialize();
 
 	// 3Dカメラシステム初期化
+	Graphics3D::Internal::SetDirectXCore(directX_.get());
 	Graphics3D::Internal::SetWindowSystem(context.window);
 	camera3DSystem_ = std::make_unique<Camera3DSystem>(*directX_);
 	camera3DSystem_->Initialize();
@@ -124,6 +125,7 @@ bool GraphicsSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
 	Graphics3D::Internal::ResetCamera3DSystem();
 	Graphics3D::Internal::ResetDirectionalLightSystem();
 	Graphics3D::Internal::ResetWindowSystem();
+	Graphics3D::Internal::ResetDirectXCore();
 
 	Graphics2D::Internal::ResetWindowSystem();
 	Graphics2D::Internal::ResetRenderer2D();
@@ -181,12 +183,13 @@ void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 		*pipelineManager_,
 		*directionalLightSystem_,
 		*camera3DSystem_);
+	directX_->DrawSceneToSwapChain(*pipelineManager_);
 
+	// 2DとImGuiはトーンマッピング後のSwapChainへ描画する。
 	camera2DSystem_->EndFrame();
 	renderer2D_->EndFrame();
 	imguiSystem_->EndFrame();
 
-	directX_->DrawSceneToSwapChain(*pipelineManager_);
 	directX_->EndFrame();
 	isFrameRenderable_ = false;
 }

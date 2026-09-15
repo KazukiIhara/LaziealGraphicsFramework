@@ -1,11 +1,11 @@
 {
-  "Name": "FullscreenCopy",
+  "Name": "FullscreenToneMapping",
 
   "PipelineKind": "MeshGraphics",
 
   "Shaders": {
     "MS": "Fullscreen/FullscreenCopy.MS.hlsl",
-    "PS": "Fullscreen/FullscreenCopy.PS.hlsl"
+    "PS": "Fullscreen/FullscreenToneMapping.PS.hlsl"
   },
 
   "Rasterizer": {

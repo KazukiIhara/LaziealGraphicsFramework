@@ -31,6 +31,8 @@ namespace LGF {
 		void SetCamera(const Camera3D& camera);
 		void SetCullingCamera(const Camera3D& camera);
 		void SetDirectionalLight(const DirectionalLight& light);
+		/// <summary>トーンマッピング前の露出をEV単位で設定する。+1で2倍、-1で半分。</summary>
+		void SetExposure(float exposureEV);
 
 		void Draw(
 			const Triangle3D& triangle,

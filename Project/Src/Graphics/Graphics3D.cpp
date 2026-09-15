@@ -4,12 +4,14 @@
 
 #include "Graphics3DInternal.h"
 #include "Core/Window/System/WindowSystem.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
 #include "LGF/Graphics/Model.h"
 
 namespace {
+	LGF::DirectXCore* g_directX = nullptr;
 	LGF::WindowSystem* g_windowSystem = nullptr;
 	LGF::Camera3DSystem* g_camera3DSystem = nullptr;
 	LGF::DirectionalLightSystem* g_directionalLightSystem = nullptr;
@@ -32,6 +34,15 @@ void LGF::Graphics3D::Internal::SetCamera3DSystem(Camera3DSystem* cameraSystem) 
 
 void LGF::Graphics3D::Internal::ResetCamera3DSystem() {
 	g_camera3DSystem = nullptr;
+}
+
+void LGF::Graphics3D::Internal::SetDirectXCore(DirectXCore* directX) {
+	assert(directX != nullptr);
+	g_directX = directX;
+}
+
+void LGF::Graphics3D::Internal::ResetDirectXCore() {
+	g_directX = nullptr;
 }
 
 void LGF::Graphics3D::Internal::SetDirectionalLightSystem(DirectionalLightSystem* lightSystem) {
@@ -73,6 +84,11 @@ void LGF::Graphics3D::SetCullingCamera(const Camera3D& camera) {
 void LGF::Graphics3D::SetDirectionalLight(const DirectionalLight& light) {
 	assert(g_directionalLightSystem != nullptr);
 	g_directionalLightSystem->SetLight(light);
+}
+
+void LGF::Graphics3D::SetExposure(float exposureEV) {
+	assert(g_directX != nullptr);
+	g_directX->SetExposure(exposureEV);
 }
 
 void LGF::Graphics3D::Draw(const Triangle3D& triangle, const Matrix4x4& worldMatrix, const Vector4& color) {

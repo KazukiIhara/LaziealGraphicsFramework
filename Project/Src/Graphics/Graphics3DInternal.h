@@ -3,11 +3,14 @@
 namespace LGF {
 
 	class Camera3DSystem;
+	class DirectXCore;
 	class DirectionalLightSystem;
 	class Renderer3D;
 	class WindowSystem;
 
 	namespace Graphics3D::Internal {
+		void SetDirectXCore(DirectXCore* directX);
+		void ResetDirectXCore();
 
 		void SetWindowSystem(WindowSystem* windowSystem);
 		void ResetWindowSystem();

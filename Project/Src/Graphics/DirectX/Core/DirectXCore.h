@@ -6,6 +6,8 @@
 
 #include <d3d12.h>
 
+#include "Graphics/DirectX/ComPtr/ComPtr.h"
+
 namespace LGF {
 
 	class Window;
@@ -52,6 +54,7 @@ namespace LGF {
 			Camera3DSystem& cameraSystem);
 		void DrawSceneToSwapChain(PipelineManager& pipelineManager);
 		void DrawDepthToSwapChain(PipelineManager& pipelineManager);
+		void SetExposure(float exposureEV);
 		void EndFrame();
 		void Finalize();
 
@@ -67,6 +70,12 @@ namespace LGF {
 		ResMgr GetResMgr();
 
 	private:
+		struct ToneMappingForGPU {
+			float exposureEV = 0.0f;
+			float padding[3]{};
+		};
+		static_assert(sizeof(ToneMappingForGPU) == 16u);
+
 		bool Resize(uint32_t width, uint32_t height);
 
 	private:
@@ -91,6 +100,8 @@ namespace LGF {
 		RenderTexture* gBufferAlbedo_ = nullptr;
 		RenderTexture* gBufferNormal_ = nullptr;
 		RenderTexture* gBufferMaterial_ = nullptr;
+		ComPtr<ID3D12Resource> toneMappingResource_ = nullptr;
+		ToneMappingForGPU* toneMappingForGPU_ = nullptr;
 
 		Window& window_;
 	};
