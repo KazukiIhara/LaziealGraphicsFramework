@@ -71,6 +71,7 @@ namespace {
 	constexpr size_t kMaxMeshletPrimitives = 128;
 	static_assert(sizeof(DirectX::Meshlet) == 16);
 	static_assert(sizeof(DirectX::MeshletTriangle) == sizeof(uint32_t));
+	static_assert(sizeof(DirectX::CullData) == 24);
 
 }
 
@@ -119,6 +120,7 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 	auto model = std::make_shared<ModelResource>();
 	model->filePath = filePath;
 	model->meshes.reserve(scene->mNumMeshes);
+	uint32_t meshletIndexOffset = 0;
 
 	for (uint32_t meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex) {
 		const aiMesh* sourceMesh = scene->mMeshes[meshIndex];
@@ -196,12 +198,52 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 			throw std::runtime_error("DirectXMesh returned an invalid 32-bit vertex index buffer.");
 		}
 
+		std::vector<uint32_t> meshletVertexIndices(
+			meshletVertexIndexBytes.size() / sizeof(uint32_t));
+		std::memcpy(
+			meshletVertexIndices.data(),
+			meshletVertexIndexBytes.data(),
+			meshletVertexIndexBytes.size());
+
+		std::vector<DirectX::CullData> meshletCullData(meshlets.size());
+		const HRESULT cullDataHr = DirectX::ComputeCullData(
+			positions.data(),
+			positions.size(),
+			meshlets.data(),
+			meshlets.size(),
+			meshletVertexIndices.data(),
+			meshletVertexIndices.size(),
+			meshletPrimitives.data(),
+			meshletPrimitives.size(),
+			meshletCullData.data(),
+			DirectX::MESHLET_WIND_CW);
+		if (FAILED(cullDataHr)) {
+			throw std::runtime_error(std::format(
+				"Model '{}': meshlet cull-data generation failed for mesh {} (0x{:08X}).",
+				filePath,
+				meshIndex,
+				static_cast<uint32_t>(cullDataHr)));
+		}
+
 		ModelMeshResource mesh{};
 		mesh.vertexResource = CreateUploadBuffer(directX_, vertices);
 		mesh.meshletResource = CreateUploadBuffer(directX_, meshlets);
-		mesh.meshletVertexIndexResource = CreateUploadBuffer(directX_, meshletVertexIndexBytes);
+		mesh.meshletVertexIndexResource = CreateUploadBuffer(directX_, meshletVertexIndices);
 		mesh.meshletPrimitiveResource = CreateUploadBuffer(directX_, meshletPrimitives);
+		mesh.meshletCullDataResource = CreateUploadBuffer(directX_, meshletCullData);
 		mesh.meshletCount = static_cast<uint32_t>(meshlets.size());
+		mesh.meshletIndexOffset = meshletIndexOffset;
+		meshletIndexOffset += mesh.meshletCount;
+		mesh.meshletBounds.reserve(meshletCullData.size());
+		for (const DirectX::CullData& cullData : meshletCullData) {
+			mesh.meshletBounds.push_back({
+				.center = {
+					cullData.BoundingSphere.Center.x,
+					cullData.BoundingSphere.Center.y,
+					cullData.BoundingSphere.Center.z },
+				.radius = cullData.BoundingSphere.Radius,
+			});
+		}
 
 		auto* views = directX_.GetResMgr().srvuav;
 		if (!views->IsLowerViewMax()) {
@@ -231,7 +273,7 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 		views->CreateSrvStructuredBuffer(
 			mesh.meshletVertexIndexSrvIndex,
 			mesh.meshletVertexIndexResource.Get(),
-			static_cast<uint32_t>(meshletVertexIndexBytes.size() / sizeof(uint32_t)),
+			static_cast<uint32_t>(meshletVertexIndices.size()),
 			static_cast<UINT>(sizeof(uint32_t)));
 
 		if (!views->IsLowerViewMax()) {
@@ -243,6 +285,16 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 			mesh.meshletPrimitiveResource.Get(),
 			static_cast<uint32_t>(meshletPrimitives.size()),
 			static_cast<UINT>(sizeof(DirectX::MeshletTriangle)));
+
+		if (!views->IsLowerViewMax()) {
+			throw std::runtime_error("Model descriptor heap is full.");
+		}
+		mesh.meshletCullDataSrvIndex = views->Allocate();
+		views->CreateSrvStructuredBuffer(
+			mesh.meshletCullDataSrvIndex,
+			mesh.meshletCullDataResource.Get(),
+			static_cast<uint32_t>(meshletCullData.size()),
+			static_cast<UINT>(sizeof(DirectX::CullData)));
 
 		if (sourceMesh->mMaterialIndex < scene->mNumMaterials) {
 			const aiMaterial* material = scene->mMaterials[sourceMesh->mMaterialIndex];

@@ -4,9 +4,15 @@
 #include <string>
 
 #include "LGF/Math/Matrix4x4.h"
+#include "LGF/Math/Vector4.h"
 #include "Color.h"
 
 namespace LGF {
+	struct ModelDebugDraw {
+		bool showMeshletColors = false;
+		bool showMeshletBoundingSpheres = false;
+		Vector4 meshletBoundingSphereColor = Color::Lime;
+	};
 
 	struct ModelResource;
 	class Renderer3D;
@@ -22,8 +28,9 @@ namespace LGF {
 
 		void Draw(
 			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		) const;
+			const Vector4& color = Color::White,
+			const ModelDebugDraw& debugDraw = {}
+			) const;
 
 		const std::string& GetFilePath() const;
 		bool IsValid() const;

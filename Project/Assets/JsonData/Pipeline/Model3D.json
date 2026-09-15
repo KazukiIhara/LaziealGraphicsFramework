@@ -4,6 +4,7 @@
   "PipelineKind": "MeshGraphics",
 
   "Shaders": {
+    "AS": "Graphics3D/Model3D.AS.hlsl",
     "MS": "Graphics3D/Model3D.MS.hlsl",
     "PS": "Graphics3D/Primitive3D.PS.hlsl"
   },

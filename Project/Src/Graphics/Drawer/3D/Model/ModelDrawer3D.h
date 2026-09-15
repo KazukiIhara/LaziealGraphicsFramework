@@ -23,7 +23,9 @@ namespace LGF {
 			std::shared_ptr<ModelResource> resource,
 			const Matrix4x4& worldMatrix,
 			const Matrix4x4& worldInverseTranspose,
-			const Vector4& color
+			const Vector4& color,
+			float worldMaximumScale,
+			bool showMeshletColors
 		);
 
 	private:
@@ -32,6 +34,8 @@ namespace LGF {
 			Matrix4x4 worldMatrix;
 			Matrix4x4 worldInverseTranspose;
 			Vector4 color;
+			float worldMaximumScale = 1.0f;
+			bool showMeshletColors = false;
 		};
 
 		static constexpr uint32_t kMaxMeshDrawCount = 4096;

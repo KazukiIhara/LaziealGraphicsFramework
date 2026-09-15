@@ -12,6 +12,7 @@
 #include "Graphics/Drawer/3D/Primitive/Cylinder/CylinderDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Ground/GroundDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Line/LineDrawer3D.h"
+#include "Graphics/Drawer/3D/Debug/MeshletBounds/MeshletBoundsDrawer3D.h"
 #include "Graphics/Drawer/3D/Model/ModelDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Plane/PlaneDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Sphere/SphereDrawer3D.h"
@@ -26,6 +27,8 @@
 #include "LGF/Graphics/Plane3D.h"
 #include "LGF/Graphics/Sphere3D.h"
 #include "LGF/Graphics/Triangle3D.h"
+
+#include "Graphics/Model/ModelResource.h"
 
 #include "LGF/Math/MathUtils.h"
 
@@ -51,6 +54,8 @@ bool Renderer3D::Initialize() {
 	groundDrawer_->Initialize();
 	lineDrawer_ = std::make_unique<LineDrawer3D>(context_);
 	lineDrawer_->Initialize();
+	meshletBoundsDrawer_ = std::make_unique<MeshletBoundsDrawer3D>(context_);
+	meshletBoundsDrawer_->Initialize();
 	modelDrawer_ = std::make_unique<ModelDrawer3D>(context_);
 	modelDrawer_->Initialize();
 	planeDrawer_ = std::make_unique<PlaneDrawer3D>(context_);
@@ -67,6 +72,7 @@ bool Renderer3D::Initialize() {
 	drawerList_.push_back(groundDrawer_.get());
 	drawerList_.push_back(lineDrawer_.get());
 	drawerList_.push_back(modelDrawer_.get());
+	drawerList_.push_back(meshletBoundsDrawer_.get());
 	drawerList_.push_back(planeDrawer_.get());
 	drawerList_.push_back(sphereDrawer_.get());
 	drawerList_.push_back(triangleDrawer_.get());
@@ -90,6 +96,7 @@ void Renderer3D::Finalize() {
 	cylinderDrawer_.reset();
 	groundDrawer_.reset();
 	lineDrawer_.reset();
+	meshletBoundsDrawer_.reset();
 	modelDrawer_.reset();
 	planeDrawer_.reset();
 	sphereDrawer_.reset();
@@ -253,13 +260,40 @@ void Renderer3D::AddSphere(const Sphere3D& sphere, const Matrix4x4& worldMatrix,
 void Renderer3D::AddModel(
 	const Model& model,
 	const Matrix4x4& worldMatrix,
-	const Vector4& color) {
+	const Vector4& color,
+	const ModelDebugDraw& debugDraw) {
+
+	const float worldMaximumScale = std::max({
+		Math::Length(Vector3{ worldMatrix.m[0][0], worldMatrix.m[0][1], worldMatrix.m[0][2] }),
+		Math::Length(Vector3{ worldMatrix.m[1][0], worldMatrix.m[1][1], worldMatrix.m[1][2] }),
+		Math::Length(Vector3{ worldMatrix.m[2][0], worldMatrix.m[2][1], worldMatrix.m[2][2] }),
+	});
 
 	modelDrawer_->AddModel(
 		model.resource_,
 		worldMatrix,
 		Math::Transpose(Math::Inverse(worldMatrix)),
-		color);
+		color,
+		worldMaximumScale,
+		debugDraw.showMeshletColors);
+
+	if (!debugDraw.showMeshletBoundingSpheres) {
+		return;
+	}
+
+	for (const ModelMeshResource& mesh : model.resource_->meshes) {
+		for (const ModelMeshletBounds& bounds : mesh.meshletBounds) {
+			MeshletBounds3DForGPU data{};
+			const Vector3 worldCenter = Math::Transform(bounds.center, worldMatrix);
+			data.instance.worldMatrix = Math::MakeTranslateMatrix(worldCenter);
+			data.instance.worldInverseTranspose =
+				Math::Transpose(Math::Inverse(data.instance.worldMatrix));
+			data.instance.baseColor = debugDraw.meshletBoundingSphereColor;
+			data.instance.textureIndex = UINT32_MAX;
+			data.radius = bounds.radius * worldMaximumScale;
+			meshletBoundsDrawer_->AddBounds(data);
+		}
+	}
 }
 
 void Renderer3D::ApplyMaterial(InstanceData3D& instance, const Material3D& material) {

@@ -18,6 +18,7 @@ namespace LGF {
 	class Ground3D;
 	class Line3D;
 	class Model;
+	struct ModelDebugDraw;
 	class Plane3D;
 	class Sphere3D;
 	class Triangle3D;
@@ -28,6 +29,7 @@ namespace LGF {
 		uint32_t GetWindowHeight();
 
 		void SetCamera(const Camera3D& camera);
+		void SetCullingCamera(const Camera3D& camera);
 		void SetDirectionalLight(const DirectionalLight& light);
 
 		void Draw(
@@ -88,7 +90,14 @@ namespace LGF {
 			const Model& model,
 			const Matrix4x4& worldMatrix,
 			const Vector4& color = Color::White
-		);
+			);
+
+		void Draw(
+			const Model& model,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color,
+			const ModelDebugDraw& debugDraw
+			);
 
 		void Draw(const Triangle3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
 		void Draw(const Box3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);

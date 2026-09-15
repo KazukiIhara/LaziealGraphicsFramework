@@ -167,6 +167,9 @@ project "LaziealGraphicsFramework"
    language "C++"
    cppdialect "C++20"
 
+   -- Windows.h の min/max マクロと標準ライブラリの衝突を防ぐ
+   defines { "NOMINMAX" }
+
    -- プロジェクトに含めるファイル
    files {
       "../*.cpp",

@@ -1,9 +1,15 @@
 #pragma once
 
+#include "LGF/Graphics/Color.h"
 #include "LGF/Math/MathConstants.h"
 #include "LGF/Math/MathTypes.h"
 
 namespace LGF {
+
+	struct Camera3DDebugDraw {
+		bool showFrustum = false;
+		Vector4 frustumColor = Color::Yellow;
+	};
 
 	/// <summary>
 	/// 3Dカメラ
@@ -36,6 +42,8 @@ namespace LGF {
 		virtual ~Camera3D();
 
 		void SetScene()const;
+		void SetCullingScene() const;
+		void DrawDebug(const Camera3DDebugDraw& debugDraw = {}) const;
 
 	public:
 		Vector3 translation{};

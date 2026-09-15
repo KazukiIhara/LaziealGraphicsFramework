@@ -6,6 +6,7 @@
 #include "Graphics/DirectX/ComPtr/ComPtr.h"
 
 #include "LGF/Math/Vector3.h"
+#include "LGF/Math/Vector4.h"
 #include "LGF/Math/Matrix4x4.h"
 
 namespace LGF {
@@ -20,7 +21,9 @@ namespace LGF {
 		Matrix4x4 viewProjection;
 		Vector3 worldPosition;
 		float padding;
+		Vector4 frustumPlanes[6];
 	};
+	static_assert(sizeof(Camera3DForGPU) == 176);
 
 	/// <summary>
 	/// GPUに送る3Dカメラリソースを持つクラス

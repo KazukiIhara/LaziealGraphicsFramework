@@ -65,6 +65,11 @@ void LGF::Graphics3D::SetCamera(const Camera3D& camera) {
 	g_camera3DSystem->SetCamera(camera);
 }
 
+void LGF::Graphics3D::SetCullingCamera(const Camera3D& camera) {
+	assert(g_camera3DSystem != nullptr);
+	g_camera3DSystem->SetCullingCamera(camera);
+}
+
 void LGF::Graphics3D::SetDirectionalLight(const DirectionalLight& light) {
 	assert(g_directionalLightSystem != nullptr);
 	g_directionalLightSystem->SetLight(light);
@@ -151,9 +156,22 @@ void LGF::Graphics3D::Draw(const Sphere3D& sphere, const Matrix4x4& worldMatrix,
 	);
 }
 
-void LGF::Graphics3D::Draw(const Model& model, const Matrix4x4& worldMatrix, const Vector4& color) {
+void LGF::Graphics3D::Draw(
+	const Model& model,
+	const Matrix4x4& worldMatrix,
+	const Vector4& color) {
+
+	Draw(model, worldMatrix, color, ModelDebugDraw{});
+}
+
+void LGF::Graphics3D::Draw(
+	const Model& model,
+	const Matrix4x4& worldMatrix,
+	const Vector4& color,
+	const ModelDebugDraw& debugDraw) {
+
 	assert(g_renderer3D != nullptr);
-	g_renderer3D->AddModel(model, worldMatrix, color);
+	g_renderer3D->AddModel(model, worldMatrix, color, debugDraw);
 }
 
 void LGF::Graphics3D::Draw(const Triangle3D& shape, const Matrix4x4& worldMatrix, const Material3D& material) {

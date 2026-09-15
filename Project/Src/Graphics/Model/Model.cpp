@@ -31,11 +31,15 @@ LGF::Model::Model(const std::string& filePath) :
 
 LGF::Model::~Model() = default;
 
-void LGF::Model::Draw(const Matrix4x4& worldMatrix, const Vector4& color) const {
+void LGF::Model::Draw(
+	const Matrix4x4& worldMatrix,
+	const Vector4& color,
+	const ModelDebugDraw& debugDraw) const {
+
 	if (!resource_) {
 		throw std::runtime_error("Cannot draw an empty Model.");
 	}
-	Graphics3D::Draw(*this, worldMatrix, color);
+	Graphics3D::Draw(*this, worldMatrix, color, debugDraw);
 }
 
 const std::string& LGF::Model::GetFilePath() const {

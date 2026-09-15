@@ -1,4 +1,5 @@
 #include "Graphics3D.hlsli"
+#include "Model3D.hlsli"
 
 struct ModelVertex
 {
@@ -7,39 +8,26 @@ struct ModelVertex
     float2 uv;
 };
 
-struct ModelDrawData
-{
-    float4x4 worldMatrix;
-    float4x4 worldInverseTranspose;
-    float4 baseColor;
-    uint vertexBufferIndex;
-    uint meshletBufferIndex;
-    uint meshletVertexIndexBufferIndex;
-    uint meshletPrimitiveBufferIndex;
-    uint baseColorTextureIndex;
-    uint meshletCount;
-    uint2 padding;
-};
-
-struct Meshlet
-{
-    uint vertexCount;
-    uint vertexOffset;
-    uint primitiveCount;
-    uint primitiveOffset;
-};
-
 ConstantBuffer<CameraData3D> gCamera : register(b0);
 ConstantBuffer<ModelDrawData> gModel : register(b1);
 
 static const uint kMaxMeshletVertices = 128;
 static const uint kMaxMeshletPrimitives = 128;
 
+float4 GetMeshletDebugColor(uint meshletIndex)
+{
+    const float hue = frac(float(meshletIndex) * 0.61803398875f);
+    const float3 rgb = saturate(
+        abs(frac(hue + float3(0.0f, 2.0f / 3.0f, 1.0f / 3.0f)) * 6.0f - 3.0f) - 1.0f);
+    return float4(lerp(float3(1.0f, 1.0f, 1.0f), rgb, 0.75f), 1.0f);
+}
+
 [outputtopology("triangle")]
 [numthreads(kMaxMeshletVertices, 1, 1)]
 void main(
     uint3 groupId : SV_GroupID,
     uint3 groupThreadId : SV_GroupThreadID,
+    in payload ModelPayload payload,
     out vertices MSOutput3D outputVertices[kMaxMeshletVertices],
     out indices uint3 outputTriangles[kMaxMeshletPrimitives])
 {
@@ -50,7 +38,8 @@ void main(
     StructuredBuffer<uint> meshletPrimitiveBuffer =
         ResourceDescriptorHeap[gModel.meshletPrimitiveBufferIndex];
 
-    const Meshlet meshlet = meshletBuffer[groupId.x];
+    const uint meshletIndex = payload.meshletIndices[groupId.x];
+    const Meshlet meshlet = meshletBuffer[meshletIndex];
     SetMeshOutputCounts(meshlet.vertexCount, meshlet.primitiveCount);
 
     const uint localIndex = groupThreadId.x;
@@ -62,10 +51,14 @@ void main(
         InstanceData3D instance;
         instance.worldMatrix = gModel.worldMatrix;
         instance.worldInverseTranspose = gModel.worldInverseTranspose;
-        instance.baseColor = gModel.baseColor;
+        instance.baseColor = (gModel.debugFlags & kModelDebugShowMeshletColors) != 0
+            ? GetMeshletDebugColor(gModel.meshletIndexOffset + meshletIndex)
+            : gModel.baseColor;
         instance.uvScale = float2(1.0f, 1.0f);
         instance.uvOffset = float2(0.0f, 0.0f);
-        instance.textureIndex = gModel.baseColorTextureIndex;
+        instance.textureIndex = (gModel.debugFlags & kModelDebugShowMeshletColors) != 0
+            ? 0xffffffffu
+            : gModel.baseColorTextureIndex;
         instance.padding = uint3(0, 0, 0);
 
         outputVertices[localIndex] = MakeVertex(

@@ -17,6 +17,7 @@ struct CameraData3D
     float4x4 viewProj;
     float3 worldPos;
     float padding;
+    float4 frustumPlanes[6];
 };
 
 // MSからPSに渡す構造体

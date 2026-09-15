@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 
 #include <d3d12.h>
 
@@ -29,13 +30,17 @@ namespace LGF {
 
 
 		void SetCamera(const Camera3D& camera);
+		void SetCullingCamera(const Camera3D& camera);
 
 		void Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
+		void BindCulling(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
 
 	private:
 		// シーンで使用するカメラ
 		Camera3D camera_;
+		std::optional<Camera3D> cullingCamera_;
 		// GPUに送るカメラリソース
 		std::unique_ptr<Camera3DResource> resource_;
+		std::unique_ptr<Camera3DResource> cullingResource_;
 	};
 }

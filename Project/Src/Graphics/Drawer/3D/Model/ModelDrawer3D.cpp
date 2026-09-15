@@ -24,11 +24,18 @@ namespace {
 		uint32_t meshletBufferIndex = UINT32_MAX;
 		uint32_t meshletVertexIndexBufferIndex = UINT32_MAX;
 		uint32_t meshletPrimitiveBufferIndex = UINT32_MAX;
+		uint32_t meshletCullDataBufferIndex = UINT32_MAX;
 		uint32_t baseColorTextureIndex = UINT32_MAX;
 		uint32_t meshletCount = 0;
+		uint32_t meshletIndexOffset = 0;
+		uint32_t debugFlags = 0;
+		float worldMaximumScale = 1.0f;
 		uint32_t padding[2]{};
 	};
-	static_assert(sizeof(ModelDrawConstants) == 176);
+	static_assert(sizeof(ModelDrawConstants) == 192);
+
+	constexpr uint32_t kMeshletsPerAmplificationGroup = 32;
+	constexpr uint32_t kDebugShowMeshletColors = 1u << 0;
 
 }
 
@@ -70,6 +77,9 @@ void ModelDrawer3D::EndFrame() {
 	commandList->SetGraphicsRootSignature(GetPipeline()->GetRootSignature());
 	commandList->SetPipelineState(GetPipeline()->GetPipelineState());
 	GetContext().cameraSys.Bind(commandList, GetPipeline()->GetRootIndex("gCamera"));
+	GetContext().cameraSys.BindCulling(
+		commandList,
+		GetPipeline()->GetRootIndex("gCullingCamera"));
 
 	uint32_t drawIndex = 0;
 	for (const DrawCommand& command : drawCommands_) {
@@ -82,16 +92,28 @@ void ModelDrawer3D::EndFrame() {
 			constants.meshletBufferIndex = mesh.meshletSrvIndex;
 			constants.meshletVertexIndexBufferIndex = mesh.meshletVertexIndexSrvIndex;
 			constants.meshletPrimitiveBufferIndex = mesh.meshletPrimitiveSrvIndex;
+			constants.meshletCullDataBufferIndex = mesh.meshletCullDataSrvIndex;
 			constants.baseColorTextureIndex = mesh.baseColorTextureSrvIndex;
 			constants.meshletCount = mesh.meshletCount;
+			constants.meshletIndexOffset = mesh.meshletIndexOffset;
+			constants.debugFlags = command.showMeshletColors
+				? kDebugShowMeshletColors
+				: 0;
+			constants.worldMaximumScale = command.worldMaximumScale;
 
 			const size_t offset = static_cast<size_t>(drawIndex) * kConstantBufferStride;
 			std::memcpy(drawConstantData_ + offset, &constants, sizeof(constants));
 			commandList->SetGraphicsRootConstantBufferView(
 				GetPipeline()->GetRootIndex("gModel"),
 				drawConstantResource_->GetGPUVirtualAddress() + offset);
+			commandList->SetGraphicsRootConstantBufferView(
+				GetPipeline()->GetRootIndex("gCullingModel"),
+				drawConstantResource_->GetGPUVirtualAddress() + offset);
 
-			commandList->DispatchMesh(mesh.meshletCount, 1, 1);
+			const uint32_t amplificationGroupCount =
+				(mesh.meshletCount + kMeshletsPerAmplificationGroup - 1) /
+				kMeshletsPerAmplificationGroup;
+			commandList->DispatchMesh(amplificationGroupCount, 1, 1);
 			++drawIndex;
 		}
 	}
@@ -104,7 +126,9 @@ void ModelDrawer3D::AddModel(
 	std::shared_ptr<ModelResource> resource,
 	const Matrix4x4& worldMatrix,
 	const Matrix4x4& worldInverseTranspose,
-	const Vector4& color) {
+	const Vector4& color,
+	float worldMaximumScale,
+	bool showMeshletColors) {
 
 	if (!resource) {
 		throw std::invalid_argument("Model resource must not be null.");
@@ -119,5 +143,7 @@ void ModelDrawer3D::AddModel(
 		.worldMatrix = worldMatrix,
 		.worldInverseTranspose = worldInverseTranspose,
 		.color = color,
+		.worldMaximumScale = worldMaximumScale,
+		.showMeshletColors = showMeshletColors,
 	});
 }

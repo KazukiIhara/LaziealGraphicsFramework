@@ -496,6 +496,7 @@ PipelineFactory::RootSignatureBuildResult PipelineFactory::CreateRootSignature(c
 
 ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreateMeshGraphicsPipelineState(const PipelineJsonLoader::Param& jsonParam, const ComPtr<ID3D12RootSignature>& rootSignature, const std::vector<ShaderBlob>& shaderBlobs) {
 
+	const ShaderBlob* amplificationShader = FindShaderBlob(shaderBlobs, "AS");
 	const ShaderBlob* meshShader = FindShaderBlob(shaderBlobs, "MS");
 	const ShaderBlob* pixelShader = FindShaderBlob(shaderBlobs, "PS");
 
@@ -504,6 +505,7 @@ ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreateMeshGraphicsPipelineStat
 
 	struct PipelineStateStream {
 		PipelineStreamSubobject<ID3D12RootSignature*> rootSignature;
+		PipelineStreamSubobject<D3D12_SHADER_BYTECODE> as;
 		PipelineStreamSubobject<D3D12_SHADER_BYTECODE> ms;
 		PipelineStreamSubobject<D3D12_SHADER_BYTECODE> ps;
 		PipelineStreamSubobject<D3D12_BLEND_DESC> blend;
@@ -519,6 +521,12 @@ ComPtr<ID3D12PipelineState> LGF::PipelineFactory::CreateMeshGraphicsPipelineStat
 
 	stream.rootSignature.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_ROOT_SIGNATURE;
 	stream.rootSignature.value = rootSignature.Get();
+
+	stream.as.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_AS;
+	if (amplificationShader) {
+		stream.as.value.pShaderBytecode = amplificationShader->blob->GetBufferPointer();
+		stream.as.value.BytecodeLength = amplificationShader->blob->GetBufferSize();
+	}
 
 	stream.ms.type = D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_MS;
 	stream.ms.value.pShaderBytecode = meshShader->blob->GetBufferPointer();

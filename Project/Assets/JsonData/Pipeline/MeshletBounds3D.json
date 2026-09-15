@@ -1,0 +1,38 @@
+{
+  "Name": "MeshletBounds3D",
+
+  "PipelineKind": "MeshGraphics",
+
+  "Shaders": {
+    "MS": "Graphics3D/MeshletBounds3D.MS.hlsl",
+    "PS": "Graphics3D/Primitive3D.PS.hlsl"
+  },
+
+  "Rasterizer": {
+    "CullMode": "None",
+    "FillMode": "Solid"
+  },
+
+  "Blend": {
+    "Mode": "None"
+  },
+
+  "Depth": {
+    "Enable": true,
+    "Write": false,
+    "Func": "LessEqual"
+  },
+
+  "RenderTarget": {
+    "Formats": [
+      "R8G8B8A8_UNORM_SRGB",
+      "R16G16B16A16_FLOAT"
+    ]
+  },
+
+  "DepthStencil": {
+    "Format": "D24_UNORM_S8_UINT"
+  },
+
+  "PrimitiveTopology": "Line"
+}

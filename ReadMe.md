@@ -58,6 +58,31 @@ while (System::Update()) {
 }
 ```
 
+モデルはDirectXMeshでメシュレットへ分割され、Amplification Shaderで現在の3Dカメラの視錐台に入るメシュレットだけを描画します。別のカメラでカリングしたい場合は、描画するフレーム内で `SetCullingScene()` を呼びます。
+
+```cpp
+Camera3D renderCamera({ 0.0f, 1.0f, -5.0f });
+Camera3D cullingCamera({ 0.0f, 5.0f, -10.0f }, 0.0f, 20.0f * Math::DEG_TO_RAD);
+
+ModelDebugDraw debugDraw{
+    .showMeshletColors = true,
+    .showMeshletBoundingSpheres = true,
+    .meshletBoundingSphereColor = Color::Lime,
+};
+
+while (System::Update()) {
+    renderCamera.SetScene();
+    cullingCamera.SetCullingScene();
+    cullingCamera.DrawDebug({
+        .showFrustum = true,
+        .frustumColor = Color::Yellow,
+    });
+    model.Draw(Math::Identity4x4(), Color::White, debugDraw);
+}
+```
+
+`SetCullingScene()` を呼ばなかったフレームは描画カメラが自動的に使われます。メシュレット境界球はカリング結果に関係なくデバッグ表示されるため、別カメラでカリングした結果も描画カメラから確認できます。`Camera3DDebugDraw::showFrustum` を切り替えると、カメラの視錐台を示すラインの表示をシーン側からON/OFFできます。
+
 - GLB内の圧縮された埋め込み画像と、モデルから相対参照される外部画像を読み込めます。
 - 読み込み時に左手座標系へ変換し、ノード変換を頂点へ適用します。現時点ではスキニング、アニメーション、法線マップ、PBRマテリアル描画は対象外です。
 - モデルは初回のみキャッシュされ、GPUリソースはフレームワーク終了まで保持されます。毎フレーム生成しないでください。
