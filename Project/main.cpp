@@ -3,10 +3,23 @@
 using namespace LGF;
 
 void Main() {
-	Model model("Assets/Models/FlightHelmet/FlightHelmet.gltf");
-	Transform3D modelTrans{};
-	modelTrans.scale = { 5.0f, 5.0f, 5.0f };
-	modelTrans.translation = { 0.0f, -1.75f, 0.0f };
+	Model flightHelmet("Assets/Models/FlightHelmet/FlightHelmet.gltf");
+	Transform3D flightHelmetTransform{};
+	flightHelmetTransform.scale = { 5.0f, 5.0f, 5.0f };
+	flightHelmetTransform.translation = { -1.5f, -1.75f, 0.0f };
+
+	Model waterBottle("Assets/Models/WaterBottle/WaterBottle.glb");
+	Transform3D waterBottleTransform{};
+	waterBottleTransform.scale = { 10.0f, 10.0f, 10.0f };
+	waterBottleTransform.translation = { 1.5f, -0.45f, 0.0f };
+
+	const Ground3D ground(14.0f);
+	const Matrix4x4 groundWorldMatrix =
+		Math::MakeTranslateMatrix({ 0.0f, -1.75f, 0.0f });
+	const Material3D groundMaterial{
+		.color = Color::Gray,
+	};
+
 	constexpr float kModelMoveSpeed = 2.0f;
 	const ModelDrawOptions modelDrawOptions{
 		.enableNormalMap = true,
@@ -24,7 +37,7 @@ void Main() {
 		};
 		if (Math::LengthSq(moveDirection) > Math::EPSILON) {
 			moveDirection = Math::Normalize(moveDirection);
-			modelTrans.translation +=
+			flightHelmetTransform.translation +=
 				moveDirection * kModelMoveSpeed * static_cast<float>(System::DeltaTime());
 		}
 
@@ -32,11 +45,16 @@ void Main() {
 		camera.SetScene();
 		directionalLight.SetScene();
 
-		Grid3D().Draw();
-		model.Draw(Math::MakeAffineMatrix(
-			modelTrans.scale,
-			modelTrans.rotation,
-			modelTrans.translation),
+		ground.Draw(groundWorldMatrix, groundMaterial);
+		flightHelmet.Draw(Math::MakeAffineMatrix(
+			flightHelmetTransform.scale,
+			flightHelmetTransform.rotation,
+			flightHelmetTransform.translation),
+			modelDrawOptions);
+		waterBottle.Draw(Math::MakeAffineMatrix(
+			waterBottleTransform.scale,
+			waterBottleTransform.rotation,
+			waterBottleTransform.translation),
 			modelDrawOptions);
 	}
 }
