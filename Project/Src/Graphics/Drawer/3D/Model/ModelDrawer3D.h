@@ -27,7 +27,10 @@ namespace LGF {
 			const Matrix4x4& worldInverseTranspose,
 			const Vector4& color,
 			float worldMaximumScale,
-			bool showMeshletColors
+			float worldOrientationSign,
+			bool showMeshletColors,
+			bool enableNormalMap,
+			float normalScale
 		);
 
 	private:
@@ -36,8 +39,9 @@ namespace LGF {
 			Matrix4x4 worldInverseTranspose;
 			Vector4 color;
 			float worldMaximumScale = 1.0f;
-			uint32_t debugFlags = 0;
-			uint32_t padding[2]{};
+			uint32_t drawFlags = 0;
+			float worldOrientationSign = 1.0f;
+			float normalScale = 1.0f;
 		};
 		static_assert(sizeof(ModelInstanceData) == 160);
 

@@ -261,7 +261,7 @@ void Renderer3D::AddModel(
 	const Model& model,
 	const Matrix4x4& worldMatrix,
 	const Vector4& color,
-	const ModelDebugDraw& debugDraw) {
+	const ModelDrawOptions& options) {
 
 	const float worldMaximumScale = std::max({
 		Math::Length(Vector3{ worldMatrix.m[0][0], worldMatrix.m[0][1], worldMatrix.m[0][2] }),
@@ -275,9 +275,12 @@ void Renderer3D::AddModel(
 		Math::Transpose(Math::Inverse(worldMatrix)),
 		color,
 		worldMaximumScale,
-		debugDraw.showMeshletColors);
+		Math::Determinant(worldMatrix) < 0.0f ? -1.0f : 1.0f,
+		options.debugDraw.showMeshletColors,
+		options.enableNormalMap,
+		options.normalScale);
 
-	if (!debugDraw.showMeshletBoundingSpheres) {
+	if (!options.debugDraw.showMeshletBoundingSpheres) {
 		return;
 	}
 
@@ -288,8 +291,9 @@ void Renderer3D::AddModel(
 			data.instance.worldMatrix = Math::MakeTranslateMatrix(worldCenter);
 			data.instance.worldInverseTranspose =
 				Math::Transpose(Math::Inverse(data.instance.worldMatrix));
-			data.instance.baseColor = debugDraw.meshletBoundingSphereColor;
+			data.instance.baseColor = options.debugDraw.meshletBoundingSphereColor;
 			data.instance.textureIndex = UINT32_MAX;
+			data.instance.normalTextureIndex = UINT32_MAX;
 			data.radius = bounds.radius * worldMaximumScale;
 			meshletBoundsDrawer_->AddBounds(data);
 		}
@@ -297,11 +301,16 @@ void Renderer3D::AddModel(
 }
 
 void Renderer3D::ApplyMaterial(InstanceData3D& instance, const Material3D& material) {
-    if (material.baseColorTexture.isCubeMap_) {
-        throw std::invalid_argument("Material3D baseColorTexture must be a Texture2D.");
-    }
-    instance.baseColor = material.color;
-    instance.textureIndex = material.baseColorTexture.srvIndex_;
-    instance.uvScale = material.uvScale;
-    instance.uvOffset = material.uvOffset;
+	if (material.baseColorTexture.isCubeMap_) {
+		throw std::invalid_argument("Material3D baseColorTexture must be a Texture2D.");
+	}
+	if (material.normalTexture.isCubeMap_) {
+		throw std::invalid_argument("Material3D normalTexture must be a Texture2D.");
+	}
+	instance.baseColor = material.color;
+	instance.textureIndex = material.baseColorTexture.srvIndex_;
+	instance.normalTextureIndex = material.normalTexture.srvIndex_;
+	instance.normalScale = material.normalScale;
+	instance.uvScale = material.uvScale;
+	instance.uvOffset = material.uvOffset;
 }

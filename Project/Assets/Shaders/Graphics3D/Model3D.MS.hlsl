@@ -6,6 +6,7 @@ struct ModelVertex
     float3 position;
     float3 normal;
     float2 uv;
+    float4 tangent;
 };
 
 ConstantBuffer<CameraData3D> gCamera : register(b0);
@@ -55,15 +56,21 @@ void main(
         InstanceData3D instance;
         instance.worldMatrix = modelInstance.worldMatrix;
         instance.worldInverseTranspose = modelInstance.worldInverseTranspose;
-        instance.baseColor = (modelInstance.debugFlags & kModelDebugShowMeshletColors) != 0
+        instance.baseColor = (modelInstance.drawFlags & kModelDebugShowMeshletColors) != 0
             ? GetMeshletDebugColor(gModel.meshletIndexOffset + meshletIndex)
             : gModel.meshBaseColor * modelInstance.color;
         instance.uvScale = float2(1.0f, 1.0f);
         instance.uvOffset = float2(0.0f, 0.0f);
-        instance.textureIndex = (modelInstance.debugFlags & kModelDebugShowMeshletColors) != 0
+        instance.textureIndex = (modelInstance.drawFlags & kModelDebugShowMeshletColors) != 0
             ? 0xffffffffu
             : gModel.baseColorTextureIndex;
-        instance.padding = uint3(0, 0, 0);
+        instance.normalTextureIndex =
+            (modelInstance.drawFlags &
+                (kModelDebugShowMeshletColors | kModelDisableNormalMap)) != 0
+            ? 0xffffffffu
+            : gModel.normalTextureIndex;
+        instance.normalScale = gModel.normalScale * modelInstance.normalScale;
+        instance.padding = 0;
 
         outputVertices[localIndex] = MakeVertex(
             instance,
@@ -71,6 +78,17 @@ void main(
             vertex.position,
             vertex.normal,
             vertex.uv);
+
+        const float3 worldTangent = mul(
+            float4(vertex.tangent.xyz, 0.0f),
+            modelInstance.worldMatrix).xyz;
+        const float worldTangentLengthSquared = dot(worldTangent, worldTangent);
+        if (vertex.tangent.w != 0.0f && worldTangentLengthSquared > 1.0e-12f)
+        {
+            outputVertices[localIndex].tangent = float4(
+                worldTangent * rsqrt(worldTangentLengthSquared),
+                vertex.tangent.w * modelInstance.worldOrientationSign);
+        }
     }
 
     if (localIndex < meshlet.primitiveCount)

@@ -19,6 +19,7 @@ namespace LGF {
 	class Line3D;
 	class Model;
 	struct ModelDebugDraw;
+	struct ModelDrawOptions;
 	class Plane3D;
 	class Sphere3D;
 	class Triangle3D;
@@ -97,6 +98,13 @@ namespace LGF {
 			const Matrix4x4& worldMatrix,
 			const Vector4& color,
 			const ModelDebugDraw& debugDraw
+			);
+
+		void Draw(
+			const Model& model,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color,
+			const ModelDrawOptions& options
 			);
 
 		void Draw(const Triangle3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);

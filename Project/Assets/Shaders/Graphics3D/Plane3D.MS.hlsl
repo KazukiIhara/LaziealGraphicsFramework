@@ -29,6 +29,10 @@ void main(
         vertices[i].baseColor = plane.instData.baseColor;
         vertices[i].uv = float2(i % 2, 1 - i / 2) * plane.instData.uvScale + plane.instData.uvOffset;
         vertices[i].textureIndex = plane.instData.textureIndex;
+        vertices[i].normalTextureIndex = plane.instData.normalTextureIndex;
+        vertices[i].normalScale = plane.instData.normalScale;
+        vertices[i].worldPosition = worldPos.xyz;
+        vertices[i].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
         vertices[i].normal = worldNormal;
     }
 

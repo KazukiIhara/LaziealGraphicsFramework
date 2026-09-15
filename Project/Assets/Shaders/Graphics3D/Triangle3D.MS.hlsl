@@ -36,6 +36,10 @@ void main(
         vertices[i].baseColor = tri.instData.baseColor;
         vertices[i].uv = (i == 0 ? float2(0.5f, 0.0f) : (i == 1 ? float2(0.0f, 1.0f) : float2(1.0f, 1.0f))) * tri.instData.uvScale + tri.instData.uvOffset;
         vertices[i].textureIndex = tri.instData.textureIndex;
+        vertices[i].normalTextureIndex = tri.instData.normalTextureIndex;
+        vertices[i].normalScale = tri.instData.normalScale;
+        vertices[i].worldPosition = worldPos.xyz;
+        vertices[i].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
         vertices[i].normal = worldNormal;
     }
 

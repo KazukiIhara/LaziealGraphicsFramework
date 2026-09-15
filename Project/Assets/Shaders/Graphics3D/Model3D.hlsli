@@ -1,5 +1,6 @@
 static const uint kMeshletsPerAmplificationGroup = 32;
 static const uint kModelDebugShowMeshletColors = 1u << 0;
+static const uint kModelDisableNormalMap = 1u << 1;
 
 struct ModelDrawData
 {
@@ -10,6 +11,8 @@ struct ModelDrawData
     uint meshletPrimitiveBufferIndex;
     uint meshletCullDataBufferIndex;
     uint baseColorTextureIndex;
+    uint normalTextureIndex;
+    float normalScale;
     uint instanceBufferIndex;
     uint instanceOffset;
     uint instanceCount;
@@ -17,7 +20,7 @@ struct ModelDrawData
     uint meshletIndexOffset;
     uint baseWorkIndexLow;
     uint baseWorkIndexHigh;
-    uint3 padding;
+    uint padding;
 };
 
 struct ModelInstanceData
@@ -26,8 +29,9 @@ struct ModelInstanceData
     float4x4 worldInverseTranspose;
     float4 color;
     float worldMaximumScale;
-    uint debugFlags;
-    uint2 padding;
+    uint drawFlags;
+    float worldOrientationSign;
+    float normalScale;
 };
 
 struct Meshlet

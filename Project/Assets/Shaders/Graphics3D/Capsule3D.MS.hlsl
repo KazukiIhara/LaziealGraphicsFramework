@@ -72,6 +72,10 @@ void main(
             vertices[vertexIndex].baseColor = capsule.instData.baseColor;
             vertices[vertexIndex].uv = float2(u, v) * capsule.instData.uvScale + capsule.instData.uvOffset;
             vertices[vertexIndex].textureIndex = capsule.instData.textureIndex;
+            vertices[vertexIndex].normalTextureIndex = capsule.instData.normalTextureIndex;
+            vertices[vertexIndex].normalScale = capsule.instData.normalScale;
+            vertices[vertexIndex].worldPosition = worldPos.xyz;
+            vertices[vertexIndex].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
             vertices[vertexIndex].normal = ToWorldNormal(capsule.instData, localNormal);
         }
     }

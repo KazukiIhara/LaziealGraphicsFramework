@@ -11,6 +11,7 @@
 #include <DirectXMesh.h>
 
 #include <assimp/Importer.hpp>
+#include <assimp/GltfMaterial.h>
 #include <assimp/material.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -67,6 +68,37 @@ namespace {
 		aiTextureType_DIFFUSE,
 	};
 
+	uint32_t LoadMaterialTexture(
+		TextureManager& textureManager,
+		const aiScene& scene,
+		const std::filesystem::path& modelPath,
+		const aiString& textureReference,
+		const TextureLoadDesc& loadDesc) {
+
+		const std::string reference(textureReference.C_Str(), textureReference.length);
+		const aiTexture* embeddedTexture = scene.GetEmbeddedTexture(textureReference.C_Str());
+		if (embeddedTexture) {
+			if (embeddedTexture->mHeight != 0) {
+				throw std::runtime_error(std::format(
+					"Model '{}': uncompressed embedded textures are not supported yet.",
+					ToUtf8String(modelPath)));
+			}
+			const std::wstring textureKey = std::format(
+				L"{}|embedded:{}",
+				modelPath.native(),
+				std::wstring(reference.begin(), reference.end()));
+			return textureManager.LoadFromMemory(
+				textureKey,
+				embeddedTexture->pcData,
+				embeddedTexture->mWidth,
+				loadDesc).srvIndex;
+		}
+
+		const auto texturePath =
+			(modelPath.parent_path() / ToPath(reference)).lexically_normal();
+		return textureManager.Load(ToUtf8String(texturePath), loadDesc).srvIndex;
+	}
+
 	constexpr size_t kMaxMeshletVertices = 128;
 	constexpr size_t kMaxMeshletPrimitives = 128;
 	static_assert(sizeof(DirectX::Meshlet) == 16);
@@ -105,6 +137,7 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 		aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_GenSmoothNormals |
+		aiProcess_CalcTangentSpace |
 		aiProcess_PreTransformVertices |
 		aiProcess_ImproveCacheLocality |
 		aiProcess_ConvertToLeftHanded |
@@ -141,10 +174,34 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 			const aiVector3D uv = sourceMesh->HasTextureCoords(0)
 				? sourceMesh->mTextureCoords[0][vertexIndex]
 				: aiVector3D{};
+
+			Vector4 tangent{};
+			if (sourceMesh->HasTangentsAndBitangents()) {
+				const aiVector3D& sourceTangent = sourceMesh->mTangents[vertexIndex];
+				const aiVector3D& sourceBitangent = sourceMesh->mBitangents[vertexIndex];
+				const aiVector3D normalCrossTangent{
+					normal.y * sourceTangent.z - normal.z * sourceTangent.y,
+					normal.z * sourceTangent.x - normal.x * sourceTangent.z,
+					normal.x * sourceTangent.y - normal.y * sourceTangent.x,
+				};
+				const float handedness =
+					normalCrossTangent.x * sourceBitangent.x +
+					normalCrossTangent.y * sourceBitangent.y +
+					normalCrossTangent.z * sourceBitangent.z < 0.0f
+					? -1.0f
+					: 1.0f;
+				tangent = {
+					sourceTangent.x,
+					sourceTangent.y,
+					sourceTangent.z,
+					handedness,
+				};
+			}
 			vertices[vertexIndex] = {
 				.position = { position.x, position.y, position.z },
 				.normal = { normal.x, normal.y, normal.z },
 				.uv = { uv.x, uv.y },
+				.tangent = tangent,
 			};
 		}
 
@@ -314,28 +371,31 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 			}
 
 			if (hasBaseColorTexture) {
-				const std::string reference(textureReference.C_Str(), textureReference.length);
-				const aiTexture* embeddedTexture = scene->GetEmbeddedTexture(textureReference.C_Str());
-				if (embeddedTexture) {
-					if (embeddedTexture->mHeight != 0) {
-						throw std::runtime_error(std::format(
-							"Model '{}': uncompressed embedded textures are not supported yet.",
-							filePath));
-					}
-					const std::wstring textureKey = std::format(
-						L"{}|embedded:{}",
-						path.native(),
-						std::wstring(reference.begin(), reference.end()));
-					mesh.baseColorTextureSrvIndex = textureManager_.LoadFromMemory(
-						textureKey,
-						embeddedTexture->pcData,
-						embeddedTexture->mWidth,
-						TextureLoadDesc::Color()).srvIndex;
-				} else {
-					const auto texturePath = (path.parent_path() / ToPath(reference)).lexically_normal();
-					mesh.baseColorTextureSrvIndex = textureManager_.Load(
-						ToUtf8String(texturePath),
-						TextureLoadDesc::Color()).srvIndex;
+				mesh.baseColorTextureSrvIndex = LoadMaterialTexture(
+					textureManager_,
+					*scene,
+					path,
+					textureReference,
+					TextureLoadDesc::Color());
+			}
+
+			aiString normalTextureReference;
+			if (material->GetTexture(
+				aiTextureType_NORMALS,
+				0,
+				&normalTextureReference) == AI_SUCCESS) {
+				mesh.normalTextureSrvIndex = LoadMaterialTexture(
+					textureManager_,
+					*scene,
+					path,
+					normalTextureReference,
+					TextureLoadDesc::NormalMap());
+
+				float normalScale = 1.0f;
+				if (material->Get(
+					AI_MATKEY_GLTF_TEXTURE_SCALE(aiTextureType_NORMALS, 0),
+					normalScale) == AI_SUCCESS) {
+					mesh.normalScale = normalScale;
 				}
 			}
 		}

@@ -33,18 +33,28 @@ LGF::Model::~Model() = default;
 
 void LGF::Model::Draw(
 	const Matrix4x4& worldMatrix,
-	const Vector4& color,
-	const ModelDebugDraw& debugDraw) const {
+	const ModelDrawOptions& options) const {
 
 	if (!resource_) {
 		throw std::runtime_error("Cannot draw an empty Model.");
 	}
-	Graphics3D::Draw(*this, worldMatrix, color, debugDraw);
+	Graphics3D::Draw(*this, worldMatrix, options.color, options);
+}
+
+void LGF::Model::Draw(
+	const Matrix4x4& worldMatrix,
+	const Vector4& color,
+	const ModelDebugDraw& debugDraw) const {
+
+	Draw(worldMatrix, ModelDrawOptions{
+		.color = color,
+		.debugDraw = debugDraw,
+	});
 }
 
 void LGF::Model::DrawInstanced(
 	std::span<const ModelInstance3D> instances,
-	const ModelDebugDraw& debugDraw) const {
+	const ModelDrawOptions& options) const {
 
 	if (!resource_) {
 		throw std::runtime_error("Cannot draw an empty Model.");
@@ -53,9 +63,18 @@ void LGF::Model::DrawInstanced(
 		Graphics3D::Draw(
 			*this,
 			instance.worldMatrix,
-			instance.color,
-			debugDraw);
+			instance.color * options.color,
+			options);
 	}
+}
+
+void LGF::Model::DrawInstanced(
+	std::span<const ModelInstance3D> instances,
+	const ModelDebugDraw& debugDraw) const {
+
+	DrawInstanced(instances, ModelDrawOptions{
+		.debugDraw = debugDraw,
+	});
 }
 
 const std::string& LGF::Model::GetFilePath() const {

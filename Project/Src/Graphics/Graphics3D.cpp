@@ -161,7 +161,7 @@ void LGF::Graphics3D::Draw(
 	const Matrix4x4& worldMatrix,
 	const Vector4& color) {
 
-	Draw(model, worldMatrix, color, ModelDebugDraw{});
+	Draw(model, worldMatrix, color, ModelDrawOptions{});
 }
 
 void LGF::Graphics3D::Draw(
@@ -170,8 +170,19 @@ void LGF::Graphics3D::Draw(
 	const Vector4& color,
 	const ModelDebugDraw& debugDraw) {
 
+	Draw(model, worldMatrix, color, ModelDrawOptions{
+		.debugDraw = debugDraw,
+	});
+}
+
+void LGF::Graphics3D::Draw(
+	const Model& model,
+	const Matrix4x4& worldMatrix,
+	const Vector4& color,
+	const ModelDrawOptions& options) {
+
 	assert(g_renderer3D != nullptr);
-	g_renderer3D->AddModel(model, worldMatrix, color, debugDraw);
+	g_renderer3D->AddModel(model, worldMatrix, color, options);
 }
 
 void LGF::Graphics3D::Draw(const Triangle3D& shape, const Matrix4x4& worldMatrix, const Material3D& material) {

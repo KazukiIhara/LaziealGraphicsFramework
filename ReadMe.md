@@ -26,6 +26,10 @@
 ```cpp
 Material3D material{};
 material.baseColorTexture = Texture("Assets/Textures/Checker.bmp");
+material.normalTexture = Texture(
+    "Assets/Models/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_Normal.png",
+    TextureLoadDesc::NormalMap());
+material.normalScale = 1.0f;
 material.color = Color::White;
 material.uvScale = { 4.0f, 4.0f };
 
@@ -36,10 +40,10 @@ while (System::Update()) {
 ```
 
 - `Triangle3D`・`Box3D`・`Plane3D`・`Ground3D`・`Sphere3D`・`Capsule3D`・`Cone3D`・`Cylinder3D`・`Line3D` に対応しています。従来の色指定 `Draw(matrix, color)` も使用できます。
-- `baseColorTexture` 未指定時は単色、指定時はテクスチャと `color` を乗算します。今回は不透明なベースカラー描画が対象で、透過・法線マップ・PBR は未実装です。
+- `baseColorTexture` 未指定時は単色、指定時はテクスチャと `color` を乗算します。`normalTexture` はタンジェント空間法線マップで、`normalScale` は `0` で無効、`1` で元の強さです。今回は不透明描画が対象で、透過・PBR は未実装です。
 - UV は各形状で生成します。箱は面ごと、球・カプセルは経緯度、円柱・円錐は側面と底面を分離しています。`uvScale` と `uvOffset` で調整し、リピート＋線形ミップフィルタで描画します。
-- BMP・PNG・JPEG などの WIC 対応画像、DDS・TGA・HDR を読み込めます。単一2Dテクスチャ／単一キューブマップが対象です。キューブマップは読み込めますが、`baseColorTexture` には指定できません。
-- 色画像は既定で sRGB、データ用画像は `TextureLoadDesc::NormalMap()` で Linear として読み込めます。これは読み込み設定であり、法線マップ描画を有効にするものではありません。
+- BMP・PNG・JPEG などの WIC 対応画像、DDS・TGA・HDR を読み込めます。単一2Dテクスチャ／単一キューブマップが対象です。キューブマップは読み込めますが、`baseColorTexture` と `normalTexture` には指定できません。
+- 色画像は既定で sRGB、法線マップは `TextureLoadDesc::NormalMap()` で Linear として読み込みます。モデルに頂点タンジェントがある場合はhandednessを含めて使用し、持たないモデルや既存プリミティブではワールド位置とUVの画面微分からTBNを生成します。UVが退化してTBNを作れない箇所は頂点法線へフォールバックします。
 - ミップ生成は既定で有効です。DDS などの既存ミップは保持し、`generateMipMaps = false` では新規生成しません。
 - パスは UTF-8、相対パスは作業ディレクトリ基準です。通常は `Project` を作業ディレクトリにします。同じ正規化パスと読み込み設定はキャッシュし、GPU リソースはフレームワーク終了まで保持します。
 - 初回ロードはGPU転送完了を待つ同期処理です。毎フレームのロードは避けてください。失敗時は例外を送出します。
@@ -64,10 +68,14 @@ while (System::Update()) {
 Camera3D renderCamera({ 0.0f, 1.0f, -5.0f });
 Camera3D cullingCamera({ 0.0f, 5.0f, -10.0f }, 0.0f, 20.0f * Math::DEG_TO_RAD);
 
-ModelDebugDraw debugDraw{
-    .showMeshletColors = true,
-    .showMeshletBoundingSpheres = true,
-    .meshletBoundingSphereColor = Color::Lime,
+ModelDrawOptions drawOptions{
+    .enableNormalMap = true,
+    .normalScale = 1.0f,
+    .debugDraw = {
+        .showMeshletColors = true,
+        .showMeshletBoundingSpheres = true,
+        .meshletBoundingSphereColor = Color::Lime,
+    },
 };
 
 while (System::Update()) {
@@ -77,7 +85,7 @@ while (System::Update()) {
         .showFrustum = true,
         .frustumColor = Color::Yellow,
     });
-    model.Draw(Math::Identity4x4(), Color::White, debugDraw);
+    model.Draw(Math::Identity4x4(), drawOptions);
 }
 ```
 
@@ -91,11 +99,12 @@ for (size_t i = 0; i < instances.size(); ++i) {
     instances[i].worldMatrix = Math::MakeTranslateMatrix(
         { static_cast<float>(i) * 2.0f, 0.0f, 0.0f });
 }
-model.DrawInstanced(instances, debugDraw);
+model.DrawInstanced(instances, drawOptions);
 ```
 
 - GLB内の圧縮された埋め込み画像と、モデルから相対参照される外部画像を読み込めます。
-- 読み込み時に左手座標系へ変換し、ノード変換を頂点へ適用します。現時点ではスキニング、アニメーション、法線マップ、PBRマテリアル描画は対象外です。
+- 読み込み時に左手座標系へ変換し、ノード変換を頂点へ適用します。glTFなどのタンジェント空間法線テクスチャと強度はマテリアルから自動的に読み込みます。現時点ではスキニング、アニメーション、PBRマテリアル描画は対象外です。
+- `ModelDrawOptions::enableNormalMap` を `false` にすると描画単位で法線マップを無効化できます。`normalScale` はモデルファイル側の法線強度へ乗算され、`color` は全インスタンス共通の色倍率として使われます。
 - モデルは初回のみキャッシュされ、GPUリソースはフレームワーク終了まで保持されます。毎フレーム生成しないでください。
 
 ### 平行光源

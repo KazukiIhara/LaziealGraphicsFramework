@@ -25,6 +25,8 @@ namespace {
 		uint32_t meshletPrimitiveBufferIndex = UINT32_MAX;
 		uint32_t meshletCullDataBufferIndex = UINT32_MAX;
 		uint32_t baseColorTextureIndex = UINT32_MAX;
+		uint32_t normalTextureIndex = UINT32_MAX;
+		float normalScale = 1.0f;
 		uint32_t instanceBufferIndex = UINT32_MAX;
 		uint32_t instanceOffset = 0;
 		uint32_t instanceCount = 0;
@@ -32,13 +34,14 @@ namespace {
 		uint32_t meshletIndexOffset = 0;
 		uint32_t baseWorkIndexLow = 0;
 		uint32_t baseWorkIndexHigh = 0;
-		uint32_t padding[3]{};
+		uint32_t padding = 0;
 	};
 	static_assert(sizeof(ModelDrawConstants) == 80);
 
 	constexpr uint32_t kMeshletsPerAmplificationGroup = 32;
 	constexpr uint32_t kMaxAmplificationGroupCount = 65535;
 	constexpr uint32_t kDebugShowMeshletColors = 1u << 0;
+	constexpr uint32_t kDisableNormalMap = 1u << 1;
 
 }
 
@@ -128,6 +131,8 @@ void ModelDrawer3D::EndFrame() {
 				constants.meshletPrimitiveBufferIndex = mesh.meshletPrimitiveSrvIndex;
 				constants.meshletCullDataBufferIndex = mesh.meshletCullDataSrvIndex;
 				constants.baseColorTextureIndex = mesh.baseColorTextureSrvIndex;
+				constants.normalTextureIndex = mesh.normalTextureSrvIndex;
+				constants.normalScale = mesh.normalScale;
 				constants.instanceBufferIndex = instanceSrvIndex_;
 				constants.instanceOffset = instanceOffset;
 				constants.instanceCount = instanceCount;
@@ -172,7 +177,10 @@ void ModelDrawer3D::AddModel(
 	const Matrix4x4& worldInverseTranspose,
 	const Vector4& color,
 	float worldMaximumScale,
-	bool showMeshletColors) {
+	float worldOrientationSign,
+	bool showMeshletColors,
+	bool enableNormalMap,
+	float normalScale) {
 
 	if (!resource) {
 		throw std::invalid_argument("Model resource must not be null.");
@@ -190,12 +198,18 @@ void ModelDrawer3D::AddModel(
 	}
 
 	ModelBatch& batch = batches_[batchIt->second];
+	uint32_t drawFlags = showMeshletColors ? kDebugShowMeshletColors : 0;
+	if (!enableNormalMap) {
+		drawFlags |= kDisableNormalMap;
+	}
 	batch.instances.push_back({
 		.worldMatrix = worldMatrix,
 		.worldInverseTranspose = worldInverseTranspose,
 		.color = color,
 		.worldMaximumScale = worldMaximumScale,
-		.debugFlags = showMeshletColors ? kDebugShowMeshletColors : 0,
+		.drawFlags = drawFlags,
+		.worldOrientationSign = worldOrientationSign,
+		.normalScale = normalScale,
 	});
 	++queuedInstanceCount_;
 }

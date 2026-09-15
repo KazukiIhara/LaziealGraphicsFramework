@@ -25,7 +25,9 @@ namespace LGF {
 		Vector2 uvScale = { 1.0f, 1.0f };
 		Vector2 uvOffset{};
 		uint32_t textureIndex = UINT32_MAX;
-		uint32_t padding[3]{};
+		uint32_t normalTextureIndex = UINT32_MAX;
+		float normalScale = 1.0f;
+		uint32_t padding = 0;
 	};
 	static_assert(sizeof(InstanceData3D) == 176);
 

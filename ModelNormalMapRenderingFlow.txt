@@ -1,0 +1,306 @@
+Lazieal Graphics Framework
+モデル・テクスチャ読み込みから法線マップ描画までの処理
+======================================================================
+
+1. この実装でできること
+----------------------------------------------------------------------
+
+- Assimpで静的モデルを読み込む。
+- GLB内の埋め込み画像と、glTFなどが相対パスで参照する外部画像を読み込む。
+- ベースカラーテクスチャをsRGB、法線マップをLinearとして読み込む。
+- モデルが持つ頂点タンジェントとhandednessを法線マップに使用する。
+- タンジェントがない形状では、ワールド位置とUVの画面微分からTBNを生成する。
+- ModelDrawOptionsにより、描画単位で法線マップのON/OFFと強度を変更する。
+- 同じModelを複数描画した場合も、設定をインスタンス単位で保持してまとめて描画する。
+
+
+2. モデル読み込み
+----------------------------------------------------------------------
+
+ユーザーコード:
+
+    Model model("Assets/Models/FlightHelmet/FlightHelmet.gltf");
+
+ModelのコンストラクタはModelManager::Load()を呼び出す。
+ModelManagerは絶対パスへ正規化したパスをキーとしてモデルをキャッシュするため、
+同じモデルファイルを複数回指定してもGPUリソースは共有される。
+
+Assimpには次の処理を指定している。
+
+- 三角形化
+- 重複頂点の統合
+- 法線がないモデルのスムーズ法線生成
+- タンジェント空間の生成
+- ノード変換の頂点への事前適用
+- 頂点キャッシュ効率の改善
+- DirectX向け左手座標系への変換
+- 読み込みデータの検証
+
+各頂点から次のデータをModelVertexへ保存する。
+
+- position: ローカル頂点座標
+- normal: ローカル頂点法線
+- uv: TEXCOORD_0
+- tangent.xyz: ローカルタンジェント
+- tangent.w: bitangentの向きを復元するhandedness（-1または+1）
+
+handednessは次の符号から復元する。
+
+    sign(dot(cross(normal, tangent), bitangent))
+
+頂点、インデックスを読み込んだ後、DirectXMeshでメシュレットへ分割する。
+メシュレットごとに頂点一覧、三角形一覧、境界球を生成し、それぞれを
+StructuredBufferとして参照できるGPUリソースとSRVへ変換する。
+
+DirectXMeshのCullDataにはNormal Coneも含まれるが、現在のAmplification Shaderは
+境界球による視錐台カリングだけを使用し、Normal Coneカリングは行わない。
+
+
+3. モデル内マテリアルとテクスチャ読み込み
+----------------------------------------------------------------------
+
+ModelManagerは各メッシュに割り当てられたAssimpマテリアルから次を取得する。
+
+- ベースカラー係数
+- ベースカラーテクスチャ
+- タンジェント空間法線テクスチャ
+- glTF normalTexture.scale
+
+ベースカラーテクスチャはTextureLoadDesc::Color()で読み込む。
+色として扱うため、GPU上ではsRGBフォーマットを使用する。
+
+法線マップはTextureLoadDesc::NormalMap()で読み込む。
+法線値を色変換してはいけないため、GPU上ではLinearフォーマットを使用する。
+
+GLB内の圧縮されたPNG/JPEGなどはメモリから読み込む。
+外部画像はモデルファイルの親ディレクトリを基準に相対パスを解決する。
+画像は「パスまたは埋め込み画像キー + 読み込み設定」でキャッシュされる。
+
+
+4. コードから設定できる内容
+----------------------------------------------------------------------
+
+4.1 プリミティブ用 Material3D
+
+    Material3D material{};
+    material.color = Color::White;
+    material.baseColorTexture = Texture("Assets/Textures/Albedo.png");
+    material.normalTexture = Texture(
+        "Assets/Textures/Normal.png",
+        TextureLoadDesc::NormalMap());
+    material.normalScale = 1.0f;
+    material.uvScale = { 1.0f, 1.0f };
+    material.uvOffset = { 0.0f, 0.0f };
+
+    Box3D().Draw(worldMatrix, material);
+
+Material3Dで設定できる項目:
+
+- color: ベースカラーへ乗算する色
+- baseColorTexture: ベースカラーテクスチャ
+- normalTexture: タンジェント空間法線マップ
+- normalScale: 法線マップのXY成分の強度。0で無効、1で本来の強さ
+- uvScale: UVの拡大率
+- uvOffset: UVのオフセット
+
+normalTextureへキューブマップは指定できない。
+
+
+4.2 モデル用 ModelDrawOptions
+
+    ModelDrawOptions options{
+        .color = Color::White,
+        .enableNormalMap = true,
+        .normalScale = 1.0f,
+        .debugDraw = {},
+    };
+
+    model.Draw(worldMatrix, options);
+
+ModelDrawOptionsで設定できる項目:
+
+- color:
+  モデル全体へ乗算する色。
+  DrawInstanced()では各ModelInstance3D::colorへさらに乗算される。
+
+- enableNormalMap:
+  trueでモデル内の法線マップを使用する。
+  falseで法線マップ用SRVを参照せず、頂点法線だけを使用する。
+
+- normalScale:
+  モデルファイル内のnormalTexture.scaleへ乗算する描画側の強度。
+  0にすると、enableNormalMapがtrueでも法線マップの影響はなくなる。
+
+- debugDraw.showMeshletColors:
+  メシュレット単位の色分け表示。
+  ONの場合は確認しやすいようにベースカラーと法線マップを無効化する。
+
+- debugDraw.showMeshletBoundingSpheres:
+  メシュレット境界球のワイヤーフレーム表示。
+
+- debugDraw.meshletBoundingSphereColor:
+  境界球の色。
+
+
+4.3 法線マップを描画ごとに切り替える例
+
+    ModelDrawOptions normalMapOn{
+        .enableNormalMap = true,
+    };
+
+    ModelDrawOptions normalMapOff{
+        .enableNormalMap = false,
+    };
+
+    model.Draw(leftWorldMatrix, normalMapOn);
+    model.Draw(rightWorldMatrix, normalMapOff);
+
+同じModelを同じフレームに描画しても、enableNormalMapとnormalScaleは
+ModelInstanceDataへ保存されるため、それぞれ異なる設定で描画できる。
+
+
+4.4 インスタンシング描画
+
+    std::array<ModelInstance3D, 5> instances{};
+    for (size_t i = 0; i < instances.size(); ++i) {
+        instances[i].worldMatrix = Math::MakeTranslateMatrix(
+            { static_cast<float>(i) * 2.0f, 0.0f, 0.0f });
+        instances[i].color = Color::White;
+    }
+
+    ModelDrawOptions options{
+        .enableNormalMap = true,
+        .normalScale = 1.0f,
+    };
+    model.DrawInstanced(instances, options);
+
+既存のDraw(worldMatrix, color, debugDraw)と
+DrawInstanced(instances, debugDraw)も互換用として残している。
+新しく書くコードではModelDrawOptionsを使用する。
+
+
+5. Draw()からGPU描画まで
+----------------------------------------------------------------------
+
+1) Model::Draw() / Model::DrawInstanced()
+
+Modelが有効か確認し、ModelDrawOptionsとインスタンス情報をGraphics3Dへ渡す。
+DrawInstanced()ではインスタンス色とModelDrawOptions::colorを乗算する。
+
+2) Graphics3D::Draw()
+
+現在のRenderer3Dへモデル、ワールド行列、色、ModelDrawOptionsを送る。
+
+3) Renderer3D::AddModel()
+
+次の情報を計算してModelDrawer3Dへ渡す。
+
+- worldMatrix
+- worldInverseTranspose: 法線変換用
+- worldMaximumScale: 境界球半径のワールド変換用
+- worldOrientationSign: 負スケール時のタンジェントhandedness補正用
+- 色
+- 法線マップのON/OFFと強度
+- メシュレット色分け設定
+
+境界球表示がONなら、別のデバッグDrawerへワイヤーフレーム球も登録する。
+このデバッグ球は現在、ASのカリング結果とは無関係に全メシュレット分を描画する。
+
+4) ModelDrawer3Dでバッチ化
+
+同じModelResourceを使う描画を同じバッチへまとめる。
+ワールド行列、色、描画フラグ、normalScaleなどはインスタンスごとに保存するため、
+同じモデルでも法線マップ設定の異なる描画をまとめられる。
+
+5) Amplification Shader
+
+処理単位は「インスタンス x メシュレット」。
+メシュレット境界球をワールド空間へ変換し、カリングカメラの6平面と比較する。
+視錐台内のメシュレットだけをgroupshared payloadへ詰め、DispatchMesh()する。
+
+6) Mesh Shader
+
+payloadからinstanceIndexとmeshletIndexを取得し、次を実行する。
+
+- メシュレットの頂点・三角形をStructuredBufferから取得
+- 頂点をworldMatrixとviewProjectionでクリップ空間へ変換
+- 法線をworldInverseTransposeでワールド空間へ変換
+- タンジェントをworldMatrixでワールド空間へ変換
+- 負スケール時はworldOrientationSignでhandednessを補正
+- ベースカラーと法線マップのDescriptor Heap indexをPixel Shaderへ渡す
+- 法線マップ最終強度 = モデル内normalScale x ModelDrawOptions::normalScale
+
+enableNormalMapがfalse、またはメシュレット色分けがONの場合は、
+normalTextureIndexへUINT32_MAXを設定して法線マップを無効化する。
+
+7) GBuffer Pixel Shader
+
+ベースカラーテクスチャをサンプリングして色倍率を乗算する。
+
+法線マップが有効な場合:
+
+- Linearテクスチャをサンプリング
+- RGBの0～1をXYZの-1～1へ変換
+- normalScaleをX/Yへ乗算
+- モデルでは頂点タンジェントを法線に対して直交化
+- bitangent = cross(normal, tangent) x handedness で復元
+- タンジェントがない場合は、ワールド位置とUVのddx/ddyからTBNを生成
+- タンジェント空間法線をワールド空間へ変換
+- 正規化した結果をGBufferNormalへ出力
+
+タンジェントまたはUVが退化してTBNを安全に作れない場合は、
+元のワールド空間頂点法線をGBufferNormalへ出力する。
+
+8) フルスクリーンLighting Pass
+
+GBufferAlbedo、GBufferNormal、Depthを読み込み、平行光源との内積から
+Ambient + Diffuseを計算してSceneColorへ出力する。
+法線マップによる細かい凹凸はGBufferNormalに反映されるため、
+DirectionalLightの向きに応じて陰影として見える。
+
+
+6. 現在の制限
+----------------------------------------------------------------------
+
+- 静的モデルのみ。スキニングとアニメーションは未対応。
+- モデルのテクスチャ座標はTEXCOORD_0のみ使用する。
+- 不透明描画のみ。Alpha Mask、Alpha Blend、doubleSidedは未対応。
+- Metallic、Roughness、AO、Emissive、IBLを使うPBRは未対応。
+- モデルとテクスチャの初回読み込みは同期処理。
+- 静的モデルのGPUバッファは現在Upload Heapを使用している。
+- メシュレット境界球デバッグ表示はカリング結果を反映しない。
+- Normal Coneカリングは現在使用しない。
+
+
+7. 主な関連ファイル
+----------------------------------------------------------------------
+
+- Project/Include/LGF/Graphics/Model.h
+  ModelDrawOptions、ModelDebugDraw、ModelInstance3D、Model公開API
+
+- Project/Include/LGF/Graphics/Material.h
+  プリミティブ用Material3D
+
+- Project/Src/Graphics/Model/ModelManager.cpp
+  Assimpモデル読み込み、DirectXMeshメシュレット生成、テクスチャ読み込み
+
+- Project/Src/Graphics/Model/ModelResource.h
+  モデル頂点、メッシュ、GPUリソース
+
+- Project/Src/Graphics/Drawer/3D/Model/ModelDrawer3D.cpp
+  モデルのバッチ化、インスタンスデータ、DispatchMesh
+
+- Project/Assets/Shaders/Graphics3D/Model3D.AS.hlsl
+  メシュレット視錐台カリング
+
+- Project/Assets/Shaders/Graphics3D/Model3D.MS.hlsl
+  メシュレット展開、頂点・法線・タンジェント変換
+
+- Project/Assets/Shaders/Graphics3D/Primitive3D.PS.hlsl
+  ベースカラーサンプリング、TBN構築、法線マップ適用、GBuffer出力
+
+- Project/Assets/Shaders/Fullscreen/FullscreenLighting.PS.hlsl
+  GBufferを使った平行光源ライティング
+
+- Project/main.cpp
+  FlightHelmet表示サンプル

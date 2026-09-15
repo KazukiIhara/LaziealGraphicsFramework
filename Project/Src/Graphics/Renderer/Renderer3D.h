@@ -33,6 +33,7 @@ namespace LGF {
 	class Line3D;
 	class Model;
 	struct ModelDebugDraw;
+	struct ModelDrawOptions;
 	class Plane3D;
 	class Sphere3D;
 	class Triangle3D;
@@ -111,7 +112,7 @@ namespace LGF {
 			const Model& model,
 			const Matrix4x4& worldMatrix,
 			const Vector4& color,
-			const ModelDebugDraw& debugDraw
+			const ModelDrawOptions& options
 		);
 
 	private:

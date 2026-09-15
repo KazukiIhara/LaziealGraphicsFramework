@@ -4,7 +4,7 @@
 #include <span>
 #include <string>
 
-#include "LGF/Math/Matrix4x4.h"
+#include "LGF/Math/MathUtils.h"
 #include "LGF/Math/Vector4.h"
 #include "Color.h"
 
@@ -13,6 +13,16 @@ namespace LGF {
 		bool showMeshletColors = false;
 		bool showMeshletBoundingSpheres = false;
 		Vector4 meshletBoundingSphereColor = Color::Lime;
+	};
+
+	/// <summary>
+	/// モデル描画ごとの設定。今後の描画機能はこの構造体へ追加する。
+	/// </summary>
+	struct ModelDrawOptions {
+		Vector4 color = Color::White;
+		bool enableNormalMap = true;
+		float normalScale = 1.0f;
+		ModelDebugDraw debugDraw{};
 	};
 
 	struct ModelInstance3D {
@@ -33,15 +43,27 @@ namespace LGF {
 		~Model();
 
 		void Draw(
+			const Matrix4x4& worldMatrix = Math::Identity4x4(),
+			const ModelDrawOptions& options = {}
+		) const;
+
+		// 既存コード互換用。新規コードでは ModelDrawOptions を使用する。
+		void Draw(
 			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White,
+			const Vector4& color,
 			const ModelDebugDraw& debugDraw = {}
-			) const;
+		) const;
 
 		void DrawInstanced(
 			std::span<const ModelInstance3D> instances,
-			const ModelDebugDraw& debugDraw = {}
-			) const;
+			const ModelDrawOptions& options = {}
+		) const;
+
+		// 既存コード互換用。新規コードでは ModelDrawOptions を使用する。
+		void DrawInstanced(
+			std::span<const ModelInstance3D> instances,
+			const ModelDebugDraw& debugDraw
+		) const;
 
 		const std::string& GetFilePath() const;
 		bool IsValid() const;

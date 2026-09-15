@@ -8,7 +8,9 @@ struct InstanceData3D
     float2 uvScale;
     float2 uvOffset;
     uint textureIndex;
-    uint3 padding;
+    uint normalTextureIndex;
+    float normalScale;
+    uint padding;
 };
 
 // カメラデータ
@@ -28,17 +30,26 @@ struct MSOutput3D
     float3 normal : NORMAL0;
     float2 uv : TEXCOORD0;
     nointerpolation uint textureIndex : TEXCOORD1;
+    nointerpolation uint normalTextureIndex : TEXCOORD2;
+    nointerpolation float normalScale : TEXCOORD3;
+    float3 worldPosition : TEXCOORD4;
+    float4 tangent : TANGENT0;
 };
 
 MSOutput3D MakeVertex(InstanceData3D instance, CameraData3D camera,
     float3 position, float3 normal, float2 uv)
 {
     MSOutput3D output;
-    output.position = mul(mul(float4(position, 1.0f), instance.worldMatrix), camera.viewProj);
+    float4 worldPosition = mul(float4(position, 1.0f), instance.worldMatrix);
+    output.position = mul(worldPosition, camera.viewProj);
     output.baseColor = instance.baseColor;
     output.normal = normalize(mul(float4(normal, 0.0f), instance.worldInverseTranspose).xyz);
     output.uv = uv * instance.uvScale + instance.uvOffset;
     output.textureIndex = instance.textureIndex;
+    output.normalTextureIndex = instance.normalTextureIndex;
+    output.normalScale = instance.normalScale;
+    output.worldPosition = worldPosition.xyz;
+    output.tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
     return output;
 }
 

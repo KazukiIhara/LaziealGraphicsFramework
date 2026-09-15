@@ -15,8 +15,9 @@ namespace LGF {
 		Vector3 position;
 		Vector3 normal;
 		Vector2 uv;
+		Vector4 tangent;
 	};
-	static_assert(sizeof(ModelVertex) == 32);
+	static_assert(sizeof(ModelVertex) == 48);
 
 	struct ModelMeshletBounds {
 		Vector3 center;
@@ -38,6 +39,8 @@ namespace LGF {
 		uint32_t meshletCount = 0;
 		uint32_t meshletIndexOffset = 0;
 		uint32_t baseColorTextureSrvIndex = UINT32_MAX;
+		uint32_t normalTextureSrvIndex = UINT32_MAX;
+		float normalScale = 1.0f;
 		Vector4 baseColor{ 1.0f, 1.0f, 1.0f, 1.0f };
 		std::vector<ModelMeshletBounds> meshletBounds;
 	};

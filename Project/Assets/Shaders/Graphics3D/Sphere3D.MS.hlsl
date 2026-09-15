@@ -62,6 +62,10 @@ void main(
             vertices[vertexIndex].baseColor = sphere.instData.baseColor;
             vertices[vertexIndex].uv = float2(u, v) * sphere.instData.uvScale + sphere.instData.uvOffset;
             vertices[vertexIndex].textureIndex = sphere.instData.textureIndex;
+            vertices[vertexIndex].normalTextureIndex = sphere.instData.normalTextureIndex;
+            vertices[vertexIndex].normalScale = sphere.instData.normalScale;
+            vertices[vertexIndex].worldPosition = worldPos.xyz;
+            vertices[vertexIndex].tangent = float4(0.0f, 0.0f, 0.0f, 0.0f);
             vertices[vertexIndex].normal = ToWorldNormal(sphere.instData, localNormal);
         }
     }
