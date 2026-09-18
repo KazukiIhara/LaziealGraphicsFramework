@@ -32,13 +32,17 @@ void DebugCamera3D::Update() {
 		static_cast<float>(Key::Left.Press()) - static_cast<float>(Key::Right.Press());
 	const float verticalInput =
 		static_cast<float>(Key::Up.Press()) - static_cast<float>(Key::Down.Press());
+	const float distanceInput =
+		static_cast<float>(Key::E.Press()) - static_cast<float>(Key::Q.Press());
 
 	yaw = std::remainder(yaw + horizontalInput * rotationSpeed * deltaTime, Math::TWO_PI);
 	pitch = std::clamp(
 		pitch + verticalInput * rotationSpeed * deltaTime,
 		-kPitchLimit,
 		kPitchLimit);
-	distance = std::max(distance, kMinimumDistance);
+	distance = std::max(
+		distance + distanceInput * distanceSpeed * deltaTime,
+		kMinimumDistance);
 
 	UpdateTranslation();
 }

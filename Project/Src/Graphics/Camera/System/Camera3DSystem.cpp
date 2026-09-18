@@ -26,6 +26,7 @@ void Camera3DSystem::BeginFrame() {
 	// カメラ初期化
 	camera_ = Camera3D();
 	cullingCamera_.reset();
+	shadowCamera_.reset();
 }
 
 void Camera3DSystem::EndFrame() {
@@ -45,6 +46,14 @@ void Camera3DSystem::SetCamera(const Camera3D& camera) {
 
 void Camera3DSystem::SetCullingCamera(const Camera3D& camera) {
 	cullingCamera_ = camera;
+}
+
+void Camera3DSystem::SetShadowCamera(const Camera3D& camera) {
+	shadowCamera_ = camera;
+}
+
+const Camera3D& Camera3DSystem::GetShadowCamera() const {
+	return shadowCamera_ ? *shadowCamera_ : camera_;
 }
 
 void Camera3DSystem::Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx) {

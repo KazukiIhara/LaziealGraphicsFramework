@@ -195,10 +195,16 @@ void GraphicsSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
 
 	camera3DSystem_->EndFrame();
 	directionalLightSystem_->EndFrame();
-	shadowMapSystem_->Update(directionalLightSystem_->GetLight());
-	shadowMapSystem_->BeginShadowPass();
-	renderer3D_->DrawShadow(*shadowMapSystem_);
-	shadowMapSystem_->EndShadowPass();
+	shadowMapSystem_->Update(
+		camera3DSystem_->GetShadowCamera(),
+		directionalLightSystem_->GetLight());
+	for (uint32_t cascadeIndex = 0;
+		cascadeIndex < ShadowCascadeCalculator::kCascadeCount;
+		++cascadeIndex) {
+		shadowMapSystem_->BeginShadowPass(cascadeIndex);
+		renderer3D_->DrawShadow(*shadowMapSystem_);
+		shadowMapSystem_->EndShadowPass();
+	}
 	renderer3D_->EndFrame();
 	skyboxSystem_->EndFrame();
 

@@ -2,7 +2,7 @@ Texture2D<float4> gGBufferAlbedo : register(t0);
 Texture2D<float4> gGBufferNormal : register(t1);
 Texture2D<float4> gGBufferMaterial : register(t2);
 Texture2D<float> gDepthTexture : register(t3);
-Texture2D<float> gShadowMap : register(t4);
+Texture2D<float> gShadowMap[4] : register(t4);
 
 struct CameraData3D
 {
@@ -14,7 +14,14 @@ struct CameraData3D
 };
 
 ConstantBuffer<CameraData3D> gCamera : register(b1);
-ConstantBuffer<CameraData3D> gShadowCamera : register(b3);
+
+cbuffer gShadowCamera : register(b3)
+{
+	float4x4 gShadowViewProjections[4];
+	float4x4 gShadowView;
+	float4 gCascadeSplitDepths;
+	float4 gShadowSettings;
+};
 
 cbuffer SkyboxData : register(b2)
 {
@@ -91,9 +98,15 @@ float3 ReconstructWorldPosition(int2 pixel, float depth)
 	return worldPosition.xyz / max(worldPosition.w, 1.0e-6f);
 }
 
-float CalculateShadow(float3 worldPosition, float3 normal, float3 lightDirection)
+float SampleCascadeShadow(
+	uint cascadeIndex,
+	float3 worldPosition,
+	float3 normal,
+	float3 lightDirection)
 {
-	const float4 lightClip = mul(float4(worldPosition, 1.0f), gShadowCamera.viewProj);
+	const float4 lightClip = mul(
+		float4(worldPosition, 1.0f),
+		gShadowViewProjections[cascadeIndex]);
 	if (lightClip.w <= 0.0f)
 	{
 		return 1.0f;
@@ -108,11 +121,77 @@ float CalculateShadow(float3 worldPosition, float3 normal, float3 lightDirection
 
 	uint shadowWidth;
 	uint shadowHeight;
-	gShadowMap.GetDimensions(shadowWidth, shadowHeight);
-	const int2 shadowPixel = min(int2(shadowUv * float2(shadowWidth, shadowHeight)), int2(shadowWidth - 1u, shadowHeight - 1u));
-	const float storedDepth = gShadowMap.Load(int3(shadowPixel, 0));
-	const float bias = max(gShadowCamera.padding * (1.0f - saturate(dot(normal, lightDirection))), gShadowCamera.padding * 0.25f);
-	return lightNdc.z - bias <= storedDepth ? 1.0f : 0.0f;
+	const uint shadowMapIndex = NonUniformResourceIndex(cascadeIndex);
+	gShadowMap[shadowMapIndex].GetDimensions(shadowWidth, shadowHeight);
+	const int2 maximumPixel = int2(shadowWidth - 1u, shadowHeight - 1u);
+	const int2 shadowPixel = clamp(
+		int2(shadowUv * float2(shadowWidth, shadowHeight)),
+		int2(0, 0),
+		maximumPixel);
+	const float bias = max(
+		gShadowSettings.x * (1.0f - saturate(dot(normal, lightDirection))),
+		gShadowSettings.x * 0.25f);
+
+	float visibility = 0.0f;
+	[unroll]
+	for (int y = -1; y <= 1; ++y)
+	{
+		[unroll]
+		for (int x = -1; x <= 1; ++x)
+		{
+			const int2 samplePixel = clamp(
+				shadowPixel + int2(x, y),
+				int2(0, 0),
+				maximumPixel);
+			const float storedDepth = gShadowMap[shadowMapIndex].Load(
+				int3(samplePixel, 0));
+			visibility += lightNdc.z - bias <= storedDepth ? 1.0f : 0.0f;
+		}
+	}
+	return visibility / 9.0f;
+}
+
+float CalculateShadow(float3 worldPosition, float3 normal, float3 lightDirection)
+{
+	const float viewDepth = mul(float4(worldPosition, 1.0f), gShadowView).z;
+	if (viewDepth < gShadowSettings.z || viewDepth > gCascadeSplitDepths.w)
+	{
+		return 1.0f;
+	}
+
+	uint cascadeIndex = 0u;
+	cascadeIndex += viewDepth > gCascadeSplitDepths.x;
+	cascadeIndex += viewDepth > gCascadeSplitDepths.y;
+	cascadeIndex += viewDepth > gCascadeSplitDepths.z;
+
+	const float shadow = SampleCascadeShadow(
+		cascadeIndex,
+		worldPosition,
+		normal,
+		lightDirection);
+	if (cascadeIndex + 1u >= 4u)
+	{
+		return shadow;
+	}
+
+	const float cascadeNear = cascadeIndex == 0u
+		? gShadowSettings.z
+		: gCascadeSplitDepths[cascadeIndex - 1u];
+	const float cascadeFar = gCascadeSplitDepths[cascadeIndex];
+	const float blendWidth = (cascadeFar - cascadeNear) * gShadowSettings.y;
+	const float blendAmount = saturate(
+		(viewDepth - (cascadeFar - blendWidth)) / max(blendWidth, 1.0e-6f));
+	if (blendAmount <= 0.0f)
+	{
+		return shadow;
+	}
+
+	const float nextShadow = SampleCascadeShadow(
+		cascadeIndex + 1u,
+		worldPosition,
+		normal,
+		lightDirection);
+	return lerp(shadow, nextShadow, blendAmount);
 }
 
 float3 FresnelSchlickRoughness(float cosTheta, float3 reflectanceAtNormal, float roughness)

@@ -274,7 +274,7 @@ void DirectXCore::DrawLightingToSceneColor(
 	commandList->SetGraphicsRootDescriptorTable(
 		pipeline->GetRootIndex(kShadowMapShaderName),
 		shadowMapSystem.GetShadowMapHandleGPU());
-	shadowMapSystem.BindCamera(commandList, pipeline->GetRootIndex(kShadowCameraShaderName));
+	shadowMapSystem.BindCascadeData(commandList, pipeline->GetRootIndex(kShadowCameraShaderName));
 
 	commandList6->DispatchMesh(1, 1, 1);
 }

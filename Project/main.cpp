@@ -1,5 +1,8 @@
 #include <LGF/LGF.h>
 
+#include <array>
+#include <cstddef>
+
 using namespace LGF;
 
 void Main() {
@@ -13,7 +16,7 @@ void Main() {
 	waterBottleTransform.scale = { 10.0f, 10.0f, 10.0f };
 	waterBottleTransform.translation = { 1.5f, -0.45f, 0.0f };
 
-	const Ground3D ground(14.0f);
+	const Ground3D ground(100.0f);
 	const Matrix4x4 groundWorldMatrix =
 		Math::MakeTranslateMatrix({ 0.0f, -1.75f, 0.0f });
 	const Material3D groundMaterial{
@@ -26,7 +29,31 @@ void Main() {
 		.normalScale = 1.0f,
 	};
 
-	DebugCamera3D camera(10.0f);
+	Camera3D::Param sceneCameraParam{};
+	sceneCameraParam.farClip = 80.0f;
+	Camera3D sceneCamera(
+		{ 0.0f, 4.0f, -40.0f },
+		0.0f,
+		5.0f * Math::DEG_TO_RAD,
+		sceneCameraParam);
+
+	DebugCamera3D debugCamera(85.0f);
+	debugCamera.yaw = 45.0f * Math::DEG_TO_RAD;
+	debugCamera.pitch = 30.0f * Math::DEG_TO_RAD;
+
+	constexpr std::array<float, 4> kModelRowZ{
+		-35.0f,
+		-29.0f,
+		-17.0f,
+		15.0f,
+	};
+	constexpr std::array<float, 4> kModelColumnSpacing{
+		1.0f,
+		2.0f,
+		4.0f,
+		7.0f,
+	};
+	constexpr std::size_t kModelsPerRow = 5u;
 	DirectionalLight directionalLight({ 1.0f, -1.0f, 0.5f }, Color::White, 1.5f);
 	Skybox skybox("Assets/Textures/Environment/StoryStudio02/story_studio_02_2k.dds");
 
@@ -42,8 +69,14 @@ void Main() {
 				moveDirection * kModelMoveSpeed * static_cast<float>(System::DeltaTime());
 		}
 
-		camera.Update();
-		camera.SetScene();
+		debugCamera.Update();
+		debugCamera.SetScene();
+
+		sceneCamera.SetShadowScene();
+		sceneCamera.DrawDebug({
+			.showFrustum = true,
+			.showShadowCascades = true,
+		});
 		directionalLight.SetScene();
 		skybox.SetScene();
 
@@ -58,5 +91,27 @@ void Main() {
 			waterBottleTransform.rotation,
 			waterBottleTransform.translation),
 			modelDrawOptions);
+
+		for (std::size_t rowIndex = 0; rowIndex < kModelRowZ.size(); ++rowIndex) {
+			for (std::size_t columnIndex = 0; columnIndex < kModelsPerRow; ++columnIndex) {
+				const float x =
+					(static_cast<float>(columnIndex) - 2.0f) * kModelColumnSpacing[rowIndex];
+				if ((rowIndex + columnIndex) % 2u == 0u) {
+					const Vector3 translation{ x, -1.75f, kModelRowZ[rowIndex] };
+					flightHelmet.Draw(Math::MakeAffineMatrix(
+						flightHelmetTransform.scale,
+						flightHelmetTransform.rotation,
+						translation),
+						modelDrawOptions);
+				} else {
+					const Vector3 translation{ x, -0.45f, kModelRowZ[rowIndex] };
+					waterBottle.Draw(Math::MakeAffineMatrix(
+						waterBottleTransform.scale,
+						waterBottleTransform.rotation,
+						translation),
+						modelDrawOptions);
+				}
+			}
+		}
 	}
 }

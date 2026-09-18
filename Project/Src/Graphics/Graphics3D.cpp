@@ -93,6 +93,11 @@ void LGF::Graphics3D::SetCullingCamera(const Camera3D& camera) {
 	g_camera3DSystem->SetCullingCamera(camera);
 }
 
+void LGF::Graphics3D::SetShadowCamera(const Camera3D& camera) {
+	assert(g_camera3DSystem != nullptr);
+	g_camera3DSystem->SetShadowCamera(camera);
+}
+
 void LGF::Graphics3D::SetDirectionalLight(const DirectionalLight& light) {
 	assert(g_directionalLightSystem != nullptr);
 	g_directionalLightSystem->SetLight(light);

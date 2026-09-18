@@ -31,6 +31,8 @@ namespace LGF {
 
 		void SetCamera(const Camera3D& camera);
 		void SetCullingCamera(const Camera3D& camera);
+		void SetShadowCamera(const Camera3D& camera);
+		const Camera3D& GetShadowCamera() const;
 
 		void Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
 		void BindCulling(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
@@ -39,6 +41,7 @@ namespace LGF {
 		// シーンで使用するカメラ
 		Camera3D camera_;
 		std::optional<Camera3D> cullingCamera_;
+		std::optional<Camera3D> shadowCamera_;
 		// GPUに送るカメラリソース
 		std::unique_ptr<Camera3DResource> resource_;
 		std::unique_ptr<Camera3DResource> cullingResource_;

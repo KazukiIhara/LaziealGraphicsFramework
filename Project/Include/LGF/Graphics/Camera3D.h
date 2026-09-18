@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include "LGF/Graphics/Color.h"
 #include "LGF/Math/MathConstants.h"
 #include "LGF/Math/MathTypes.h"
@@ -9,6 +11,13 @@ namespace LGF {
 	struct Camera3DDebugDraw {
 		bool showFrustum = false;
 		Vector4 frustumColor = Color::Yellow;
+		bool showShadowCascades = false;
+		std::array<Vector4, 4> shadowCascadeColors{
+			Color::Red,
+			Color::Yellow,
+			Color::Lime,
+			Color::Cyan,
+		};
 	};
 
 	/// <summary>
@@ -43,6 +52,7 @@ namespace LGF {
 
 		void SetScene()const;
 		void SetCullingScene() const;
+		void SetShadowScene() const;
 		void DrawDebug(const Camera3DDebugDraw& debugDraw = {}) const;
 
 	public:

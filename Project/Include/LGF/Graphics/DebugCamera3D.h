@@ -19,13 +19,14 @@ namespace LGF {
 		~DebugCamera3D() override;
 
 		/// <summary>
-		/// 十字キー入力を反映してカメラを更新
+		/// 十字キーの回転とQ/Eキーの距離変更を反映してカメラを更新
 		/// </summary>
 		void Update();
 
 	public:
 		float distance = 5.0f;
 		float rotationSpeed = 60.0f * Math::DEG_TO_RAD;
+		float distanceSpeed = 30.0f;
 
 	private:
 		void UpdateTranslation();
