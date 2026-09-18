@@ -62,23 +62,36 @@ GPUの世代名ではなく、起動時に上記機能を問い合わせて判�
 
 ## ビルドと実行
 
-依存ライブラリは `Project/Externals` に同梱され、Premakeから個別プロジェクトとして生成されます。
+依存ライブラリは `Project/Externals` に同梱され、Premakeから個別プロジェクトとして生成されます。ワークスペースは描画本体、実行基盤、サンプルを次の3ターゲットに分離しています。
+
+- `LaziealGraphicsFramework`: 描画・数学・GPUリソース管理を提供するStatic Library
+- `LaziealRuntime`: Window、Input、Time、フレーム進行を提供するStatic Library
+- `Sandbox`: `Main()` を実装するサンプル用WindowedApp（スタートアッププロジェクト）
 
 1. `Project/Premake.bat` を実行します。
-2. 生成された `Project/LaziealGraphicsFramework.sln` または `.slnx` を開きます。
-3. `x64` の `Debug`、`Develop`、または `Release` を選択してビルドします。
-4. `Project` を作業ディレクトリとして実行します。
+2. 生成された `Project/LaziealGraphicsFramework.slnx` を開きます。以前生成された `.sln` が残っている場合は、旧プロジェクト構成なので使用しないでください。
+3. `x64` の `Debug`、`Develop`、または `Release` を選択して `Sandbox` をビルドします。
+4. `Project` を作業ディレクトリとして `Sandbox` を実行します。
 
-生成物は `generated/outputs/<Configuration>/x64` に出力されます。シェーダー、Pipeline JSON、モデルなどは `Assets/...` の相対パスで参照するため、実行時の作業ディレクトリが重要です。
+生成物は `generated/outputs/<Configuration>/x64` に出力されます。描画ライブラリはアセット位置を固定で保持せず、Sandboxが返す `RuntimeConfig::assetRoot` をRuntimeが絶対パスへ正規化し、`GraphicsInitDesc` 経由で渡します。モデルやテクスチャなど利用側が直接指定するパスは、引き続き作業ディレクトリからの相対パスを利用できます。
 
 ## 最小コード
 
-フレームワーク側がWin32のエントリーポイントを提供します。利用側は `Main()` を定義します。
+Runtime Static LibraryがWin32のエントリーポイントを提供します。利用側は同じソースファイルに `ConfigureRuntime()` と `Main()` を定義します。
 
 ```cpp
 #include <LGF/LGF.h>
 
 using namespace LGF;
+
+RuntimeConfig ConfigureRuntime() {
+    RuntimeConfig config{};
+    config.assetRoot = "Assets";
+    config.window.title = L"My Game";
+    config.window.width = 1280;
+    config.window.height = 720;
+    return config;
+}
 
 void Main() {
     Camera3D camera({ 0.0f, 1.5f, -5.0f });
@@ -250,24 +263,29 @@ Pipeline Stateは `Project/Assets/JsonData/Pipeline` 以下のJSONを起動時�
 
 ```text
 Project/
-├─ Include/LGF/                 公開API
-├─ Src/                         フレームワーク実装
+├─ Include/LGF/                 描画・数学の公開API
+├─ Src/Graphics, Math/          描画Static Libraryの実装
+├─ Src/Core, Input, LGF/        Runtimeの実装
+├─ Runtime/
+│  ├─ Include/                  Runtime側の公開API
+│  └─ Src/                      EntryPointなどRuntime固有の実装
+├─ Sandbox/
+│  └─ main.cpp                  公開APIだけを使うサンプルアプリ
 ├─ Assets/
 │  ├─ JsonData/Pipeline/        Pipeline State定義
 │  ├─ Shaders/                  HLSL
 │  ├─ Models/                   サンプルモデル
 │  └─ Textures/                 サンプルテクスチャ・環境マップ
 ├─ Externals/                   同梱サードパーティ
-├─ Premake/premake5.lua         プロジェクト生成定義
-├─ Tools/                       アセット変換補助
-└─ main.cpp                     現在のサンプル
+├─ Premake/premake5.lua         Graphics / Runtime / Sandbox生成定義
+└─ Tools/                       アセット変換補助
 ```
 
 主な同梱ライブラリはDirectXTex、DirectXMesh、Dear ImGui、Assimp、nlohmann/jsonです。サンプルモデルごとの出典とライセンスは [`Project/Assets/Models/README.md`](Project/Assets/Models/README.md) に記載しています。
 
 ## 現在の制限
 
-- フレームワーク本体とサンプルアプリはまだ同じ `WindowedApp` ターゲットです。
+- GraphicsとRuntimeはStatic Libraryへ分離済みですが、別リポジトリへの分割と配布パッケージ化は未対応です。
 - GPU完了を毎フレーム待つため、CPUとGPUが直列化されています。
 - 3Dの透過・Alpha Mask、Emissive、複数ライト、スキニング、アニメーション、Morph Targetは未対応です。
 - モデルのGPUバッファはUpload Heapに保持され、ロード・転送も同期処理です。

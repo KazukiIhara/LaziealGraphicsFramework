@@ -5,6 +5,15 @@
 
 using namespace LGF;
 
+RuntimeConfig ConfigureRuntime() {
+	RuntimeConfig config{};
+	config.assetRoot = "Assets";
+	config.window.title = L"Lazieal Graphics Framework";
+	config.window.width = 800;
+	config.window.height = 600;
+	return config;
+}
+
 void Main() {
 	Model flightHelmet("Assets/Models/FlightHelmet/FlightHelmet.gltf");
 	Transform3D flightHelmetTransform{};

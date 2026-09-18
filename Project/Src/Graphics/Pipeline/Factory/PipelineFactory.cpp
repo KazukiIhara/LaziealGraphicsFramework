@@ -1,6 +1,7 @@
 #include "PipelineFactory.h"
 
 #include <cassert>
+#include <utility>
 #include <vector>
 
 #include <dxcapi.h>
@@ -20,10 +21,6 @@ namespace {
 		MeshGraphics,
 		Compute,
 	};
-
-	std::wstring ToWString(const std::string& text) {
-		return std::wstring(text.begin(), text.end());
-	}
 
 	DXGI_FORMAT ToFormat(const std::string& format) {
 		if (format == "R8G8B8A8_UNORM_SRGB") {
@@ -199,8 +196,11 @@ namespace {
 #pragma warning(pop)
 }
 
-PipelineFactory::PipelineFactory(DirectXCore& directX)
-	: directX_(directX) {
+PipelineFactory::PipelineFactory(
+	DirectXCore& directX,
+	std::filesystem::path shaderDirectory) :
+	directX_(directX),
+	shaderDirectory_(std::move(shaderDirectory)) {
 }
 
 PipelineFactory::~PipelineFactory() = default;
@@ -253,14 +253,13 @@ std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonL
 
 	std::vector<ShaderBlob> shaderBlobs;
 
-	const std::string kShaderDirectory = "Assets/Shaders/";
-
 	// ASをコンパイル
 	if (!shaderParam.amplification.empty()) {
 		ShaderBlob shaderBlob{};
 		shaderBlob.stageName = "AS";
 		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
-			ToWString(kShaderDirectory + shaderParam.amplification),
+			(shaderDirectory_ / std::filesystem::path(
+				std::u8string(shaderParam.amplification.begin(), shaderParam.amplification.end()))).wstring(),
 			L"as_6_6");
 		assert(shaderBlob.blob != nullptr);
 
@@ -272,7 +271,8 @@ std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonL
 		ShaderBlob shaderBlob{};
 		shaderBlob.stageName = "MS";
 		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
-			ToWString(kShaderDirectory + shaderParam.mesh),
+			(shaderDirectory_ / std::filesystem::path(
+				std::u8string(shaderParam.mesh.begin(), shaderParam.mesh.end()))).wstring(),
 			L"ms_6_6");
 		assert(shaderBlob.blob != nullptr);
 
@@ -284,7 +284,8 @@ std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonL
 		ShaderBlob shaderBlob{};
 		shaderBlob.stageName = "PS";
 		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
-			ToWString(kShaderDirectory + shaderParam.pixel),
+			(shaderDirectory_ / std::filesystem::path(
+				std::u8string(shaderParam.pixel.begin(), shaderParam.pixel.end()))).wstring(),
 			L"ps_6_6");
 		assert(shaderBlob.blob != nullptr);
 
@@ -296,7 +297,8 @@ std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonL
 		ShaderBlob shaderBlob{};
 		shaderBlob.stageName = "CS";
 		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
-			ToWString(kShaderDirectory + shaderParam.compute),
+			(shaderDirectory_ / std::filesystem::path(
+				std::u8string(shaderParam.compute.begin(), shaderParam.compute.end()))).wstring(),
 			L"cs_6_6");
 		assert(shaderBlob.blob != nullptr);
 

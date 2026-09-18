@@ -14,20 +14,20 @@ TimeSystem::TimeSystem() = default;
 
 TimeSystem::~TimeSystem() = default;
 
-bool TimeSystem::Initialize([[maybe_unused]] FrameworkContext& context) {
+bool TimeSystem::Initialize() {
 	previousFrameTime_ = Clock::now();
 	deltaTime_ = 0.0;
 	isFirstFrame_ = true;
 	return true;
 }
 
-bool TimeSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
+bool TimeSystem::Finalize() {
 	deltaTime_ = 0.0;
 	isFirstFrame_ = true;
 	return true;
 }
 
-void TimeSystem::BeginFrame([[maybe_unused]] FrameworkContext& context) {
+void TimeSystem::BeginFrame() {
 	const Clock::time_point currentFrameTime = Clock::now();
 	if (isFirstFrame_) {
 		previousFrameTime_ = currentFrameTime;

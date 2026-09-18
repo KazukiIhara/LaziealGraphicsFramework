@@ -4,21 +4,20 @@
 #include <cstdint>
 #include <Windows.h>
 
-#include "Core/Framework/System/IFrameworkSystem.h"
 #include "LGF/Input.h"
 
 namespace LGF {
 
-	class InputSystem :public IFrameworkSystem {
+	class InputSystem {
 	public:
 		InputSystem();
-		~InputSystem()override;
+		~InputSystem();
 
-		bool Initialize(FrameworkContext& context)override;
-		bool Finalize(FrameworkContext& context)override;
+		bool Initialize(void* windowHandle);
+		bool Finalize();
 
-		void BeginFrame(FrameworkContext& context)override;
-		void EndFrame(FrameworkContext& context)override;
+		void BeginFrame();
+		void EndFrame();
 
 		bool IsTriggered(KeyCode code)const;
 		bool IsPressed(KeyCode code)const;
@@ -35,7 +34,7 @@ namespace LGF {
 		Vector2 GetCursorPos()const;
 		Vector2 GetCursorDelta()const;
 
-		void HandleRawInput(HRAWINPUT rawInputHandle);
+		void HandleRawInput(void* rawInputHandle);
 
 	private:
 		bool RegisterRawInput(HWND hwnd);

@@ -10,7 +10,6 @@
 
 namespace LGF {
 
-	class Window;
 	class Device;
 	class Command;
 	class DescriptorHeapFactory;
@@ -43,7 +42,7 @@ namespace LGF {
 			SRVUAVManager* srvuav;
 		};
 	public:
-		DirectXCore(Window& window);
+		DirectXCore(void* windowHandle, uint32_t width, uint32_t height);
 		~DirectXCore();
 
 		bool Initialize();
@@ -62,6 +61,9 @@ namespace LGF {
 		void SetExposure(float exposureEV);
 		void EndFrame();
 		void Finalize();
+		bool Resize(uint32_t width, uint32_t height);
+		uint32_t GetRenderWidth() const;
+		uint32_t GetRenderHeight() const;
 
 		ID3D12Device* GetDevice();
 		ID3D12GraphicsCommandList* GetCommandList();
@@ -80,8 +82,6 @@ namespace LGF {
 			float padding[3]{};
 		};
 		static_assert(sizeof(ToneMappingForGPU) == 16u);
-
-		bool Resize(uint32_t width, uint32_t height);
 
 	private:
 		uint32_t renderWidth_ = 0u;
@@ -108,7 +108,7 @@ namespace LGF {
 		ComPtr<ID3D12Resource> toneMappingResource_ = nullptr;
 		ToneMappingForGPU* toneMappingForGPU_ = nullptr;
 
-		Window& window_;
+		void* windowHandle_ = nullptr;
 	};
 
 }

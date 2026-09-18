@@ -9,8 +9,11 @@
 using namespace LGF;
 
 
-PipelineManager::PipelineManager(DirectXCore& directX) {
-	factory_ = std::make_unique<PipelineFactory>(directX);
+PipelineManager::PipelineManager(
+	DirectXCore& directX,
+	const std::filesystem::path& assetRoot) :
+	pipelineDirectory_(assetRoot / "JsonData" / "Pipeline") {
+	factory_ = std::make_unique<PipelineFactory>(directX, assetRoot / "Shaders");
 }
 
 PipelineManager::~PipelineManager() = default;
@@ -36,11 +39,8 @@ Pipeline* PipelineManager::GetPipeline(const std::string& pipelineName) {
 void PipelineManager::LoadAll() {
 	namespace fs = std::filesystem;
 
-	// パイプラインフォルダのディレクトリパス
-	constexpr char kPipelineDir[] = "Assets/JsonData/Pipeline";
-
 	// パイプラインフォルダ内を全走査
-	for (const auto& entry : fs::recursive_directory_iterator(kPipelineDir)) {
+	for (const auto& entry : fs::recursive_directory_iterator(pipelineDirectory_)) {
 
 		// json拡張子でなければスキップ
 		if (entry.path().extension() != ".json") {

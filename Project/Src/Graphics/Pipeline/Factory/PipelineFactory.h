@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <vector>
 #include <memory>
 #include <string>
@@ -30,7 +31,9 @@ namespace LGF {
 			std::vector<RootParameterInfo> rootParamInfos;
 		};
 	public:
-		PipelineFactory(DirectXCore& directX);
+		PipelineFactory(
+			DirectXCore& directX,
+			std::filesystem::path shaderDirectory);
 		~PipelineFactory();
 
 		std::unique_ptr<Pipeline> CreatePipeline(const std::string& jsonPath);
@@ -53,6 +56,7 @@ namespace LGF {
 
 	private:
 		DirectXCore& directX_;
+		std::filesystem::path shaderDirectory_;
 	};
 
 }

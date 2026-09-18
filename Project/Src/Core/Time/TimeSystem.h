@@ -2,22 +2,20 @@
 
 #include <chrono>
 
-#include "Core/Framework/System/IFrameworkSystem.h"
-
 namespace LGF {
 
 	/// <summary>
 	/// フレーム間の経過時間を管理するシステム
 	/// </summary>
-	class TimeSystem final : public IFrameworkSystem {
+	class TimeSystem final {
 	public:
 		TimeSystem();
-		~TimeSystem() override;
+		~TimeSystem();
 
-		bool Initialize(FrameworkContext& context) override;
-		bool Finalize(FrameworkContext& context) override;
+		bool Initialize();
+		bool Finalize();
 
-		void BeginFrame(FrameworkContext& context) override;
+		void BeginFrame();
 
 		double GetDeltaTime() const;
 

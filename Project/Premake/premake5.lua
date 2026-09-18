@@ -1,7 +1,7 @@
 workspace "LaziealGraphicsFramework"
     configurations { "Debug", "Develop", "Release" }
     platforms { "x64" }
-    startproject "LaziealGraphicsFramework"
+    startproject "Sandbox"
     location "../"
 
     -- 出力ディレクトリ
@@ -229,79 +229,153 @@ project "DirectXMesh"
 
    filter {}
 
-project "LaziealGraphicsFramework"
-   kind "WindowedApp"
+local function configureLaziealCppProject()
    language "C++"
    cppdialect "C++20"
-
-   -- Windows.h の min/max マクロと標準ライブラリの衝突を防ぐ
+   location "../"
+   characterset "Unicode"
    defines { "NOMINMAX" }
-
-   -- プロジェクトに含めるファイル
-   files {
-      "../*.cpp",
-
-      "../Src/**.cpp",
-      "../Src/**.h",
-
-      "../Include/**.cpp",
-      "../Include/**.h",
-
-   }
-
-   -- 追加のインクルードパス
-   includedirs {
-       "../Src",
-       "../Include",
-       "../Externals",
-	   "../Externals/assimp/include",
-	   "../Externals/DirectXMesh/DirectXMesh",
-
-       "../Externals/imgui",
-       "../Externals/imgui/backends",
-
-       "../Externals/DirectXTex/DirectXTex",
-   }
-
-   dependson { "DirectXTex", "DirectXMesh", "ImGui" }
-
-   links { "DirectXTex", "DirectXMesh", "ImGui" }
-
    warnings "High"
-
    buildoptions { "/utf-8" }
-
+   staticruntime "On"
    multiprocessorcompile "On"
-
-   -- ビルド後イベント
-   postbuildcommands {
-      'copy "$(WindowsSdkDir)bin\\$(TargetPlatformVersion)\\x64\\dxcompiler.dll" "$(TargetDir)dxcompiler.dll"',
-      'copy "$(WindowsSdkDir)bin\\$(TargetPlatformVersion)\\x64\\dxil.dll" "$(TargetDir)dxil.dll"'
-   }
 
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
       fatalwarnings { "All" }
-      staticruntime "On"
-      linkoptions { "/IGNORE:4049", "/IGNORE:4099" }
-      libdirs { "../Externals/assimp/lib/Debug" }
-      links { "assimp-vc143-mtd" }
+      runtime "Debug"
 
    filter "configurations:Develop"
       defines { "DEBUG", "DEVELOP" }
       symbols "On"
       optimize "Debug"
       runtime "Release"
-      staticruntime "On"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"
+      runtime "Release"
+
+   filter {}
+end
+
+project "LaziealGraphicsFramework"
+   kind "StaticLib"
+   configureLaziealCppProject()
+
+   files {
+      "../Src/Graphics/**.cpp",
+      "../Src/Graphics/**.h",
+      "../Src/Math/**.cpp",
+      "../Src/Math/**.h",
+      "../Src/Core/Logger/**.cpp",
+      "../Src/Core/Logger/**.h",
+      "../Include/LGF/Graphics.h",
+      "../Include/LGF/Graphics/**.h",
+      "../Include/LGF/LGFMath.h",
+      "../Include/LGF/Math/**.h",
+   }
+
+   includedirs {
+      "../Src",
+      "../Include",
+      "../Externals",
+      "../Externals/assimp/include",
+      "../Externals/DirectXMesh/DirectXMesh",
+      "../Externals/imgui",
+      "../Externals/imgui/backends",
+      "../Externals/DirectXTex/DirectXTex",
+   }
+
+   dependson { "DirectXTex", "DirectXMesh", "ImGui" }
+   links { "DirectXTex", "DirectXMesh", "ImGui" }
+
+project "LaziealRuntime"
+   kind "StaticLib"
+   configureLaziealCppProject()
+
+   files {
+      "../Src/Core/Framework/**.cpp",
+      "../Src/Core/Framework/**.h",
+      "../Src/Core/Time/**.cpp",
+      "../Src/Core/Time/**.h",
+      "../Src/Core/Window/**.cpp",
+      "../Src/Core/Window/**.h",
+      "../Src/Input/**.cpp",
+      "../Src/Input/**.h",
+      "../Src/LGF/**.cpp",
+      "../Src/LGF/**.h",
+      "../Runtime/Src/**.cpp",
+      "../Runtime/Src/**.h",
+      "../Runtime/Include/**.h",
+   }
+
+   includedirs {
+      "../Runtime/Src",
+      "../Runtime/Include",
+      "../Src",
+      "../Include",
+   }
+
+   dependson { "LaziealGraphicsFramework" }
+   links { "LaziealGraphicsFramework" }
+
+project "Sandbox"
+   kind "WindowedApp"
+   configureLaziealCppProject()
+
+   files {
+      "../Sandbox/**.cpp",
+      "../Sandbox/**.h",
+   }
+
+   includedirs {
+      "../Runtime/Include",
+      "../Include",
+   }
+
+   dependson {
+      "LaziealRuntime",
+      "LaziealGraphicsFramework",
+      "DirectXTex",
+      "DirectXMesh",
+      "ImGui",
+   }
+
+   links {
+      "LaziealRuntime",
+      "LaziealGraphicsFramework",
+      "DirectXTex",
+      "DirectXMesh",
+      "ImGui",
+      "d3d12",
+      "dxgi",
+      "dxguid",
+      "dxcompiler",
+      "winmm",
+   }
+
+   debugdir "%{wks.location}"
+
+   postbuildcommands {
+      'copy "$(WindowsSdkDir)bin\\$(TargetPlatformVersion)\\x64\\dxcompiler.dll" "$(TargetDir)dxcompiler.dll"',
+      'copy "$(WindowsSdkDir)bin\\$(TargetPlatformVersion)\\x64\\dxil.dll" "$(TargetDir)dxil.dll"'
+   }
+
+   filter "configurations:Debug"
+      linkoptions { "/IGNORE:4049", "/IGNORE:4099" }
+      libdirs { "../Externals/assimp/lib/Debug" }
+      links { "assimp-vc143-mtd" }
+
+   filter "configurations:Develop"
       linkoptions { "/IGNORE:4049", "/IGNORE:4099" }
       libdirs { "../Externals/assimp/lib/Release" }
       links { "assimp-vc143-mt" }
 
    filter "configurations:Release"
-      defines { "NDEBUG" }
-      optimize "On"
-      staticruntime "On"
       linkoptions { "/IGNORE:4049", "/IGNORE:4099" }
       libdirs { "../Externals/assimp/lib/Release" }
       links { "assimp-vc143-mt" }
+
+   filter {}

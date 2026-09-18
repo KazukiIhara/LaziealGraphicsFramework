@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Core/Window/System/WindowSystem.h"
+#include "Input/InputInternal.h"
 
 using namespace LGF;
 
@@ -19,32 +19,32 @@ InputSystem::InputSystem() {
 
 InputSystem::~InputSystem() = default;
 
-bool InputSystem::Initialize(FrameworkContext& context) {
+bool InputSystem::Initialize(void* windowHandle) {
 	g_inputSystem = this;
 
-	if (context.window == nullptr) {
+	hwnd_ = static_cast<HWND>(windowHandle);
+	if (hwnd_ == nullptr) {
 		return false;
 	}
-
-	hwnd_ = context.window->GetWindow().GetHwnd();
 	UpdateCursorPos();
 	previousCursorPos_ = cursorPos_;
 
 	return RegisterRawInput(hwnd_);
 }
 
-bool InputSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
+bool InputSystem::Finalize() {
 	g_inputSystem = nullptr;
+	hwnd_ = nullptr;
 
 	return true;
 }
 
-void InputSystem::BeginFrame([[maybe_unused]] FrameworkContext& context) {
+void InputSystem::BeginFrame() {
 	UpdateCursorPos();
 	UpdatePressedFrames();
 }
 
-void InputSystem::EndFrame([[maybe_unused]] FrameworkContext& context) {
+void InputSystem::EndFrame() {
 	previousKeys_ = currentKeys_;
 	previousMouseButtons_ = currentMouseButtons_;
 	previousCursorPos_ = cursorPos_;
@@ -104,16 +104,17 @@ Vector2 InputSystem::GetCursorDelta() const {
 	return cursorPos_ - previousCursorPos_;
 }
 
-void InputSystem::HandleRawInput(HRAWINPUT rawInputHandle) {
+void InputSystem::HandleRawInput(void* rawInputHandle) {
+	const HRAWINPUT handle = static_cast<HRAWINPUT>(rawInputHandle);
 	UINT dataSize = 0;
-	GetRawInputData(rawInputHandle, RID_INPUT, nullptr, &dataSize, sizeof(RAWINPUTHEADER));
+	GetRawInputData(handle, RID_INPUT, nullptr, &dataSize, sizeof(RAWINPUTHEADER));
 
 	if (dataSize == 0) {
 		return;
 	}
 
 	std::vector<uint8_t> buffer(dataSize);
-	const UINT readSize = GetRawInputData(rawInputHandle, RID_INPUT, buffer.data(), &dataSize, sizeof(RAWINPUTHEADER));
+	const UINT readSize = GetRawInputData(handle, RID_INPUT, buffer.data(), &dataSize, sizeof(RAWINPUTHEADER));
 
 	if (readSize != dataSize) {
 		return;
@@ -412,12 +413,4 @@ Vector2 LGF::Input::Internal::GetCursorDelta() {
 	}
 
 	return g_inputSystem->GetCursorDelta();
-}
-
-void LGF::Input::Internal::HandleRawInput(void* rawInputHandle) {
-	if (g_inputSystem == nullptr) {
-		return;
-	}
-
-	g_inputSystem->HandleRawInput(reinterpret_cast<HRAWINPUT>(rawInputHandle));
 }

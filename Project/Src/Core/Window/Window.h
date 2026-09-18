@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <Windows.h>
 
@@ -11,6 +12,9 @@ namespace LGF {
 	/// </summary>
 	class Window {
 	public:
+		using RawInputHandler = std::function<void(void*)>;
+		using MessageHandler = std::function<bool(HWND, UINT, WPARAM, LPARAM)>;
+
 		struct WndSize {
 			uint32_t width{};
 			uint32_t height{};
@@ -42,6 +46,8 @@ namespace LGF {
 
 		// フルスクリーンモード切り替え
 		void ToggleFullScreen();
+		void SetRawInputHandler(RawInputHandler handler);
+		void SetMessageHandler(MessageHandler handler);
 
 	private:
 
@@ -65,5 +71,7 @@ namespace LGF {
 		RECT windowRect_{};
 		// Comの初期化判別フラグ
 		bool isCOMInitialized_ = false;
+		RawInputHandler rawInputHandler_;
+		MessageHandler messageHandler_;
 	};
 }

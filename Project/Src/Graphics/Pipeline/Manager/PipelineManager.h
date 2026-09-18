@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <map>
 #include <string>
 #include <memory>
@@ -16,7 +17,9 @@ namespace LGF {
 	/// </summary>
 	class PipelineManager {
 	public:
-		PipelineManager(DirectXCore& directX);
+		PipelineManager(
+			DirectXCore& directX,
+			const std::filesystem::path& assetRoot);
 		~PipelineManager();
 
 		void Initialize();
@@ -34,6 +37,7 @@ namespace LGF {
 		std::unique_ptr<PipelineFactory> factory_;
 		// パイプラインリスト
 		std::map<std::string, std::unique_ptr<Pipeline>> pipelines_;
+		std::filesystem::path pipelineDirectory_;
 	};
 
 }

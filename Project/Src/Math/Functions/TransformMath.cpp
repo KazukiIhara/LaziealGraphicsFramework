@@ -1,6 +1,6 @@
-#include "TransformMath.h"
+#include "LGF/Math/Functions/TransformMath.h"
 
-#include "MatrixMath.h"
+#include "LGF/Math/Functions/MatrixMath.h"
 
 #include <cmath>
 

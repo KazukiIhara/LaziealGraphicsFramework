@@ -1,5 +1,7 @@
 #include "WindowSystem.h"
 
+#include "LGF/Runtime.h"
+
 using namespace LGF;
 
 WindowSystem::WindowSystem() {
@@ -7,11 +9,16 @@ WindowSystem::WindowSystem() {
 
 WindowSystem::~WindowSystem() = default;
 
-bool WindowSystem::Initialize([[maybe_unused]] FrameworkContext& context) {
-	return window_.Initialize();
+bool WindowSystem::Initialize(const WindowConfig& config) {
+	const Window::Setting setting{
+		.wndSize = { config.width, config.height },
+		.wndName = config.title,
+		.isFullScreen = config.fullscreen,
+	};
+	return window_.Initialize(setting);
 }
 
-bool WindowSystem::Finalize([[maybe_unused]] FrameworkContext& context) {
+bool WindowSystem::Finalize() {
 	return window_.Finalize();
 }
 

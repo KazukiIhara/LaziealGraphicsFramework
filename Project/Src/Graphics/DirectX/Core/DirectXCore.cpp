@@ -4,7 +4,6 @@
 #include <cmath>
 #include <vector>
 
-#include "Core/Window/Window.h"
 #include "Graphics/DirectX/Device/Device.h"
 #include "Graphics/DirectX/Command/Command.h"
 #include "Graphics/DirectX/DescriptorHeap/DescriptorHeapFactory.h"
@@ -51,16 +50,15 @@ namespace {
 	constexpr size_t kConstantBufferAlignment = 256u;
 }
 
-DirectXCore::DirectXCore(Window& window) :
-	window_(window) {
+DirectXCore::DirectXCore(void* windowHandle, uint32_t width, uint32_t height) :
+	renderWidth_(width),
+	renderHeight_(height),
+	windowHandle_(windowHandle) {
 }
 
 DirectXCore::~DirectXCore() = default;
 
 bool DirectXCore::Initialize() {
-	renderWidth_ = window_.GetWndSetting().wndSize.width;
-	renderHeight_ = window_.GetWndSetting().wndSize.height;
-
 	device_ = std::make_unique<Device>();
 	command_ = std::make_unique<Command>(*device_);
 	descriptorHeapFactory_ = std::make_unique<DescriptorHeapFactory>(*device_);
@@ -70,7 +68,15 @@ bool DirectXCore::Initialize() {
 	resourceFactory_ = std::make_unique<ResourceFactory>(*device_);
 	viewport_ = std::make_unique<Viewport>(*command_);
 	scissorRect_ = std::make_unique<ScissorRect>(*command_);
-	swapChain_ = std::make_unique<SwapChain>(window_, *device_, *command_, *rtvManager_, *viewport_, *scissorRect_);
+	swapChain_ = std::make_unique<SwapChain>(
+		windowHandle_,
+		renderWidth_,
+		renderHeight_,
+		*device_,
+		*command_,
+		*rtvManager_,
+		*viewport_,
+		*scissorRect_);
 	depthStencil_ = std::make_unique<DepthStencil>(*resourceFactory_, *dsvManager_, *srvUavManager_);
 	fence_ = std::make_unique<Fence>(*device_, *command_);
 	shaderCompiler_ = std::make_unique<ShaderCompiler>();
@@ -159,15 +165,6 @@ bool DirectXCore::Initialize() {
 }
 
 bool DirectXCore::BeginFrame() {
-	if (window_.IsResized()) {
-		const Window::Setting windowSetting = window_.GetWndSetting();
-		if (Resize(windowSetting.wndSize.width, windowSetting.wndSize.height)) {
-			window_.ClearResizeFlag();
-		} else {
-			return false;
-		}
-	}
-
 	command_->BeginFrame();
 	swapChain_->BeginFrame();
 
@@ -407,6 +404,14 @@ bool DirectXCore::Resize(uint32_t width, uint32_t height) {
 	renderWidth_ = width;
 	renderHeight_ = height;
 	return true;
+}
+
+uint32_t DirectXCore::GetRenderWidth() const {
+	return renderWidth_;
+}
+
+uint32_t DirectXCore::GetRenderHeight() const {
+	return renderHeight_;
 }
 
 ID3D12Device* DirectXCore::GetDevice() {

@@ -1,15 +1,6 @@
 #include "Window.h"
 
-#include <imgui_impl_win32.h>
-
-#include "LGF/Input.h"
-
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
-	HWND hwnd,
-	UINT msg,
-	WPARAM wparam,
-	LPARAM lparam
-);
+#include <utility>
 
 using namespace LGF;
 
@@ -22,6 +13,8 @@ Window::~Window() {
 bool Window::Initialize(const Window::Setting& setting) {
 	// 設定を取得
 	setting_ = setting;
+	const bool startFullscreen = setting_.isFullScreen;
+	setting_.isFullScreen = false;
 
 	// COMを初期化
 	HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
@@ -57,6 +50,10 @@ bool Window::Initialize(const Window::Setting& setting) {
 		}
 
 		return false;
+	}
+
+	if (startFullscreen) {
+		ToggleFullScreen();
 	}
 
 	return true;
@@ -181,6 +178,14 @@ void Window::ToggleFullScreen() {
 	}
 }
 
+void Window::SetRawInputHandler(RawInputHandler handler) {
+	rawInputHandler_ = std::move(handler);
+}
+
+void Window::SetMessageHandler(MessageHandler handler) {
+	messageHandler_ = std::move(handler);
+}
+
 void Window::CreateGameWindow(int32_t clientWidth, int32_t clientHeight, const std::wstring& windowName, UINT windowStyle) {
 	// ウィンドウクラス情報を設定
 	wc_ = {};
@@ -242,12 +247,12 @@ LRESULT Window::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 
 	Window* window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
-	if (msg == WM_INPUT) {
-		Input::Internal::HandleRawInput(reinterpret_cast<void*>(lparam));
+	if (msg == WM_INPUT && window != nullptr && window->rawInputHandler_) {
+		window->rawInputHandler_(reinterpret_cast<void*>(lparam));
 		return 0;
 	}
-	// ImGui用のメッセージを処理
-	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
+	if (window != nullptr && window->messageHandler_ &&
+		window->messageHandler_(hwnd, msg, wparam, lparam)) {
 		return true;
 	}
 

@@ -1,20 +1,20 @@
 #pragma once
 
-#include "Core/Framework/System/IFrameworkSystem.h"
-
 #include "Core/Window/Window.h"
 
 namespace LGF {
+	struct WindowConfig;
+
 	/// <summary>
 	/// ウィンドウ管理クラス
 	/// </summary>
-	class WindowSystem :public IFrameworkSystem {
+	class WindowSystem {
 	public:
 		WindowSystem();
-		~WindowSystem()override;
+		~WindowSystem();
 
-		bool Initialize(FrameworkContext& context)override;
-		bool Finalize(FrameworkContext& context)override;
+		bool Initialize(const WindowConfig& config);
+		bool Finalize();
 
 		void ProcessMessage();
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Math/Functions/VectorMath.h"
-#include "Math/Functions/MatrixMath.h"
-#include "Math/Functions/QuaternionMath.h"
-#include "Math/Functions/TransformMath.h"
-#include "Math/Functions/ProjectionMath.h"
+#include "LGF/Math/Functions/VectorMath.h"
+#include "LGF/Math/Functions/MatrixMath.h"
+#include "LGF/Math/Functions/QuaternionMath.h"
+#include "LGF/Math/Functions/TransformMath.h"
+#include "LGF/Math/Functions/ProjectionMath.h"

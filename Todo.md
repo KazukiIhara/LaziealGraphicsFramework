@@ -56,14 +56,18 @@
 
 ### ライブラリとしての境界
 
-- [ ] フレームワーク本体をStatic LibraryまたはDLLへ分離する
-- [ ] Sandbox / Exampleアプリを別ターゲットへ分離する
-- [ ] 公開ヘッダーが `Project/Src` の内部型へ依存しない状態を維持する
+- [x] 描画本体を `LaziealGraphicsFramework` Static Libraryへ分離する
+- [x] Window・Input・Time・フレーム進行を `LaziealRuntime` Static Libraryへ分離する
+- [x] Sandbox / Exampleアプリを別ターゲットへ分離する
+- [x] 描画ライブラリ内部の固定AssetRootを廃止し、初期化設定から注入する
+- [x] 公開ヘッダーが `Project/Src` の内部型へ依存しない状態にする
+- [x] SandboxのInclude PathをGraphics / Runtimeの公開Includeだけに制限する
+- [x] EntryPointをRuntimeへ移し、Sandboxを設定関数と `Main()` だけにする
 - [ ] 利用側プロジェクトからLink・Include・Assets配置を再現できるPremake設定を用意する
 - [ ] サードパーティのバージョン、ライセンス、更新方法を文書化する
 - [ ] 最小サンプル、PBRサンプル、モデル大量描画サンプルを分離する
 
-現状は `LaziealGraphicsFramework` 自体が `WindowedApp` で、`main.cpp` と内部実装を同時にビルドします。再利用可能なフレームワークを目指すなら、この境界整理が必須です。
+描画本体、Runtime、Sandboxのビルドターゲット分離と公開Include境界の検証は完了しています。次は別リポジトリからLink・Assets配置まで再現できる配布単位を作る段階です。
 
 ### 失敗処理と検証
 
@@ -258,7 +262,7 @@ Fallbackを入れると対応GPUは増えますが、実装・検証コストも
 ## 推奨実装順
 
 1. Frame Context化と毎フレームGPU待機の解消
-2. 本体ライブラリとSandboxの分離
+2. 本体ライブラリ、Runtime、Sandboxの分離（完了）
 3. Default Heap + 非同期アップロード + Descriptor再利用
 4. 統一エラー処理、JSON / HLSL自動検証、GPUプロファイラ
 5. Render Graphと描画キュー分離

@@ -1,5 +1,7 @@
 #include "LGF/Input.h"
 
+#include "Input/InputInternal.h"
+
 using namespace LGF;
 
 bool KeyButton::Trigger() const {

@@ -3,7 +3,6 @@
 #include <cassert>
 
 #include "Graphics3DInternal.h"
-#include "Core/Window/System/WindowSystem.h"
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
@@ -14,20 +13,10 @@
 
 namespace {
 	LGF::DirectXCore* g_directX = nullptr;
-	LGF::WindowSystem* g_windowSystem = nullptr;
 	LGF::Camera3DSystem* g_camera3DSystem = nullptr;
 	LGF::DirectionalLightSystem* g_directionalLightSystem = nullptr;
 	LGF::SkyboxSystem* g_skyboxSystem = nullptr;
 	LGF::Renderer3D* g_renderer3D = nullptr;
-}
-
-void LGF::Graphics3D::Internal::SetWindowSystem(WindowSystem* windowSystem) {
-	assert(windowSystem != nullptr);
-	g_windowSystem = windowSystem;
-}
-
-void LGF::Graphics3D::Internal::ResetWindowSystem() {
-	g_windowSystem = nullptr;
 }
 
 void LGF::Graphics3D::Internal::SetCamera3DSystem(Camera3DSystem* cameraSystem) {
@@ -76,11 +65,13 @@ void LGF::Graphics3D::Internal::ResetRenderer3D() {
 }
 
 uint32_t LGF::Graphics3D::GetWindowWidth() {
-	return g_windowSystem->GetWindow().GetWndSetting().wndSize.width;
+	assert(g_directX != nullptr);
+	return g_directX->GetRenderWidth();
 }
 
 uint32_t LGF::Graphics3D::GetWindowHeight() {
-	return g_windowSystem->GetWindow().GetWndSetting().wndSize.height;
+	assert(g_directX != nullptr);
+	return g_directX->GetRenderHeight();
 }
 
 void LGF::Graphics3D::SetCamera(const Camera3D& camera) {

@@ -8,7 +8,6 @@
 #include "Graphics/DirectX/ComPtr/ComPtr.h"
 
 namespace LGF {
-	class Window;
 	class Device;
 	class Command;
 	class RTVManager;
@@ -20,7 +19,15 @@ namespace LGF {
 	/// </summary>
 	class SwapChain {
 	public:
-		SwapChain(Window& win, Device& device, Command& cmd, RTVManager& rtvMgr, Viewport& viewport, ScissorRect& scissorRect);
+		SwapChain(
+			void* windowHandle,
+			uint32_t width,
+			uint32_t height,
+			Device& device,
+			Command& cmd,
+			RTVManager& rtvMgr,
+			Viewport& viewport,
+			ScissorRect& scissorRect);
 		~SwapChain();
 
 		bool Initialize();
@@ -41,7 +48,7 @@ namespace LGF {
 		void CreateRTV();
 
 	private:
-		Window& win_;
+		void* windowHandle_ = nullptr;
 		Device& device_;
 		Command& cmd_;
 		RTVManager& rtvMgr_;

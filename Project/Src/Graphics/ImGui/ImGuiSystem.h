@@ -11,14 +11,12 @@
 namespace LGF {
 
 	class DirectXCore;
-	class Window;
-
 	/// <summary>
 	/// ImGuiシステム
 	/// </summary>
 	class ImGuiSystem :public IGraphicsSubsystem {
 	public:
-		ImGuiSystem(DirectXCore& directX, Window& window);
+		ImGuiSystem(DirectXCore& directX, void* windowHandle);
 		~ImGuiSystem()override;
 
 		bool Initialize()override;
@@ -27,6 +25,12 @@ namespace LGF {
 		void BeginFrame()override;
 
 		void EndFrame()override;
+
+		bool HandleWindowMessage(
+			void* windowHandle,
+			uint32_t message,
+			uintptr_t wParam,
+			intptr_t lParam);
 	private:
 		static void AllocateSrvDescriptor(
 			ImGui_ImplDX12_InitInfo* info,
@@ -41,7 +45,7 @@ namespace LGF {
 		);
 	private:
 		DirectXCore& directX_;
-		Window& window_;
+		void* windowHandle_ = nullptr;
 
 		uint32_t imguiSrvIndex_ = 0;
 	};

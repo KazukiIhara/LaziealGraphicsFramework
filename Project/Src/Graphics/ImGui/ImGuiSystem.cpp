@@ -1,13 +1,18 @@
 #include "ImGuiSystem.h"
 
 #include "Graphics/DirectX/Core/DirectXCore.h"
-#include "Core/Window/Window.h"
 #include "Graphics/DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
+	HWND hwnd,
+	UINT message,
+	WPARAM wParam,
+	LPARAM lParam);
 
 using namespace LGF;
 
-ImGuiSystem::ImGuiSystem(DirectXCore& directX, Window& window) :
-	directX_(directX), window_(window) {
+ImGuiSystem::ImGuiSystem(DirectXCore& directX, void* windowHandle) :
+	directX_(directX), windowHandle_(windowHandle) {
 }
 
 ImGuiSystem::~ImGuiSystem() = default;
@@ -22,7 +27,7 @@ bool ImGuiSystem::Initialize() {
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 	// Win32初期化
-	ImGui_ImplWin32_Init(window_.GetHwnd());
+	ImGui_ImplWin32_Init(static_cast<HWND>(windowHandle_));
 
 	// DX12初期化
 	ImGui_ImplDX12_InitInfo initInfo{};
@@ -87,4 +92,16 @@ void ImGuiSystem::FreeSrvDescriptor(
 	// 現状は解放処理なし
 	auto* srvuav = static_cast<SRVUAVManager*>(info->UserData);
 	(void)srvuav;
+}
+
+bool ImGuiSystem::HandleWindowMessage(
+	void* windowHandle,
+	uint32_t message,
+	uintptr_t wParam,
+	intptr_t lParam) {
+	return ImGui_ImplWin32_WndProcHandler(
+		static_cast<HWND>(windowHandle),
+		message,
+		static_cast<WPARAM>(wParam),
+		static_cast<LPARAM>(lParam)) != 0;
 }

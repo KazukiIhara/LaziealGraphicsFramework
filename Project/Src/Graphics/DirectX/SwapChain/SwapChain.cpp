@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-#include "Core/Window/Window.h"
 #include "Graphics/DirectX/Device/Device.h"
 #include "Graphics/DirectX/Command/Command.h"
 #include "Graphics/DirectX/ViewManagers/RTVManager/RTVManager.h"
@@ -11,9 +10,23 @@
 
 using namespace LGF;
 
-SwapChain::SwapChain(Window& win, Device& device, Command& cmd,
-	RTVManager& rtvMgr, Viewport& viewport, ScissorRect& scissorRect)
-	:win_(win), device_(device), cmd_(cmd), rtvMgr_(rtvMgr), viewport_(viewport), scissorRect_(scissorRect) {
+SwapChain::SwapChain(
+	void* windowHandle,
+	uint32_t width,
+	uint32_t height,
+	Device& device,
+	Command& cmd,
+	RTVManager& rtvMgr,
+	Viewport& viewport,
+	ScissorRect& scissorRect) :
+	windowHandle_(windowHandle),
+	device_(device),
+	cmd_(cmd),
+	rtvMgr_(rtvMgr),
+	viewport_(viewport),
+	scissorRect_(scissorRect) {
+	swapChainDesc_.Width = width;
+	swapChainDesc_.Height = height;
 }
 
 SwapChain::~SwapChain() {
@@ -109,14 +122,15 @@ D3D12_CPU_DESCRIPTOR_HANDLE SwapChain::GetCurrentBackBufferRTVHandle() {
 
 bool SwapChain::CreateSwapChain() {
 	// スワップチェーンの設定
-	swapChainDesc_.Width = win_.GetWndSetting().wndSize.width;			// 画面の幅、ウィンドウのクライアント領域を同じものにしておく
-	swapChainDesc_.Height = win_.GetWndSetting().wndSize.height;		// 画面の高さ、ウィンドウのクライアント領域を同じものしておく
 	swapChainDesc_.Format = DXGI_FORMAT_R8G8B8A8_UNORM;					// 色形式
 	swapChainDesc_.SampleDesc.Count = 1;								// マルチサンプルしない
 	swapChainDesc_.BufferCount = 2;										// ダブルバッファ
 	swapChainDesc_.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;			// モニタにうつしたら、中身を破棄
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
-	HRESULT hr = device_.GetFactory()->CreateSwapChainForHwnd(cmd_.GetQueue(), win_.GetHwnd(), &swapChainDesc_,
+	HRESULT hr = device_.GetFactory()->CreateSwapChainForHwnd(
+		cmd_.GetQueue(),
+		static_cast<HWND>(windowHandle_),
+		&swapChainDesc_,
 		nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain_.GetAddressOf()));
 
 	return SUCCEEDED(hr);

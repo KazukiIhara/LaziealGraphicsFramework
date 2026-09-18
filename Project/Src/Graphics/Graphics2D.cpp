@@ -3,23 +3,23 @@
 #include <cassert>
 
 #include "Graphics2DInternal.h"
-#include "Core/Window/System/WindowSystem.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Camera/System/Camera2DSystem.h"
 #include "Graphics/Renderer/Renderer2D.h"
 
 namespace {
-	LGF::WindowSystem* g_windowSystem = nullptr;
+	LGF::DirectXCore* g_directX = nullptr;
 	LGF::Camera2DSystem* g_camera2DSystem = nullptr;
 	LGF::Renderer2D* g_renderer2D = nullptr;
 }
 
-void LGF::Graphics2D::Internal::SetWindowSystem(WindowSystem* windowSystem) {
-	assert(windowSystem != nullptr);
-	g_windowSystem = windowSystem;
+void LGF::Graphics2D::Internal::SetDirectXCore(DirectXCore* directX) {
+	assert(directX != nullptr);
+	g_directX = directX;
 }
 
-void LGF::Graphics2D::Internal::ResetWindowSystem() {
-	g_windowSystem = nullptr;
+void LGF::Graphics2D::Internal::ResetDirectXCore() {
+	g_directX = nullptr;
 }
 
 void LGF::Graphics2D::Internal::SetCamera2DSystem(Camera2DSystem* cameraSystem) {
@@ -41,11 +41,13 @@ void LGF::Graphics2D::Internal::ResetRenderer2D() {
 }
 
 uint32_t LGF::Graphics2D::GetWindowWidth() {
-	return g_windowSystem->GetWindow().GetWndSetting().wndSize.width;
+	assert(g_directX != nullptr);
+	return g_directX->GetRenderWidth();
 }
 
 uint32_t LGF::Graphics2D::GetWindowHeight() {
-	return g_windowSystem->GetWindow().GetWndSetting().wndSize.height;
+	assert(g_directX != nullptr);
+	return g_directX->GetRenderHeight();
 }
 
 void LGF::Graphics2D::SetCamera(const Camera2D& camera) {
