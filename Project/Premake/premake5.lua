@@ -1,7 +1,6 @@
 workspace "LaziealGraphicsFramework"
     configurations { "Debug", "Develop", "Release" }
     platforms { "x64" }
-    startproject "Sandbox"
     location "../"
 
     -- 出力ディレクトリ
@@ -49,7 +48,7 @@ project "DirectXTex"
 
    -- GPU圧縮用の埋め込みシェーダーを生成
    prebuildcommands {
-      'pushd "%{wks.location}Externals\\DirectXTex\\DirectXTex\\Shaders" && call CompileShaders.cmd && popd'
+      'pushd "$(ProjectDir)Externals\\DirectXTex\\DirectXTex\\Shaders" && call CompileShaders.cmd && popd'
    }
 
    filter "configurations:Debug"
@@ -290,92 +289,3 @@ project "LaziealGraphicsFramework"
 
    dependson { "DirectXTex", "DirectXMesh", "ImGui" }
    links { "DirectXTex", "DirectXMesh", "ImGui" }
-
-project "LaziealRuntime"
-   kind "StaticLib"
-   configureLaziealCppProject()
-
-   files {
-      "../Src/Core/Framework/**.cpp",
-      "../Src/Core/Framework/**.h",
-      "../Src/Core/Time/**.cpp",
-      "../Src/Core/Time/**.h",
-      "../Src/Core/Window/**.cpp",
-      "../Src/Core/Window/**.h",
-      "../Src/Input/**.cpp",
-      "../Src/Input/**.h",
-      "../Src/LGF/**.cpp",
-      "../Src/LGF/**.h",
-      "../Runtime/Src/**.cpp",
-      "../Runtime/Src/**.h",
-      "../Runtime/Include/**.h",
-   }
-
-   includedirs {
-      "../Runtime/Src",
-      "../Runtime/Include",
-      "../Src",
-      "../Include",
-   }
-
-   dependson { "LaziealGraphicsFramework" }
-   links { "LaziealGraphicsFramework" }
-
-project "Sandbox"
-   kind "WindowedApp"
-   configureLaziealCppProject()
-
-   files {
-      "../Sandbox/**.cpp",
-      "../Sandbox/**.h",
-   }
-
-   includedirs {
-      "../Runtime/Include",
-      "../Include",
-   }
-
-   dependson {
-      "LaziealRuntime",
-      "LaziealGraphicsFramework",
-      "DirectXTex",
-      "DirectXMesh",
-      "ImGui",
-   }
-
-   links {
-      "LaziealRuntime",
-      "LaziealGraphicsFramework",
-      "DirectXTex",
-      "DirectXMesh",
-      "ImGui",
-      "d3d12",
-      "dxgi",
-      "dxguid",
-      "dxcompiler",
-      "winmm",
-   }
-
-   debugdir "%{wks.location}"
-
-   postbuildcommands {
-      'copy "$(WindowsSdkDir)bin\\$(TargetPlatformVersion)\\x64\\dxcompiler.dll" "$(TargetDir)dxcompiler.dll"',
-      'copy "$(WindowsSdkDir)bin\\$(TargetPlatformVersion)\\x64\\dxil.dll" "$(TargetDir)dxil.dll"'
-   }
-
-   filter "configurations:Debug"
-      linkoptions { "/IGNORE:4049", "/IGNORE:4099" }
-      libdirs { "../Externals/assimp/lib/Debug" }
-      links { "assimp-vc143-mtd" }
-
-   filter "configurations:Develop"
-      linkoptions { "/IGNORE:4049", "/IGNORE:4099" }
-      libdirs { "../Externals/assimp/lib/Release" }
-      links { "assimp-vc143-mt" }
-
-   filter "configurations:Release"
-      linkoptions { "/IGNORE:4049", "/IGNORE:4099" }
-      libdirs { "../Externals/assimp/lib/Release" }
-      links { "assimp-vc143-mt" }
-
-   filter {}

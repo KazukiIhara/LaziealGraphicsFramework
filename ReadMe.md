@@ -43,8 +43,7 @@ Mesh Shader、Metallic-Roughness PBR、Image-Based Lighting（IBL）、Cascaded 
 - 単一2DテクスチャおよびCubemapのSRV生成
 - JSONからのGraphics / Compute Pipeline State生成
 - ウィンドウリサイズ時のSwap Chain、Depth、G-Buffer再生成
-- キーボード、マウスボタン、Raw Input、カーソル、ホイール入力
-- ImGuiのDirectX 12 / Win32バックエンド統合
+- ImGuiのDirectX 12バックエンド統合
 - ベクトル、行列、Quaternion、座標変換用の数学API
 
 ## 動作要件
@@ -60,24 +59,28 @@ Mesh Shader、Metallic-Roughness PBR、Image-Based Lighting（IBL）、Cascaded 
 
 GPUの世代名ではなく、起動時に上記機能を問い合わせて判定します。要件を満たさない場合は初期化に失敗します。
 
-## ビルドと実行
+## ビルド
 
-依存ライブラリは `Project/Externals` に同梱され、Premakeから個別プロジェクトとして生成されます。ワークスペースは描画本体、実行基盤、サンプルを次の3ターゲットに分離しています。
-
-- `LaziealGraphicsFramework`: 描画・数学・GPUリソース管理を提供するStatic Library
-- `LaziealRuntime`: Window、Input、Time、フレーム進行を提供するStatic Library
-- `Sandbox`: `Main()` を実装するサンプル用WindowedApp（スタートアッププロジェクト）
+このリポジトリは描画・数学・GPUリソース管理を提供する
+`LaziealGraphicsFramework` Static Libraryだけを管理します。依存ライブラリは
+`Project/Externals` に同梱され、Premakeから個別プロジェクトとして生成されます。
 
 1. `Project/Premake.bat` を実行します。
-2. 生成された `Project/LaziealGraphicsFramework.slnx` を開きます。以前生成された `.sln` が残っている場合は、旧プロジェクト構成なので使用しないでください。
-3. `x64` の `Debug`、`Develop`、または `Release` を選択して `Sandbox` をビルドします。
-4. `Project` を作業ディレクトリとして `Sandbox` を実行します。
+2. 生成された `Project/LaziealGraphicsFramework.slnx` を開きます。
+3. `x64` の `Debug`、`Develop`、または `Release` を選択してビルドします。
 
-生成物は `generated/outputs/<Configuration>/x64` に出力されます。描画ライブラリはアセット位置を固定で保持せず、Sandboxが返す `RuntimeConfig::assetRoot` をRuntimeが絶対パスへ正規化し、`GraphicsInitDesc` 経由で渡します。モデルやテクスチャなど利用側が直接指定するパスは、引き続き作業ディレクトリからの相対パスを利用できます。
+生成物は `generated/outputs/<Configuration>/x64` に出力されます。実行可能な
+サンプルは別リポジトリの `LaziealSandbox`、Window・Input・Time・フレーム進行は
+`LaziealRuntime` が担当します。SandboxはRuntimeを、Runtimeはこのリポジトリを
+Git submoduleとして参照する構成です。
+
+描画ライブラリはアセット位置を固定で保持しません。利用側が
+`GraphicsInitDesc::assetRoot` を初期化時に渡してください。
 
 ## 最小コード
 
-Runtime Static LibraryがWin32のエントリーポイントを提供します。利用側は同じソースファイルに `ConfigureRuntime()` と `Main()` を定義します。
+別リポジトリのLaziealRuntimeを利用する場合、利用側は同じソースファイルに
+`ConfigureRuntime()` と `Main()` を定義します。
 
 ```cpp
 #include <LGF/LGF.h>
@@ -265,27 +268,19 @@ Pipeline Stateは `Project/Assets/JsonData/Pipeline` 以下のJSONを起動時�
 Project/
 ├─ Include/LGF/                 描画・数学の公開API
 ├─ Src/Graphics, Math/          描画Static Libraryの実装
-├─ Src/Core, Input, LGF/        Runtimeの実装
-├─ Runtime/
-│  ├─ Include/                  Runtime側の公開API
-│  └─ Src/                      EntryPointなどRuntime固有の実装
-├─ Sandbox/
-│  └─ main.cpp                  公開APIだけを使うサンプルアプリ
 ├─ Assets/
 │  ├─ JsonData/Pipeline/        Pipeline State定義
-│  ├─ Shaders/                  HLSL
-│  ├─ Models/                   サンプルモデル
-│  └─ Textures/                 サンプルテクスチャ・環境マップ
+│  └─ Shaders/                  HLSL
 ├─ Externals/                   同梱サードパーティ
-├─ Premake/premake5.lua         Graphics / Runtime / Sandbox生成定義
+├─ Premake/premake5.lua         Graphicsライブラリの生成定義
 └─ Tools/                       アセット変換補助
 ```
 
-主な同梱ライブラリはDirectXTex、DirectXMesh、Dear ImGui、Assimp、nlohmann/jsonです。サンプルモデルごとの出典とライセンスは [`Project/Assets/Models/README.md`](Project/Assets/Models/README.md) に記載しています。
+主な同梱ライブラリはDirectXTex、DirectXMesh、Dear ImGui、Assimp、nlohmann/jsonです。
 
 ## 現在の制限
 
-- GraphicsとRuntimeはStatic Libraryへ分離済みですが、別リポジトリへの分割と配布パッケージ化は未対応です。
+- Graphics、Runtime、Sandboxは別リポジトリへ分離済みですが、配布パッケージ化は未対応です。
 - GPU完了を毎フレーム待つため、CPUとGPUが直列化されています。
 - 3Dの透過・Alpha Mask、Emissive、複数ライト、スキニング、アニメーション、Morph Targetは未対応です。
 - モデルのGPUバッファはUpload Heapに保持され、ロード・転送も同期処理です。

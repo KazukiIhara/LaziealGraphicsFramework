@@ -63,11 +63,13 @@
 - [x] 公開ヘッダーが `Project/Src` の内部型へ依存しない状態にする
 - [x] SandboxのInclude PathをGraphics / Runtimeの公開Includeだけに制限する
 - [x] EntryPointをRuntimeへ移し、Sandboxを設定関数と `Main()` だけにする
-- [ ] 利用側プロジェクトからLink・Include・Assets配置を再現できるPremake設定を用意する
+- [x] Graphics、Runtime、Sandboxを別リポジトリへ分離し、再帰submoduleで依存を固定する
+- [x] 利用側プロジェクトからLink・Include・Assets配置を再現できるPremake設定を用意する
 - [ ] サードパーティのバージョン、ライセンス、更新方法を文書化する
 - [ ] 最小サンプル、PBRサンプル、モデル大量描画サンプルを分離する
 
-描画本体、Runtime、Sandboxのビルドターゲット分離と公開Include境界の検証は完了しています。次は別リポジトリからLink・Assets配置まで再現できる配布単位を作る段階です。
+描画本体、Runtime、Sandboxのリポジトリ分離、公開Include境界、再帰submoduleからの
+統合ビルド検証まで完了しています。次はバージョン付けと配布パッケージ化の段階です。
 
 ### 失敗処理と検証
 
