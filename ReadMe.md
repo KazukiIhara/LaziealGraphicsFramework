@@ -1,196 +1,279 @@
 # Lazieal Graphics Framework
 
-### 必要要件
-・Win10 以上　DirectX12 Ultimate 対応GPU (RTX2080以降推奨)
-### 設計理念
-・すべてコードベースでの実装(ImGUiは利用可能にするが、デバッグ用で機能としては実装しない)  
-・アセットの管理をうまく行おうとしない(この上に作るゲームエンジン層にすべて任せる)  
-・1機能1関数を徹底する
-### 機能
-・MSを使ってプリミティブ形状をGPUで生成することで、プリミティブをすべてインスタンシング描画し、ドローコールを削減する  
-・スタティックメッシュに対してメシュレット単位での視錐台カリングを行い、描画負荷を軽減する  
-・エンジン設定を外部ファイル化　ウィンドウ設定やサイズ、解像度、アンチエイリアス、LOD、影の品質、反射などを外部ファイルで設定できるようにする（シージを参考にする）  
-・パイプラインの設定をjson化　設定を読み込んでパイプラインを生成する方式にする  
-・レンダーテクスチャの設定をjson化　描画時に板ポリに貼ったりなど、テクスチャとして自由に利用できるようにする  
-・ディファードレンダリングの実装  
-・平行光源のカスケードシャドウマップを実装  
-・ソフトシャドウの実装  
-・法線マップの実装  
-・Metallic-Roughness PBRの実装
-・SkyboxとImage-Based Lightingの実装
-・スペキュラーマップの実装  
+DirectX 12 と C++20 で開発中の、Windows向けリアルタイム描画フレームワークです。
 
+Mesh Shader、Metallic-Roughness PBR、Image-Based Lighting（IBL）、Cascaded Shadow Maps（CSM）などの現代的な描画技術を採用しつつ、利用側では `Draw()` と `SetScene()` を中心に扱える、OpenSiv3Dのような簡潔なAPIを目指しています。
 
-### テクスチャ付き3D描画
+> [!IMPORTANT]
+> 現在は学習・研究用の開発途中版です。APIの互換性、配布用ライブラリ、安定したエラーハンドリングはまだ保証していません。
 
-`Main()` 内でテクスチャを読み込み、`Material3D` を `Draw()` に渡します。
+## 現在の主な機能
+
+### 3Dレンダリング
+
+- Mesh Shaderによるプリミティブ描画とインスタンシング
+- Albedo / Normal / Material のG-Bufferを使ったDeferred Rendering
+- Cook-Torrance BRDF（GGX / Smith / Schlick Fresnel）によるMetallic-Roughness PBR
+- ベースカラー、法線、Metallic-Roughness、Ambient Occlusionテクスチャ
+- HDRシーンカラー、EV露出補正、ACES Filmic Tone Mapping
+- 正距円筒図法HDR環境マップを使ったSkybox
+- Diffuse Irradiance、GGX Specular Prefilter、BRDF LUTによるSplit-Sum IBL
+- 平行光源
+- 4分割Cascaded Shadow Maps
+  - 各カスケード 2048 x 2048 / D32
+  - Practical Split（Uniform + Logarithmic）
+  - カスケード境界のブレンド
+  - Texel Snapping
+  - 3 x 3 PCF
+- Assimpによる静的モデル読み込み
+- DirectXMeshによるメッシュレット生成
+- Amplification Shaderによるメッシュレット単位の視錐台カリング
+- モデルの同一リソース単位でのインスタンスバッチ
+- メッシュレット色・境界球、カメラ視錐台、CSM分割のデバッグ描画
+
+### プリミティブ
+
+- 3D: `Triangle3D`、`Box3D`、`Sphere3D`、`Capsule3D`、`Cone3D`、`Cylinder3D`、`Plane3D`、`Ground3D`、`Line3D`、`Grid3D`
+- 2D: `Triangle2D`、`Rect2D`、`Circle2D`、`RoundRect2D`、`Line2D`
+
+### アセットと基盤
+
+- WIC対応画像（PNG、JPEG、BMPなど）、DDS、TGA、HDRの同期読み込み
+- sRGB / Linearの明示、Mip生成、ロード設定を含むパス単位キャッシュ
+- 単一2DテクスチャおよびCubemapのSRV生成
+- JSONからのGraphics / Compute Pipeline State生成
+- ウィンドウリサイズ時のSwap Chain、Depth、G-Buffer再生成
+- キーボード、マウスボタン、Raw Input、カーソル、ホイール入力
+- ImGuiのDirectX 12 / Win32バックエンド統合
+- ベクトル、行列、Quaternion、座標変換用の数学API
+
+## 動作要件
+
+- Windows 10以降
+- Visual Studio 2026（Desktop development with C++）
+- Windows SDKとDirectX Shader Compiler（DXC）
+- C++20対応MSVCツールセット
+- 次の機能をすべて満たすDirectX 12 GPUとドライバー
+  - Mesh Shader Tier 1以上
+  - Shader Model 6.6以上
+  - Resource Binding Tier 3
+
+GPUの世代名ではなく、起動時に上記機能を問い合わせて判定します。要件を満たさない場合は初期化に失敗します。
+
+## ビルドと実行
+
+依存ライブラリは `Project/Externals` に同梱され、Premakeから個別プロジェクトとして生成されます。
+
+1. `Project/Premake.bat` を実行します。
+2. 生成された `Project/LaziealGraphicsFramework.sln` または `.slnx` を開きます。
+3. `x64` の `Debug`、`Develop`、または `Release` を選択してビルドします。
+4. `Project` を作業ディレクトリとして実行します。
+
+生成物は `generated/outputs/<Configuration>/x64` に出力されます。シェーダー、Pipeline JSON、モデルなどは `Assets/...` の相対パスで参照するため、実行時の作業ディレクトリが重要です。
+
+## 最小コード
+
+フレームワーク側がWin32のエントリーポイントを提供します。利用側は `Main()` を定義します。
+
+```cpp
+#include <LGF/LGF.h>
+
+using namespace LGF;
+
+void Main() {
+    Camera3D camera({ 0.0f, 1.5f, -5.0f });
+    DirectionalLight light(
+        { 1.0f, -1.0f, 0.5f },
+        Color::White,
+        1.5f);
+
+    const Box3D box;
+    const Material3D material{
+        .color = Color::Orange,
+        .metallic = 0.1f,
+        .roughness = 0.45f,
+    };
+
+    while (System::Update()) {
+        camera.SetScene();
+        light.SetScene();
+        box.Draw(Math::Identity4x4(), material);
+    }
+}
+```
+
+`System::Update()` がウィンドウイベントとフレーム進行を管理します。3Dオブジェクトはフレーム中の `Draw()` でキューに追加され、フレーム終了時にまとめて描画されます。
+
+## テクスチャ付きマテリアル
 
 ```cpp
 Texture ormTexture(
     "Assets/Models/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_OcclusionRoughMetal.png",
     TextureLoadDesc::Data());
 
-Material3D material{};
-material.baseColorTexture = Texture("Assets/Textures/Checker.bmp");
-material.normalTexture = Texture(
-    "Assets/Models/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_Normal.png",
-    TextureLoadDesc::NormalMap());
-material.metallicRoughnessTexture = ormTexture;
-material.occlusionTexture = ormTexture;
-material.normalScale = 1.0f;
-material.metallic = 1.0f;
-material.roughness = 1.0f;
-material.occlusionStrength = 1.0f;
-material.unlit = false;
-material.color = Color::White;
-material.uvScale = { 4.0f, 4.0f };
+Material3D material{
+    .color = Color::White,
+    .baseColorTexture = Texture("Assets/Textures/Checker.bmp"),
+    .normalTexture = Texture(
+        "Assets/Models/FlightHelmet/FlightHelmet_Materials_LeatherPartsMat_Normal.png",
+        TextureLoadDesc::NormalMap()),
+    .metallicRoughnessTexture = ormTexture,
+    .occlusionTexture = ormTexture,
+    .normalScale = 1.0f,
+    .metallic = 1.0f,
+    .roughness = 1.0f,
+    .occlusionStrength = 1.0f,
+    .uvScale = { 4.0f, 4.0f },
+};
 
-while (System::Update()) {
-    Camera3D(Vector3(0.0f, 1.0f, -5.0f)).SetScene();
-    Box3D().Draw(Math::Identity4x4(), material);
-}
+Box3D().Draw(Math::Identity4x4(), material);
 ```
 
-- `Triangle3D`・`Box3D`・`Plane3D`・`Ground3D`・`Sphere3D`・`Capsule3D`・`Cone3D`・`Cylinder3D`・`Line3D` に対応しています。従来の色指定 `Draw(matrix, color)` も使用できます。
-- `baseColorTexture` 未指定時は単色、指定時はテクスチャと `color` を乗算します。`normalTexture` はタンジェント空間法線マップで、`normalScale` は `0` で無効、`1` で元の強さです。
-- Metallic-Roughness PBRでは、`metallicRoughnessTexture` のGをRoughness、BをMetallicとして使用し、`occlusionTexture` のRをAOとして使用します。同じORM画像を両方へ指定できます。`metallic`・`roughness` はテクスチャへ乗算され、`occlusionStrength` はAOの強度です。
-- ライティングはCook-Torrance BRDF（GGX・Smith・Schlick Fresnel）による平行光源の直接光です。`unlit = true` ではライト計算を行わずベースカラーをそのまま出力します。現在は不透明描画が対象で、透過とIBLによる環境反射は未実装です。
-- `Line3D::Draw(matrix, color)` はデバッグ表示へ使いやすいよう、既定でUnlitです。ライトを適用したい場合は `unlit = false` の `Material3D` を明示的に渡します。
-- UV は各形状で生成します。箱は面ごと、球・カプセルは経緯度、円柱・円錐は側面と底面を分離しています。`uvScale` と `uvOffset` で調整し、リピート＋線形ミップフィルタで描画します。
-- BMP・PNG・JPEG などの WIC 対応画像、DDS・TGA・HDR を読み込めます。単一2Dテクスチャ／単一キューブマップが対象です。キューブマップは読み込めますが、現在の `Material3D` の各テクスチャには指定できません。
-- 色画像は既定で sRGB、法線マップは `TextureLoadDesc::NormalMap()`、Metallic・Roughness・AOなどのデータ画像は `TextureLoadDesc::Data()` でLinearとして読み込みます。モデルに頂点タンジェントがある場合はhandednessを含めて使用し、持たないモデルや既存プリミティブではワールド位置とUVの画面微分からTBNを生成します。UVが退化してTBNを作れない箇所は頂点法線へフォールバックします。
-- ミップ生成は既定で有効です。DDS などの既存ミップは保持し、`generateMipMaps = false` では新規生成しません。
-- パスは UTF-8、相対パスは作業ディレクトリ基準です。通常は `Project` を作業ディレクトリにします。同じ正規化パスと読み込み設定はキャッシュし、GPU リソースはフレームワーク終了まで保持します。
-- 初回ロードはGPU転送完了を待つ同期処理です。毎フレームのロードは避けてください。失敗時は例外を送出します。
-- 異なるテクスチャを同じ形状のまとめ描画で扱うため、Shader Model 6.6 と Resource Binding Tier 3 が必要です。起動時に対応状況を確認します。
+- 色画像は既定でsRGBとして読み込みます。
+- 法線マップは `TextureLoadDesc::NormalMap()`、ORMやAOなどのデータ画像は `TextureLoadDesc::Data()` でLinearとして読み込みます。
+- `baseColorTexture` を省略すると単色描画になります。指定時はテクスチャと `color` を乗算します。
+- Metallic-RoughnessテクスチャはglTFと同じくGをRoughness、BをMetallicとして使用します。AOはRチャンネルです。
+- `unlit = true` では直接光・IBL・影を適用しません。
 
-### HDRからDDSへの変換
+テクスチャ読み込みは現在同期処理です。失敗時は `std::exception` 派生の例外を送出し、GPUリソースはフレームワーク終了までキャッシュされます。
 
-同梱しているMicrosoft DirectXTex公式の`Texconv`プロジェクトをビルドし、`.hdr`ファイルを`Project/Tools/Texconv/ConvertHDRToDDS.bat`へドラッグ＆ドロップすると、同じ場所へLinearな`R16G16B16A16_FLOAT`のDDSを生成できます。複数ファイルにも対応し、既存DDSは既定でスキップします。
-
-生成物はフルMip付きの正距円筒図法2Dテクスチャです。IBL用のDiffuse Irradiance Cubemap、GGX Specular Prefilter Cubemap、BRDF LUTは、最初にSkyboxを設定したフレームでGPU生成されます。
-
-### Skybox
-
-正距円筒図法のLinear HDR DDSを`Skybox`へ読み込み、描画するフレーム内で`SetScene()`を呼びます。背景はHDRの`SceneColor`へ出力されるため、ExposureとACESトーンマッピングが適用されます。
+## 静的モデル
 
 ```cpp
-Skybox skybox("Assets/Textures/Environment/StoryStudio02/story_studio_02_2k.dds");
-skybox.intensity = 1.0f;
-skybox.rotation = 0.0f;
+Model model("Assets/Models/FlightHelmet/FlightHelmet.gltf");
 
-while (System::Update()) {
-    skybox.SetScene();
-}
-```
-
-`intensity`は背景とIBLのHDR輝度へ乗算する係数、`rotation`は背景と環境反射に適用するY軸周りのラジアン角です。同じ環境テクスチャのIBL結果はキャッシュされ、毎フレーム再生成されません。
-
-Metallic-Roughness PBRの間接光にはSplit-Sum近似を使用します。Diffuse Irradianceは拡散反射、RoughnessごとのGGX Prefilterは鏡面反射、BRDF LUTは視線角度とRoughnessに依存するBRDF積分を担当します。Skyboxを設定しないフレームは従来の最低限の環境光へフォールバックします。
-
-### シャドウマップ
-
-現在の平行光源は、モデルと面を持つ3Dプリミティブを4枚の2048x2048 D32シャドウマップへ描画し、直接光へ影を適用します。シーン側で特別な描画関数を呼ぶ必要はなく、通常の`Draw()`で登録した形状が自動的に影を落とします。`Line3D`とメシュレット境界球などのデバッグ描画は影を落としません。
-
-シャドウ範囲はカメラの視錐台（最大100m）へ自動追従します。デフォルトでは`SetScene()`した描画カメラを使用し、別カメラを基準にしたいフレームでは、そのカメラの`SetShadowScene()`を呼びます。指定はカリングカメラと同様にフレームごとにリセットされます。
-
-```cpp
-Camera3D camera;
-camera.SetScene(); // 未指定なら、この描画カメラが影の基準になる
-
-Camera3D shadowCamera;
-shadowCamera.SetShadowScene(); // 必要な場合だけ別カメラで上書き
-shadowCamera.DrawDebug({ .showShadowCascades = true });
-```
-
-CSMは第5段階まで実装済みです。視錐台を4分割し、それぞれへ2048x2048のシャドウマップを描画した後、ライティング時にCSM基準カメラからの深度に応じて使用するマップを選択します。境界付近は次のカスケードを10%重ねて描画し、2枚の判定結果をクロスフェードします。また、シャドウ行列をテクセル単位へスナップして、カメラ移動時の細かな揺れを抑えます。各カスケードの影判定には周囲9点を平均する3x3 PCFを使用し、影の輪郭とシャドウマップ由来のジャギーをなめらかにします。4枚のD32テクスチャ本体が使用するVRAMは合計約64MiBです。描画範囲・分割設定・Bias・PCFカーネルの公開設定は今後の拡張対象です。
-
-### 静的モデル描画
-
-`Model` はAssimp経由で静的モデルを同期ロードします。現在は三角形メッシュ、頂点位置、法線、タンジェント、UV、ベースカラー、ベースカラー・法線・Metallic-Roughness・AOテクスチャに対応しています。
-
-```cpp
-Model model("Assets/Models/BoxTextured/BoxTextured.glb");
-
-while (System::Update()) {
-    Camera3D(Vector3(0.0f, 1.0f, -5.0f)).SetScene();
-    model.Draw(Math::Identity4x4());
-}
-```
-
-モデルはDirectXMeshでメシュレットへ分割され、Amplification Shaderで現在の3Dカメラの視錐台に入るメシュレットだけを描画します。別のカメラでカリングしたい場合は、描画するフレーム内で `SetCullingScene()` を呼びます。
-
-```cpp
-Camera3D renderCamera({ 0.0f, 1.0f, -5.0f });
-Camera3D cullingCamera({ 0.0f, 5.0f, -10.0f }, 0.0f, 20.0f * Math::DEG_TO_RAD);
-
-ModelDrawOptions drawOptions{
+ModelDrawOptions options{
     .enableNormalMap = true,
     .normalScale = 1.0f,
     .metallicScale = 1.0f,
     .roughnessScale = 1.0f,
     .occlusionStrength = 1.0f,
-    .unlit = false,
-    .debugDraw = {
-        .showMeshletColors = true,
-        .showMeshletBoundingSpheres = true,
-        .meshletBoundingSphereColor = Color::Lime,
-    },
 };
 
 while (System::Update()) {
-    renderCamera.SetScene();
-    cullingCamera.SetCullingScene();
-    cullingCamera.DrawDebug({
-        .showFrustum = true,
-        .frustumColor = Color::Yellow,
-    });
-    model.Draw(Math::Identity4x4(), drawOptions);
+    camera.SetScene();
+    light.SetScene();
+    model.Draw(Math::Identity4x4(), options);
 }
 ```
 
-`SetCullingScene()` を呼ばなかったフレームは描画カメラが自動的に使われます。メシュレット境界球はカリング結果に関係なくデバッグ表示されるため、別カメラでカリングした結果も描画カメラから確認できます。`Camera3DDebugDraw::showFrustum` を切り替えると、カメラの視錐台を示すラインの表示をシーン側からON/OFFできます。
+モデルは初回ロード時にキャッシュされ、頂点を左手座標系へ変換してメッシュレットを生成します。ベースカラー、法線、Metallic-Roughness、AOと各係数を読み込みます。GLB内の圧縮画像と、glTFから参照される外部画像の両方に対応しています。
 
-同じモデルを複数描画する場合は、インスタンス配列をまとめて送れます。通常の `Draw()` を同じモデルへ複数回呼んだ場合も、内部では同じバッチへまとめられます。
+同じモデルを複数描画する場合は `DrawInstanced()` を利用できます。
 
 ```cpp
-std::array<ModelInstance3D, 5> instances{};
-for (size_t i = 0; i < instances.size(); ++i) {
+std::array<ModelInstance3D, 3> instances{};
+for (std::size_t i = 0; i < instances.size(); ++i) {
     instances[i].worldMatrix = Math::MakeTranslateMatrix(
         { static_cast<float>(i) * 2.0f, 0.0f, 0.0f });
 }
-model.DrawInstanced(instances, drawOptions);
+model.DrawInstanced(instances, options);
 ```
 
-- GLB内の圧縮された埋め込み画像と、モデルから相対参照される外部画像を読み込めます。
-- 読み込み時に左手座標系へ変換し、ノード変換を頂点へ適用します。glTFのベースカラー、タンジェント空間法線、Metallic-Roughness、AOのテクスチャと各係数はマテリアルから自動的に読み込みます。現時点ではスキニング、アニメーション、透過、IBLは対象外です。
-- `ModelDrawOptions::enableNormalMap` を `false` にすると描画単位で法線マップを無効化できます。`normalScale`・`metallicScale`・`roughnessScale`・`occlusionStrength` はモデルファイル側の値へ乗算され、`color` は全インスタンス共通の色倍率として使われます。`unlit = true` ではモデルもライト計算を行いません。
-- モデルは初回のみキャッシュされ、GPUリソースはフレームワーク終了まで保持されます。毎フレーム生成しないでください。
+## Skybox、IBL、露出
 
-### 平行光源
-
-`DirectionalLight` で光の進む方向・色・強度を指定し、描画するフレーム内で `SetScene()` を呼びます。
+SkyboxにはLinear HDRの正距円筒図法テクスチャを指定します。初回設定時にDiffuse Irradiance Cubemap、GGX Prefilter Cubemap、BRDF LUTをGPUで生成し、以降はキャッシュして利用します。
 
 ```cpp
-DirectionalLight light({ 1.0f, -1.0f, 0.5f }, Color::White, 1.5f);
+Skybox skybox(
+    "Assets/Textures/Environment/StoryStudio02/story_studio_02_2k.dds");
+skybox.intensity = 1.0f;
+skybox.rotation = 0.0f;
 
 while (System::Update()) {
-    Camera3D(Vector3(0.0f, 1.0f, -5.0f)).SetScene();
-    light.SetScene();
-    Box3D().Draw();
+    skybox.SetScene();
+    Graphics3D::SetExposure(0.0f); // EV。+1で2倍、-1で半分
 }
 ```
 
-- `direction` は光が進む向きで、内部で正規化されます。ゼロベクトルの場合は既定の下向き光源を使用します。
-- `intensity` は `0` 以上として扱い、負の値は `0` に補正します。
+`.hdr` をDDSへ変換する補助ツールは [`Project/Tools/Texconv/README.md`](Project/Tools/Texconv/README.md) を参照してください。
 
-# Lazieal Game Engine
+## カリング、影、デバッグ表示
 
-・シーンマネージャの実装  
-・トランスフォームマネージャの実装  
-・Line,Plane,Sphere,AABB,OBB,Capsuleの衝突判定関数を実装  
-・Sphere,AABB,OBB,の物理コライダーを実装(重力、押し戻し、反発)
-・Blenderのアドオンを使ってシーンを作成でき、ホットリロードができる  
-・Effekseerで作成したエフェクトをインポートでき、ホットリロードできる  
-・Figmaで作成したUIをインポートでき、ホットリロードできる  
-・外部パラメータを変更できるexeを別途用意し、ImGuiで動的にパラメータを変更できるようにする
+通常は描画カメラがカリングとCSMの基準にもなります。別カメラを使う場合のみ、フレームごとに `SetCullingScene()` または `SetShadowScene()` を呼びます。
+
+```cpp
+Camera3D renderCamera({ 0.0f, 3.0f, -10.0f });
+Camera3D debugCamera({ 0.0f, 12.0f, -20.0f });
+
+while (System::Update()) {
+    debugCamera.SetScene();
+    renderCamera.SetCullingScene();
+    renderCamera.SetShadowScene();
+    renderCamera.DrawDebug({
+        .showFrustum = true,
+        .showShadowCascades = true,
+    });
+
+    model.Draw(Math::Identity4x4(), {
+        .debugDraw = {
+            .showMeshletColors = true,
+            .showMeshletBoundingSpheres = true,
+        },
+    });
+}
+```
+
+現在のCSMは最大100 mを対象とする固定4分割です。プリミティブと静的モデルは影を落としますが、`Line3D` とメッシュレット境界球などのデバッグ描画は対象外です。
+
+## 入力
+
+```cpp
+if (Key::Space.Trigger()) {
+    // 押した瞬間
+}
+if (Key::W.Press()) {
+    // 押している間
+}
+if (Mouse::Right.Release()) {
+    // 離した瞬間
+}
+
+const Vector2 rawMouseDelta = Mouse::Delta();
+const Vector2 cursorPosition = Cursor::Pos();
+const float wheel = Mouse::WheelDelta();
+```
+
+## 描画パス
+
+現在の1フレームは、おおむね次の順序で処理されます。
+
+1. 3Dプリミティブとモデルを4枚のCSMへ描画
+2. 3DジオメトリをG-Bufferへ描画
+3. 平行光源、影、IBLを使ってHDR `SceneColor` を合成
+4. 露出補正とACES Tone Mappingを適用してSwap Chainへ出力
+5. 2DプリミティブとImGuiをLDR出力へ重ねる
+
+Pipeline Stateは `Project/Assets/JsonData/Pipeline` 以下のJSONを起動時に再帰的に読み込み、対応するHLSLをDXCでコンパイルして生成します。
+
+## プロジェクト構成
+
+```text
+Project/
+├─ Include/LGF/                 公開API
+├─ Src/                         フレームワーク実装
+├─ Assets/
+│  ├─ JsonData/Pipeline/        Pipeline State定義
+│  ├─ Shaders/                  HLSL
+│  ├─ Models/                   サンプルモデル
+│  └─ Textures/                 サンプルテクスチャ・環境マップ
+├─ Externals/                   同梱サードパーティ
+├─ Premake/premake5.lua         プロジェクト生成定義
+├─ Tools/                       アセット変換補助
+└─ main.cpp                     現在のサンプル
+```
+
+主な同梱ライブラリはDirectXTex、DirectXMesh、Dear ImGui、Assimp、nlohmann/jsonです。サンプルモデルごとの出典とライセンスは [`Project/Assets/Models/README.md`](Project/Assets/Models/README.md) に記載しています。
+
+## 現在の制限
+
+- フレームワーク本体とサンプルアプリはまだ同じ `WindowedApp` ターゲットです。
+- GPU完了を毎フレーム待つため、CPUとGPUが直列化されています。
+- 3Dの透過・Alpha Mask、Emissive、複数ライト、スキニング、アニメーション、Morph Targetは未対応です。
+- モデルのGPUバッファはUpload Heapに保持され、ロード・転送も同期処理です。
+- 2Dは単色プリミティブ中心で、Sprite、フォント、2Dテクスチャ描画は未対応です。
+- プリミティブは形状ごとに1フレーム4096インスタンスの固定上限があります。
+- CSMの解像度、距離、分割数、Bias、PCFカーネルは公開設定になっていません。
+- Pipeline JSONやシェーダーのHot Reloadは未対応です。
+
+優先度を含む今後の計画は [`Todo.md`](Todo.md) を参照してください。
