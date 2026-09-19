@@ -65,8 +65,7 @@ namespace LGF {
 		static constexpr uint32_t kConstantBufferStride = 256;
 
 		ModelInstanceData* instanceData_ = nullptr;
-		ComPtr<ID3D12Resource> drawConstantResource_;
-		std::byte* drawConstantData_ = nullptr;
+		FrameBufferedUploadBuffer drawConstantResources_;
 		std::vector<ModelBatch> batches_;
 		std::unordered_map<const ModelResource*, size_t> batchIndices_;
 		uint32_t queuedInstanceCount_ = 0;

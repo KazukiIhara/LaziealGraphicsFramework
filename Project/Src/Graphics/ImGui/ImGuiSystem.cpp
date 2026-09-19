@@ -33,7 +33,7 @@ bool ImGuiSystem::Initialize() {
 	ImGui_ImplDX12_InitInfo initInfo{};
 	initInfo.Device = directX_.GetDevice();
 	initInfo.CommandQueue = directX_.GetCommandQueue();
-	initInfo.NumFramesInFlight = 2;
+	initInfo.NumFramesInFlight = kFrameContextCount;
 	initInfo.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	initInfo.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	initInfo.SrvDescriptorHeap = directX_.GetResMgr().srvuav->GetDescriptorHeap();

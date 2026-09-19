@@ -1,7 +1,10 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <d3d12.h>
+
+#include "Graphics/DirectX/FrameContext/FrameContext.h"
 
 #include "Graphics/DirectX/ComPtr/ComPtr.h"
 
@@ -31,6 +34,7 @@ namespace LGF {
 		/// 描画クラス固有の初期化処理
 		/// </summary>
 		virtual void Initialize()override = 0;
+		void BeginFrame() override;
 
 		/// <summary>
 		/// CPUで積んだコマンドをGPUに投げる
@@ -61,12 +65,13 @@ namespace LGF {
 		/// <summary>
 		/// インスタンスリソースを作成
 		/// </summary>
-		void CreateInstanceResource(unsigned long long resSize, void** data,
-			ComPtr<ID3D12Resource>& res, uint32_t& srvIdx);
+		void CreateInstanceResources(unsigned long long resSize, void** data);
 
 	protected:
 		// インスタンシング描画用のリソース
-		ComPtr<ID3D12Resource> instanceResource_{};
+		FrameBufferedUploadBuffer instanceResources_;
+		void** instanceDataTarget_ = nullptr;
+		std::array<uint32_t, kFrameContextCount> instanceSrvIndices_{};
 
 		// インスタンスリソースのsrvインデックス
 		uint32_t instanceSrvIndex_{};

@@ -57,12 +57,6 @@ ModelDrawer3D::ModelDrawer3D(Graphics3DContext context) :
 }
 
 ModelDrawer3D::~ModelDrawer3D() {
-	if (instanceResource_ && instanceData_) {
-		instanceResource_->Unmap(0, nullptr);
-	}
-	if (drawConstantResource_ && drawConstantData_) {
-		drawConstantResource_->Unmap(0, nullptr);
-	}
 }
 
 void ModelDrawer3D::Initialize() {
@@ -73,18 +67,12 @@ void ModelDrawer3D::Initialize() {
 	};
 	BaseDrawer::Initialize(instanceInitParam);
 
-	drawConstantResource_ = GetContext().directX.GetResourceFactory()->CreateUploadBufferResource(
-		static_cast<size_t>(kConstantBufferStride) * kMaxDispatchCount);
-	if (!drawConstantResource_) {
+	if (!drawConstantResources_.Initialize(
+		*GetContext().directX.GetResourceFactory(),
+		static_cast<size_t>(kConstantBufferStride) * kMaxDispatchCount)) {
 		throw std::runtime_error("Model draw constant buffer allocation failed.");
 	}
 
-	void* mapped = nullptr;
-	const HRESULT hr = drawConstantResource_->Map(0, nullptr, &mapped);
-	if (FAILED(hr) || !mapped) {
-		throw std::runtime_error("Model draw constant buffer mapping failed.");
-	}
-	drawConstantData_ = static_cast<std::byte*>(mapped);
 	batches_.reserve(256);
 
 	SetPipeline(GetContext().pipelineMgr.GetPipeline("Model3D"));
@@ -111,6 +99,8 @@ void ModelDrawer3D::DrawShadow(ShadowMapSystem& shadowMap) {
 
 void ModelDrawer3D::DrawBatches(Pipeline* pipeline, ShadowMapSystem* shadowMap) {
 	assert(pipeline);
+	const uint32_t frameIndex = GetContext().directX.GetCurrentFrameContextIndex();
+	std::byte* drawConstantData = drawConstantResources_.GetMappedData(frameIndex);
 
 	ID3D12GraphicsCommandList6* commandList = GetContext().directX.GetCommandList6();
 	commandList->SetGraphicsRootSignature(pipeline->GetRootSignature());
@@ -175,11 +165,11 @@ void ModelDrawer3D::DrawBatches(Pipeline* pipeline, ShadowMapSystem* shadowMap) 
 				const size_t constantOffset =
 					static_cast<size_t>(dispatchIndex) * kConstantBufferStride;
 				std::memcpy(
-					drawConstantData_ + constantOffset,
+					drawConstantData + constantOffset,
 					&constants,
 					sizeof(constants));
 				const D3D12_GPU_VIRTUAL_ADDRESS constantAddress =
-					drawConstantResource_->GetGPUVirtualAddress() + constantOffset;
+					drawConstantResources_.GetGPUVirtualAddress(frameIndex) + constantOffset;
 				commandList->SetGraphicsRootConstantBufferView(
 					pipeline->GetRootIndex("gModel"),
 					constantAddress);

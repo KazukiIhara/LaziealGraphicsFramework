@@ -43,14 +43,7 @@ namespace {
 
 ShadowMapSystem::ShadowMapSystem(DirectXCore& directX) : directX_(directX) {}
 
-ShadowMapSystem::~ShadowMapSystem() {
-	if (cameraResource_ && cameraMappedData_) {
-		cameraResource_->Unmap(0, nullptr);
-	}
-	if (cascadeDataResource_ && cascadeData_) {
-		cascadeDataResource_->Unmap(0, nullptr);
-	}
-}
+ShadowMapSystem::~ShadowMapSystem() = default;
 
 bool ShadowMapSystem::Initialize() {
 	auto managers = directX_.GetResMgr();
@@ -75,28 +68,22 @@ bool ShadowMapSystem::Initialize() {
 		}
 	}
 
-	cameraResource_ = directX_.GetResourceFactory()->CreateUploadBufferResource(
-		kCameraConstantBufferStride * ShadowCascadeCalculator::kCascadeCount);
-	if (!cameraResource_) {
+	if (!cameraResources_.Initialize(
+		*directX_.GetResourceFactory(),
+		kCameraConstantBufferStride * ShadowCascadeCalculator::kCascadeCount)) {
 		return false;
 	}
-	if (FAILED(cameraResource_->Map(0, nullptr, reinterpret_cast<void**>(&cameraMappedData_))) ||
-		!cameraMappedData_) {
-		return false;
-	}
-
-	cascadeDataResource_ = directX_.GetResourceFactory()->CreateUploadBufferResource(
+	return cascadeDataResources_.Initialize(
+		*directX_.GetResourceFactory(),
 		sizeof(ShadowCascadeDataForGPU));
-	if (!cascadeDataResource_) {
-		return false;
-	}
-	return SUCCEEDED(cascadeDataResource_->Map(
-		0,
-		nullptr,
-		reinterpret_cast<void**>(&cascadeData_))) && cascadeData_;
 }
 
 void ShadowMapSystem::Update(const Camera3D& camera, const DirectionalLight& light) {
+	const uint32_t frameIndex = directX_.GetCurrentFrameContextIndex();
+	std::byte* cameraMappedData_ = cameraResources_.GetMappedData(frameIndex);
+	ShadowCascadeDataForGPU* cascadeData_ =
+		reinterpret_cast<ShadowCascadeDataForGPU*>(
+			cascadeDataResources_.GetMappedData(frameIndex));
 	constexpr float kBoundsPadding = 1.0f;
 	constexpr float kCasterPadding = 50.0f;
 	const float aspectRatio = GetAspectRatio(camera);
@@ -225,13 +212,14 @@ void ShadowMapSystem::EndShadowPass() {
 void ShadowMapSystem::BindCamera(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIndex) const {
 	commandList->SetGraphicsRootConstantBufferView(
 		rootParamIndex,
-		cameraResource_->GetGPUVirtualAddress() + kCameraConstantBufferStride * currentCascadeIndex_);
+		cameraResources_.GetGPUVirtualAddress(directX_.GetCurrentFrameContextIndex()) +
+		kCameraConstantBufferStride * currentCascadeIndex_);
 }
 
 void ShadowMapSystem::BindCascadeData(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIndex) const {
 	commandList->SetGraphicsRootConstantBufferView(
 		rootParamIndex,
-		cascadeDataResource_->GetGPUVirtualAddress());
+		cascadeDataResources_.GetGPUVirtualAddress(directX_.GetCurrentFrameContextIndex()));
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE ShadowMapSystem::GetShadowMapHandleGPU() const {

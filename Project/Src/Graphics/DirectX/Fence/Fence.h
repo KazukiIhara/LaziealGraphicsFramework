@@ -20,9 +20,12 @@ namespace LGF {
 		~Fence();
 
 		bool Initialize();
-		void EndFrame();
+		uint64_t Signal();
 		// GPUを待機
-		void WaitGPU();
+		void Wait(uint64_t fenceValue);
+		void WaitIdle();
+		bool IsCompleted(uint64_t fenceValue) const;
+		bool IsInitialized() const;
 
 	private:
 		Device& device_;
@@ -32,6 +35,7 @@ namespace LGF {
 		ComPtr<ID3D12Fence> fence_ = nullptr;
 		// フェンスバリュー
 		UINT64 fenceValue_ = 0;
+		void* fenceEvent_ = nullptr;
 
 	};
 }

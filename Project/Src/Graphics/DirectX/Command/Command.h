@@ -1,6 +1,11 @@
 #pragma once
 
+#include <array>
+#include <cstdint>
+
 #include <d3d12.h>
+
+#include "Graphics/DirectX/FrameContext/FrameContext.h"
 
 #include "Graphics/DirectX/ComPtr/ComPtr.h"
 
@@ -17,17 +22,16 @@ namespace LGF {
 		~Command();
 
 		bool Initialize();
-		void BeginFrame();
+		void BeginFrame(uint32_t frameContextIndex);
 		void EndFrame();
 
 		// コマンドの実行
 		void KickCommand();
 		// コマンドのリセット
-		void ResetCommand();
+		void ResetCommand(uint32_t frameContextIndex);
+		FrameContext& GetFrameContext(uint32_t frameContextIndex);
 		// キューの取得
 		ID3D12CommandQueue* GetQueue();
-		// アロケータの取得
-		ID3D12CommandAllocator* GetAllocator();
 		// リストの取得
 		ID3D12GraphicsCommandList* GetList();
 		// メッシュシェーダー用リストの取得
@@ -39,7 +43,7 @@ namespace LGF {
 		// コマンドキュー
 		ComPtr<ID3D12CommandQueue> commandQueue_ = nullptr;
 		// コマンドアロケータ
-		ComPtr<ID3D12CommandAllocator> commandAllocator_ = nullptr;
+		std::array<FrameContext, kFrameContextCount> frameContexts_{};
 		// コマンドリスト
 		ComPtr<ID3D12GraphicsCommandList> commandList_ = nullptr;
 		// MeshShader用コマンドリスト

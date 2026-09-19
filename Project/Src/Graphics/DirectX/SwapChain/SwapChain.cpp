@@ -120,11 +120,15 @@ D3D12_CPU_DESCRIPTOR_HANDLE SwapChain::GetCurrentBackBufferRTVHandle() {
 	return rtvMgr_.GetCPUDescriptorHandle(rtvIndex_[backBufferIndex_]);
 }
 
+uint32_t SwapChain::GetCurrentBackBufferIndex() const {
+	return swapChain_->GetCurrentBackBufferIndex();
+}
+
 bool SwapChain::CreateSwapChain() {
 	// スワップチェーンの設定
 	swapChainDesc_.Format = DXGI_FORMAT_R8G8B8A8_UNORM;					// 色形式
 	swapChainDesc_.SampleDesc.Count = 1;								// マルチサンプルしない
-	swapChainDesc_.BufferCount = 2;										// ダブルバッファ
+	swapChainDesc_.BufferCount = kFrameContextCount;					// ダブルバッファ
 	swapChainDesc_.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;			// モニタにうつしたら、中身を破棄
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
 	HRESULT hr = device_.GetFactory()->CreateSwapChainForHwnd(

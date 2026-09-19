@@ -86,6 +86,9 @@ bool Renderer3D::Initialize() {
 }
 
 void Renderer3D::BeginFrame() {
+	for (const auto& drawer : drawerList_) {
+		drawer->BeginFrame();
+	}
 }
 
 void Renderer3D::EndFrame() {

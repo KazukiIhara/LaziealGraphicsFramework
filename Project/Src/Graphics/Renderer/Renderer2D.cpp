@@ -59,6 +59,9 @@ bool Renderer2D::Initialize() {
 }
 
 void Renderer2D::BeginFrame() {
+	for (const auto& drawer : drawerList_) {
+		drawer->BeginFrame();
+	}
 }
 
 void Renderer2D::EndFrame() {
