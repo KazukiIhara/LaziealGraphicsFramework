@@ -12,6 +12,10 @@ Fence::Fence(Device& device, Command& cmd)
 }
 
 Fence::~Fence() {
+	if (fenceEvent_) {
+		CloseHandle(static_cast<HANDLE>(fenceEvent_));
+		fenceEvent_ = nullptr;
+	}
 }
 
 bool Fence::Initialize() {
@@ -25,25 +29,36 @@ bool Fence::Initialize() {
 		return false;
 	}
 
-	return true;
+	fenceEvent_ = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+	return fenceEvent_ != nullptr;
 }
 
-void Fence::EndFrame() {
-	WaitGPU();
+uint64_t Fence::Signal() {
+	const uint64_t signalValue = ++fenceValue_;
+	const HRESULT result = cmd_.GetQueue()->Signal(fence_.Get(), signalValue);
+	assert(SUCCEEDED(result));
+	return signalValue;
 }
 
-void Fence::WaitGPU() {
-	// Fenceの値を更新し、GPUGPUがここまでたどり着いたときにFenceの値を指定した値に代入するようにSignalを送る
-	cmd_.GetQueue()->Signal(fence_.Get(), ++fenceValue_);
-	// Fenceの値が指定されたSignal値にたどり着いているか確認する
-	// GetCompletedValueの初期値はFence作成時に渡した初期値
-	if (fence_->GetCompletedValue() < fenceValue_) {
-		// FenceのSignalを待つためのイベントを作成する
-		HANDLE fenceEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-		// 指定したSignalにたどり着いていないので、たどり着くまで待つようにイベントを設定する
-		fence_->SetEventOnCompletion(fenceValue_, fenceEvent);
-		// イベントを待つ
-		WaitForSingleObject(fenceEvent, INFINITE);
-		CloseHandle(fenceEvent);
+void Fence::Wait(uint64_t fenceValue) {
+	if (fenceValue == 0u || IsCompleted(fenceValue)) {
+		return;
 	}
+	const HRESULT result = fence_->SetEventOnCompletion(
+		fenceValue,
+		static_cast<HANDLE>(fenceEvent_));
+	assert(SUCCEEDED(result));
+	WaitForSingleObject(static_cast<HANDLE>(fenceEvent_), INFINITE);
+}
+
+void Fence::WaitIdle() {
+	Wait(Signal());
+}
+
+bool Fence::IsCompleted(uint64_t fenceValue) const {
+	return fence_->GetCompletedValue() >= fenceValue;
+}
+
+bool Fence::IsInitialized() const {
+	return fence_ && fenceEvent_;
 }

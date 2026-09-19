@@ -68,14 +68,15 @@ Camera3DResource::Camera3DResource(DirectXCore& directX) :
 Camera3DResource::~Camera3DResource() = default;
 
 void Camera3DResource::Initialize() {
-	// リソースの作成
-	resource_ = directX_.GetResourceFactory()->CreateUploadBufferResource(sizeof(Camera3DForGPU));
-	// マップ
-	HRESULT hr = resource_->Map(0, nullptr, reinterpret_cast<void**>(&data_));
-	assert(SUCCEEDED(hr));
+	const bool initialized = resources_.Initialize(
+		*directX_.GetResourceFactory(),
+		sizeof(Camera3DForGPU));
+	assert(initialized);
 }
 
 void Camera3DResource::Update(const Camera3D& camera) {
+	Camera3DForGPU* data_ = reinterpret_cast<Camera3DForGPU*>(
+		resources_.GetMappedData(directX_.GetCurrentFrameContextIndex()));
 	assert(data_);
 
 	// 回転を作る
@@ -114,6 +115,7 @@ void Camera3DResource::Update(const Camera3D& camera) {
 }
 
 void Camera3DResource::Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx) {
-	assert(resource_);
-	commandList->SetGraphicsRootConstantBufferView(static_cast<UINT>(rootParamIdx), resource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(
+		static_cast<UINT>(rootParamIdx),
+		resources_.GetGPUVirtualAddress(directX_.GetCurrentFrameContextIndex()));
 }

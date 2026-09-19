@@ -22,13 +22,22 @@ bool Command::Initialize() {
 		return false;
 	}
 	// コマンドアロケータを作成
-	hr = device_.GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator_));
-	if (FAILED(hr)) {
-		assert(false);
-		return false;
+	for (FrameContext& frameContext : frameContexts_) {
+		hr = device_.GetDevice()->CreateCommandAllocator(
+			D3D12_COMMAND_LIST_TYPE_DIRECT,
+			IID_PPV_ARGS(&frameContext.commandAllocator));
+		if (FAILED(hr)) {
+			assert(false);
+			return false;
+		}
 	}
 	// コマンドリストを作成
-	hr = device_.GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_.Get(), nullptr, IID_PPV_ARGS(&commandList_));
+	hr = device_.GetDevice()->CreateCommandList(
+		0,
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		frameContexts_.front().commandAllocator.Get(),
+		nullptr,
+		IID_PPV_ARGS(&commandList_));
 	if (FAILED(hr)) {
 		assert(false);
 		return false;
@@ -50,8 +59,8 @@ bool Command::Initialize() {
 	return true;
 }
 
-void Command::BeginFrame() {
-	ResetCommand();
+void Command::BeginFrame(uint32_t frameContextIndex) {
+	ResetCommand(frameContextIndex);
 }
 
 void Command::EndFrame() {
@@ -66,21 +75,22 @@ void Command::KickCommand() {
 	commandQueue_->ExecuteCommandLists(1, commandLists);
 }
 
-void Command::ResetCommand() {
+void Command::ResetCommand(uint32_t frameContextIndex) {
+	FrameContext& frameContext = GetFrameContext(frameContextIndex);
 	// アロケータのリセット
-	HRESULT hr = commandAllocator_->Reset();
+	HRESULT hr = frameContext.commandAllocator->Reset();
 	assert(SUCCEEDED(hr));
 	// コマンドリストのリセット
-	hr = commandList_->Reset(commandAllocator_.Get(), nullptr);
+	hr = commandList_->Reset(frameContext.commandAllocator.Get(), nullptr);
 	assert(SUCCEEDED(hr));
+}
+
+FrameContext& Command::GetFrameContext(uint32_t frameContextIndex) {
+	return frameContexts_.at(frameContextIndex);
 }
 
 ID3D12CommandQueue* Command::GetQueue() {
 	return commandQueue_.Get();
-}
-
-ID3D12CommandAllocator* Command::GetAllocator() {
-	return commandAllocator_.Get();
 }
 
 ID3D12GraphicsCommandList* Command::GetList() {

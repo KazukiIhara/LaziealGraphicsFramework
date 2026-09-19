@@ -56,7 +56,8 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 	directX_ = std::make_unique<DirectXCore>(
 		desc.windowHandle,
 		desc.width,
-		desc.height);
+		desc.height,
+		desc.enableFrameContexts);
 	if (!directX_->Initialize()) {
 		return failInitialization();
 	}
@@ -155,6 +156,9 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 }
 
 bool GraphicsSystem::Finalize() {
+	if (directX_) {
+		directX_->WaitIdle();
+	}
 	ModelSystem::Internal::ResetModelManager();
 	TextureSystem::Internal::ResetTextureManager();
 

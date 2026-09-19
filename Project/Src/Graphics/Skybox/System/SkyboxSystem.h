@@ -5,6 +5,8 @@
 
 #include <d3d12.h>
 
+#include "Graphics/DirectX/FrameContext/FrameContext.h"
+
 #include "Graphics/DirectX/ComPtr/ComPtr.h"
 #include "Graphics/System/IGraphicsSubsystem.h"
 
@@ -71,13 +73,11 @@ namespace LGF {
 
 		DirectXCore& directX_;
 		PipelineManager& pipelineManager_;
-		ComPtr<ID3D12Resource> resource_ = nullptr;
-		SkyboxForGPU* data_ = nullptr;
+		FrameBufferedUploadBuffer resources_;
 		SkyboxForGPU pendingData_{};
 		ID3D12Resource* pendingSourceTexture_ = nullptr;
 
-		ComPtr<ID3D12Resource> filterConstantsResource_ = nullptr;
-		uint8_t* filterConstantsData_ = nullptr;
+		FrameBufferedUploadBuffer filterConstantsResources_;
 		ComPtr<ID3D12Resource> brdfLut_ = nullptr;
 		uint32_t brdfLutSrvIndex_ = UINT32_MAX;
 		std::unordered_map<uint32_t, FilteredEnvironment> filteredEnvironments_;

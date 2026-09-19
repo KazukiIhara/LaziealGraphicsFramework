@@ -14,6 +14,13 @@ BaseDrawer::BaseDrawer(DirectXCore& directX, PipelineManager& pipelineMgr) :
 
 BaseDrawer::~BaseDrawer() = default;
 
+void BaseDrawer::BeginFrame() {
+	const uint32_t frameIndex = directX_.GetCurrentFrameContextIndex();
+	assert(instanceDataTarget_);
+	*instanceDataTarget_ = instanceResources_.GetMappedData(frameIndex);
+	instanceSrvIndex_ = instanceSrvIndices_.at(frameIndex);
+}
+
 uint32_t BaseDrawer::CheckIntstanceCount() {
 	// インスタンスカウント計測
 	assert(currentIndex_ <= numMaxInstance_);
@@ -37,23 +44,34 @@ void BaseDrawer::Initialize(InitParam param) {
 	numMaxInstance_ = param.numMaxInstance;
 
 	// インスタンスリソース作成
-	CreateInstanceResource(param.instResSize, param.instData, instanceResource_, instanceSrvIndex_);
+	CreateInstanceResources(param.instResSize, param.instData);
 
 	// 各変数をリセット
 	currentIndex_ = 0;
 	instanceCount_ = 0;
 }
 
-void BaseDrawer::CreateInstanceResource(unsigned long long resSize, void** data, ComPtr<ID3D12Resource>& res, uint32_t& srvIdx) {
+void BaseDrawer::CreateInstanceResources(unsigned long long resSize, void** data) {
 	// インスタンスリソース作成
-	res = directX_.GetResourceFactory()->CreateUploadBufferResource(static_cast<size_t>(resSize * numMaxInstance_));
+	instanceDataTarget_ = data;
+	const bool initialized = instanceResources_.Initialize(
+		*directX_.GetResourceFactory(),
+		static_cast<size_t>(resSize * numMaxInstance_));
+	assert(initialized);
 
 	// SRV確保
-	srvIdx = directX_.GetResMgr().srvuav->Allocate();
+	for (uint32_t frameIndex = 0u; frameIndex < kFrameContextCount; ++frameIndex) {
+		const uint32_t srvIndex = directX_.GetResMgr().srvuav->Allocate();
+		instanceSrvIndices_[frameIndex] = srvIndex;
 
-	// StructuredBuffer用SRV作成
-	directX_.GetResMgr().srvuav->CreateSrvStructuredBuffer(srvIdx, res.Get(), numMaxInstance_, static_cast<UINT>(resSize));
+		// StructuredBuffer用SRV作成
+		directX_.GetResMgr().srvuav->CreateSrvStructuredBuffer(
+			srvIndex,
+			instanceResources_.GetResource(frameIndex),
+			numMaxInstance_,
+			static_cast<UINT>(resSize));
+	}
 
 	// CPU書き込み用にマップ
-	res->Map(0, nullptr, data);
+	BeginFrame();
 }

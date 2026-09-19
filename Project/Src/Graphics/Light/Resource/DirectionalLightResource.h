@@ -4,6 +4,8 @@
 
 #include <d3d12.h>
 
+#include "Graphics/DirectX/FrameContext/FrameContext.h"
+
 #include "Graphics/DirectX/ComPtr/ComPtr.h"
 #include "LGF/Math/Vector3.h"
 
@@ -32,8 +34,7 @@ namespace LGF {
 		void Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
 
 	private:
-		ComPtr<ID3D12Resource> resource_ = nullptr;
-		DirectionalLightForGPU* data_ = nullptr;
+		FrameBufferedUploadBuffer resources_;
 		DirectXCore& directX_;
 	};
 

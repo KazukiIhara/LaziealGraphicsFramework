@@ -6,6 +6,8 @@
 
 #include <d3d12.h>
 
+#include "Graphics/DirectX/FrameContext/FrameContext.h"
+
 #include "Graphics/DirectX/ComPtr/ComPtr.h"
 
 namespace LGF {
@@ -42,7 +44,11 @@ namespace LGF {
 			SRVUAVManager* srvuav;
 		};
 	public:
-		DirectXCore(void* windowHandle, uint32_t width, uint32_t height);
+		DirectXCore(
+			void* windowHandle,
+			uint32_t width,
+			uint32_t height,
+			bool enableFrameContexts = true);
 		~DirectXCore();
 
 		bool Initialize();
@@ -61,9 +67,11 @@ namespace LGF {
 		void SetExposure(float exposureEV);
 		void EndFrame();
 		void Finalize();
+		void WaitIdle();
 		bool Resize(uint32_t width, uint32_t height);
 		uint32_t GetRenderWidth() const;
 		uint32_t GetRenderHeight() const;
+		uint32_t GetCurrentFrameContextIndex() const;
 
 		ID3D12Device* GetDevice();
 		ID3D12GraphicsCommandList* GetCommandList();
@@ -105,8 +113,10 @@ namespace LGF {
 		RenderTexture* gBufferAlbedo_ = nullptr;
 		RenderTexture* gBufferNormal_ = nullptr;
 		RenderTexture* gBufferMaterial_ = nullptr;
-		ComPtr<ID3D12Resource> toneMappingResource_ = nullptr;
-		ToneMappingForGPU* toneMappingForGPU_ = nullptr;
+		FrameBufferedUploadBuffer toneMappingResources_;
+		ToneMappingForGPU toneMappingData_{};
+		uint32_t currentFrameContextIndex_ = 0u;
+		bool frameContextsEnabled_ = true;
 
 		void* windowHandle_ = nullptr;
 	};

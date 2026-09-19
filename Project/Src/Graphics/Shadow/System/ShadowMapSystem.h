@@ -7,6 +7,8 @@
 
 #include <d3d12.h>
 
+#include "Graphics/DirectX/FrameContext/FrameContext.h"
+
 #include "Graphics/DirectX/ComPtr/ComPtr.h"
 #include "Graphics/Camera/Resource/Camera3DResource.h"
 #include "Graphics/Shadow/ShadowCascadeCalculator.h"
@@ -47,10 +49,8 @@ namespace LGF {
 
 		DirectXCore& directX_;
 		std::array<std::unique_ptr<DepthStencil>, ShadowCascadeCalculator::kCascadeCount> depths_;
-		ComPtr<ID3D12Resource> cameraResource_;
-		std::byte* cameraMappedData_ = nullptr;
-		ComPtr<ID3D12Resource> cascadeDataResource_;
-		ShadowCascadeDataForGPU* cascadeData_ = nullptr;
+		FrameBufferedUploadBuffer cameraResources_;
+		FrameBufferedUploadBuffer cascadeDataResources_;
 		ShadowCascadeCalculator::CascadeFrusta cascadeFrusta_{};
 		uint32_t currentCascadeIndex_ = 0u;
 	};

@@ -26,6 +26,8 @@ namespace LGF {
 		uint32_t width = 0;
 		uint32_t height = 0;
 		std::filesystem::path assetRoot;
+		// falseの場合はContext 0のみを使い、毎フレームGPUの完了を待つ。
+		bool enableFrameContexts = true;
 	};
 
 	/// <summary>

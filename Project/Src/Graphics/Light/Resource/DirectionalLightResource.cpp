@@ -16,13 +16,15 @@ DirectionalLightResource::DirectionalLightResource(DirectXCore& directX)
 DirectionalLightResource::~DirectionalLightResource() = default;
 
 void DirectionalLightResource::Initialize() {
-	resource_ = directX_.GetResourceFactory()->CreateUploadBufferResource(sizeof(DirectionalLightForGPU));
-	assert(resource_);
-	const HRESULT hr = resource_->Map(0, nullptr, reinterpret_cast<void**>(&data_));
-	assert(SUCCEEDED(hr));
+	const bool initialized = resources_.Initialize(
+		*directX_.GetResourceFactory(),
+		sizeof(DirectionalLightForGPU));
+	assert(initialized);
 }
 
 void DirectionalLightResource::Update(const DirectionalLight& light) {
+	DirectionalLightForGPU* data_ = reinterpret_cast<DirectionalLightForGPU*>(
+		resources_.GetMappedData(directX_.GetCurrentFrameContextIndex()));
 	assert(data_);
 
 	constexpr float kDirectionEpsilon = 1.0e-6f;
@@ -36,7 +38,7 @@ void DirectionalLightResource::Update(const DirectionalLight& light) {
 
 void DirectionalLightResource::Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx) {
 	assert(commandList);
-	assert(resource_);
 	commandList->SetGraphicsRootConstantBufferView(
-		static_cast<UINT>(rootParamIdx), resource_->GetGPUVirtualAddress());
+		static_cast<UINT>(rootParamIdx),
+		resources_.GetGPUVirtualAddress(directX_.GetCurrentFrameContextIndex()));
 }

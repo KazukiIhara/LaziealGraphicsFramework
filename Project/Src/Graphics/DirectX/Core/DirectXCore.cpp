@@ -50,9 +50,14 @@ namespace {
 	constexpr size_t kConstantBufferAlignment = 256u;
 }
 
-DirectXCore::DirectXCore(void* windowHandle, uint32_t width, uint32_t height) :
+DirectXCore::DirectXCore(
+	void* windowHandle,
+	uint32_t width,
+	uint32_t height,
+	bool enableFrameContexts) :
 	renderWidth_(width),
 	renderHeight_(height),
+	frameContextsEnabled_(enableFrameContexts),
 	windowHandle_(windowHandle) {
 }
 
@@ -105,15 +110,7 @@ bool DirectXCore::Initialize() {
 		return false;
 	}
 
-	toneMappingResource_ = resourceFactory_->CreateUploadBufferResource(kConstantBufferAlignment);
-	if (!toneMappingResource_) {
-		return false;
-	}
-	const HRESULT toneMappingMapResult = toneMappingResource_->Map(
-		0,
-		nullptr,
-		reinterpret_cast<void**>(&toneMappingForGPU_));
-	if (FAILED(toneMappingMapResult)) {
+	if (!toneMappingResources_.Initialize(*resourceFactory_, kConstantBufferAlignment)) {
 		return false;
 	}
 	SetExposure(0.0f);
@@ -165,8 +162,14 @@ bool DirectXCore::Initialize() {
 }
 
 bool DirectXCore::BeginFrame() {
-	command_->BeginFrame();
+	const uint32_t backBufferIndex = swapChain_->GetCurrentBackBufferIndex();
+	currentFrameContextIndex_ = frameContextsEnabled_ ? backBufferIndex : 0u;
+	FrameContext& frameContext = command_->GetFrameContext(currentFrameContextIndex_);
+	fence_->Wait(frameContext.fenceValue);
+	command_->BeginFrame(currentFrameContextIndex_);
 	swapChain_->BeginFrame();
+	*reinterpret_cast<ToneMappingForGPU*>(
+		toneMappingResources_.GetMappedData(currentFrameContextIndex_)) = toneMappingData_;
 
 	RenderTexture* renderTargets[] = { gBufferAlbedo_, gBufferNormal_, gBufferMaterial_ };
 	SetRenderTargets(renderTargets);
@@ -300,7 +303,7 @@ void DirectXCore::DrawSceneToSwapChain(PipelineManager& pipelineManager) {
 		sceneColor_->GetSRVHandleGPU());
 	commandList->SetGraphicsRootConstantBufferView(
 		pipeline->GetRootIndex(kToneMappingShaderName),
-		toneMappingResource_->GetGPUVirtualAddress());
+		toneMappingResources_.GetGPUVirtualAddress(currentFrameContextIndex_));
 
 	commandList6->DispatchMesh(1, 1, 1);
 }
@@ -313,11 +316,7 @@ void DirectXCore::RestoreGBufferRenderTargets() {
 }
 
 void DirectXCore::SetExposure(float exposureEV) {
-	if (!toneMappingForGPU_) {
-		return;
-	}
-
-	toneMappingForGPU_->exposureEV = std::isfinite(exposureEV) ? exposureEV : 0.0f;
+	toneMappingData_.exposureEV = std::isfinite(exposureEV) ? exposureEV : 0.0f;
 }
 
 void DirectXCore::DrawDepthToSwapChain(PipelineManager& pipelineManager) {
@@ -348,15 +347,15 @@ void DirectXCore::EndFrame() {
 	swapChain_->EndFrame();
 	command_->EndFrame();
 	swapChain_->Present();
-	fence_->EndFrame();
+	command_->GetFrameContext(currentFrameContextIndex_).fenceValue = fence_->Signal();
 }
 
 void DirectXCore::Finalize() {
+	WaitIdle();
 	if (renderTextureManager_) {
 		renderTextureManager_->Finalize();
 	}
-	toneMappingForGPU_ = nullptr;
-	toneMappingResource_.Reset();
+	toneMappingResources_.Finalize();
 	sceneColor_ = nullptr;
 	gBufferAlbedo_ = nullptr;
 	gBufferNormal_ = nullptr;
@@ -386,7 +385,7 @@ bool DirectXCore::Resize(uint32_t width, uint32_t height) {
 		return true;
 	}
 
-	fence_->WaitGPU();
+	WaitIdle();
 
 	if (!swapChain_->Resize(width, height)) {
 		return false;
@@ -412,6 +411,16 @@ uint32_t DirectXCore::GetRenderWidth() const {
 
 uint32_t DirectXCore::GetRenderHeight() const {
 	return renderHeight_;
+}
+
+uint32_t DirectXCore::GetCurrentFrameContextIndex() const {
+	return currentFrameContextIndex_;
+}
+
+void DirectXCore::WaitIdle() {
+	if (fence_ && fence_->IsInitialized()) {
+		fence_->WaitIdle();
+	}
 }
 
 ID3D12Device* DirectXCore::GetDevice() {

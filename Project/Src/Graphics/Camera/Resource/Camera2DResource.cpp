@@ -19,14 +19,15 @@ Camera2DResource::Camera2DResource(DirectXCore& directX) :
 Camera2DResource::~Camera2DResource() = default;
 
 void Camera2DResource::Initialize() {
-	// リソースの作成
-	resource_ = directX_.GetResourceFactory()->CreateUploadBufferResource(sizeof(Camera2DForGPU));
-	// マップ
-	HRESULT hr = resource_->Map(0, nullptr, reinterpret_cast<void**>(&data_));
-	assert(SUCCEEDED(hr));
+	const bool initialized = resources_.Initialize(
+		*directX_.GetResourceFactory(),
+		sizeof(Camera2DForGPU));
+	assert(initialized);
 }
 
 void Camera2DResource::Update(const Camera2D& camera) {
+	Camera2DForGPU* data_ = reinterpret_cast<Camera2DForGPU*>(
+		resources_.GetMappedData(directX_.GetCurrentFrameContextIndex()));
 	assert(data_);
 
 	// カメラのワールド行列を作る
@@ -54,6 +55,7 @@ void Camera2DResource::Update(const Camera2D& camera) {
 }
 
 void Camera2DResource::Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx) {
-	assert(resource_);
-	commandList->SetGraphicsRootConstantBufferView(static_cast<UINT>(rootParamIdx), resource_->GetGPUVirtualAddress());
+	commandList->SetGraphicsRootConstantBufferView(
+		static_cast<UINT>(rootParamIdx),
+		resources_.GetGPUVirtualAddress(directX_.GetCurrentFrameContextIndex()));
 }

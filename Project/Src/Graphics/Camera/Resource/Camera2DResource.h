@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <d3d12.h>
 
+#include "Graphics/DirectX/FrameContext/FrameContext.h"
+
 #include "Graphics/DirectX/ComPtr/ComPtr.h"
 
 #include "LGF/Math/Vector2.h"
@@ -35,9 +37,7 @@ namespace LGF {
 
 	private:
 		// Camera用リソース
-		ComPtr<ID3D12Resource> resource_ = nullptr;
-		// Camera用データ
-		Camera2DForGPU* data_ = nullptr;
+		FrameBufferedUploadBuffer resources_;
 
 		DirectXCore& directX_;
 	};

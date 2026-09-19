@@ -63,22 +63,14 @@ SkyboxSystem::SkyboxSystem(DirectXCore& directX, PipelineManager& pipelineManage
 SkyboxSystem::~SkyboxSystem() = default;
 
 bool SkyboxSystem::Initialize() {
-	resource_ = directX_.GetResourceFactory()->CreateUploadBufferResource(kConstantBufferAlignment);
-	filterConstantsResource_ = directX_.GetResourceFactory()->CreateUploadBufferResource(
+	if (!resources_.Initialize(
+		*directX_.GetResourceFactory(),
+		kConstantBufferAlignment)) {
+		return false;
+	}
+	return filterConstantsResources_.Initialize(
+		*directX_.GetResourceFactory(),
 		kConstantBufferAlignment * kFilterConstantSlotCount);
-	if (!resource_ || !filterConstantsResource_) {
-		return false;
-	}
-
-	HRESULT result = resource_->Map(0, nullptr, reinterpret_cast<void**>(&data_));
-	if (FAILED(result)) {
-		return false;
-	}
-	result = filterConstantsResource_->Map(
-		0,
-		nullptr,
-		reinterpret_cast<void**>(&filterConstantsData_));
-	return SUCCEEDED(result);
 }
 
 void SkyboxSystem::BeginFrame() {
@@ -87,6 +79,8 @@ void SkyboxSystem::BeginFrame() {
 }
 
 void SkyboxSystem::EndFrame() {
+	SkyboxForGPU* data_ = reinterpret_cast<SkyboxForGPU*>(
+		resources_.GetMappedData(directX_.GetCurrentFrameContextIndex()));
 	assert(data_);
 	if (pendingData_.textureIndex != UINT32_MAX && pendingSourceTexture_) {
 		auto found = filteredEnvironments_.find(pendingData_.textureIndex);
@@ -114,10 +108,8 @@ void SkyboxSystem::Finalize() {
 	filteredEnvironments_.clear();
 	brdfLut_.Reset();
 	brdfLutSrvIndex_ = UINT32_MAX;
-	filterConstantsData_ = nullptr;
-	filterConstantsResource_.Reset();
-	data_ = nullptr;
-	resource_.Reset();
+	filterConstantsResources_.Finalize();
+	resources_.Finalize();
 }
 
 void SkyboxSystem::SetSkybox(const Skybox& skybox) {
@@ -137,9 +129,9 @@ void SkyboxSystem::SetSkybox(const Skybox& skybox) {
 
 void SkyboxSystem::Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx) const {
 	assert(commandList);
-	assert(resource_);
 	commandList->SetGraphicsRootConstantBufferView(
-		static_cast<UINT>(rootParamIdx), resource_->GetGPUVirtualAddress());
+		static_cast<UINT>(rootParamIdx),
+		resources_.GetGPUVirtualAddress(directX_.GetCurrentFrameContextIndex()));
 }
 
 bool SkyboxSystem::CreateBrdfLut() {
@@ -333,9 +325,11 @@ void SkyboxSystem::DispatchFilter(
 	uint32_t depth) {
 
 	assert(constantSlot < kFilterConstantSlotCount);
-	assert(filterConstantsData_);
+	const uint32_t frameIndex = directX_.GetCurrentFrameContextIndex();
+	std::byte* filterConstantsData = filterConstantsResources_.GetMappedData(frameIndex);
+	assert(filterConstantsData);
 	std::memcpy(
-		filterConstantsData_ + static_cast<size_t>(constantSlot) * kConstantBufferAlignment,
+		filterConstantsData + static_cast<size_t>(constantSlot) * kConstantBufferAlignment,
 		&constants,
 		sizeof(constants));
 
@@ -344,7 +338,7 @@ void SkyboxSystem::DispatchFilter(
 	commandList->SetComputeRootSignature(pipeline.GetRootSignature());
 	commandList->SetComputeRootConstantBufferView(
 		pipeline.GetRootIndex(kFilterConstantsName),
-		filterConstantsResource_->GetGPUVirtualAddress() +
+		filterConstantsResources_.GetGPUVirtualAddress(frameIndex) +
 			static_cast<UINT64>(constantSlot) * kConstantBufferAlignment);
 	commandList->Dispatch(DispatchCount(width), DispatchCount(height), depth);
 }
