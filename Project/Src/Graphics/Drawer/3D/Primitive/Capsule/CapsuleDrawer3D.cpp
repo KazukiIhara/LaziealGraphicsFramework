@@ -16,7 +16,7 @@ namespace {
 }
 
 CapsuleDrawer3D::CapsuleDrawer3D(Graphics3DContext context) :
-	BaseDrawer3D(context) {
+	BaseDrawer3D(context, kCapsuleMeshletCount) {
 }
 
 CapsuleDrawer3D::~CapsuleDrawer3D() = default;
@@ -47,7 +47,10 @@ void CapsuleDrawer3D::EndFrame() {
 
 	commandList->SetGraphicsRootDescriptorTable(GetPipeline()->GetRootIndex("gCapsule"), GetContext().directX.GetResMgr().srvuav->GetGPUDescriptorHandle(instanceSrvIndex_));
 
-	commandList->DispatchMesh(instanceCount_ * kCapsuleMeshletCount, 1, 1);
+	commandList->DispatchMesh(
+		instanceCount_ * GetMeshletCountPerInstance(),
+		1,
+		1);
 }
 
 void CapsuleDrawer3D::AddCapsule(const Capsule3DForGPU& data) {

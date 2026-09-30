@@ -44,7 +44,9 @@ namespace LGF {
 	/// </summary>
 	class BaseDrawer3D :public BaseDrawer {
 	public:
-		BaseDrawer3D(Graphics3DContext context);
+		BaseDrawer3D(
+			Graphics3DContext context,
+			uint32_t meshletCountPerInstance = 1u);
 		virtual ~BaseDrawer3D()override;
 
 		/// <summary>
@@ -65,8 +67,11 @@ namespace LGF {
 		/// </summary>
 		Graphics3DContext GetContext() const;
 
+		uint32_t GetMeshletCountPerInstance() const;
+
 	private:
 		Graphics3DContext context_;
+		uint32_t meshletCountPerInstance_ = 1u;
 	};
 
 }

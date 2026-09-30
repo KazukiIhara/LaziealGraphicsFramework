@@ -7,14 +7,22 @@
 
 using namespace LGF;
 
-BaseDrawer3D::BaseDrawer3D(Graphics3DContext context) :
-	BaseDrawer(context.directX, context.pipelineMgr), context_(context) {
+BaseDrawer3D::BaseDrawer3D(
+	Graphics3DContext context,
+	uint32_t meshletCountPerInstance) :
+	BaseDrawer(context.directX, context.pipelineMgr),
+	context_(context),
+	meshletCountPerInstance_(meshletCountPerInstance) {
 }
 
 BaseDrawer3D::~BaseDrawer3D() = default;
 
 Graphics3DContext BaseDrawer3D::GetContext() const {
 	return context_;
+}
+
+uint32_t BaseDrawer3D::GetMeshletCountPerInstance() const {
+	return meshletCountPerInstance_;
 }
 
 void BaseDrawer3D::DrawShadow(Pipeline* pipeline, ShadowMapSystem& shadowMap, const char* instanceBufferName) {
@@ -29,5 +37,8 @@ void BaseDrawer3D::DrawShadow(Pipeline* pipeline, ShadowMapSystem& shadowMap, co
 	commandList->SetGraphicsRootDescriptorTable(
 		pipeline->GetRootIndex(instanceBufferName),
 		GetContext().directX.GetResMgr().srvuav->GetGPUDescriptorHandle(instanceSrvIndex_));
-	commandList->DispatchMesh(currentIndex_, 1, 1);
+	commandList->DispatchMesh(
+		currentIndex_ * meshletCountPerInstance_,
+		1,
+		1);
 }

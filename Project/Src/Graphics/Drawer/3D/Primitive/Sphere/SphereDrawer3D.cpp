@@ -16,7 +16,7 @@ namespace {
 }
 
 SphereDrawer3D::SphereDrawer3D(Graphics3DContext context) :
-	BaseDrawer3D(context) {
+	BaseDrawer3D(context, kSphereMeshletCount) {
 }
 
 SphereDrawer3D::~SphereDrawer3D() = default;
@@ -47,7 +47,10 @@ void SphereDrawer3D::EndFrame() {
 
 	commandList->SetGraphicsRootDescriptorTable(GetPipeline()->GetRootIndex("gSphere"), GetContext().directX.GetResMgr().srvuav->GetGPUDescriptorHandle(instanceSrvIndex_));
 
-	commandList->DispatchMesh(instanceCount_ * kSphereMeshletCount, 1, 1);
+	commandList->DispatchMesh(
+		instanceCount_ * GetMeshletCountPerInstance(),
+		1,
+		1);
 }
 
 void SphereDrawer3D::AddSphere(const Sphere3DForGPU& data) {
