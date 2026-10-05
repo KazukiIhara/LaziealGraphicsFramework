@@ -1,17 +1,18 @@
 # Lazieal Graphics Framework
 
-DirectX 12とC++20で開発中の、Windows向けリアルタイム描画フレームワークです。
-高度な描画機能と、`Draw()` / `SetScene()` を中心とした簡潔な利用APIの両立を目指しています。
+DirectX 12とC++20で開発しているWindows向けリアルタイム描画フレームワークです。
+高度な描画機能と、`Draw()` / `SetScene()`を中心とした簡潔な利用APIの両立を目指しています。
 
 > [!IMPORTANT]
-> 学習・研究目的の開発途中版です。API互換性や配布パッケージはまだ保証していません。
+> 学習・研究目的で開発中のフレームワークです。
+> API互換性や配布パッケージはまだ保証していません。
 
 ## 主な機能
 
 ### 3Dレンダリング
 
 - Mesh Shaderによる3Dプリミティブ描画とインスタンシング
-- Albedo / Normal / Material G-Bufferを使ったDeferred Rendering
+- Albedo / Normal / Material G-Bufferを利用したDeferred Rendering
 - Cook-Torrance BRDFによるMetallic-Roughness PBR
 - ベースカラー、法線、Metallic-Roughness、Ambient Occlusionテクスチャ
 - HDRシーンカラー、EV露出補正、ACES Filmic Tone Mapping
@@ -25,11 +26,12 @@ DirectX 12とC++20で開発中の、Windows向けリアルタイム描画フレ�
 - DirectXMeshによるメッシュレット生成
 - Amplification Shaderによるメッシュレット単位の視錐台カリング
 - モデルのインスタンスバッチ
-- メッシュレット境界球、カメラ視錐台、CSM分割のデバッグ描画
+- メッシュレット境界、カメラ視錐台、CSM分割のデバッグ描画
 
 ### プリミティブとUI
 
-- 3D: `Triangle3D`、`Box3D`、`Sphere3D`、`Capsule3D`、`Cone3D`、`Cylinder3D`、`Plane3D`、`Ground3D`、`Line3D`、`Grid3D`
+- 3D: `Triangle3D`、`Box3D`、`Sphere3D`、`Capsule3D`、`Cone3D`、
+  `Cylinder3D`、`Plane3D`、`Ground3D`、`Line3D`、`Grid3D`
 - 2D: `Triangle2D`、`Rect2D`、`Circle2D`、`RoundRect2D`、`Line2D`
 - Dear ImGuiのDirectX 12バックエンド統合
 
@@ -39,7 +41,7 @@ DirectX 12とC++20で開発中の、Windows向けリアルタイム描画フレ�
 - sRGB / Linear指定、Mip生成、ロード設定を含むテクスチャキャッシュ
 - 2DテクスチャとCubemapのSRV生成
 - JSON定義からのGraphics / Compute Pipeline生成
-- 2フレームのFrame Contextとフレーム別Upload Buffer
+- 2フレーム分のFrame Contextとフレーム別Upload Buffer
 - ウィンドウリサイズ時のSwap Chain、Depth、G-Buffer再生成
 - ベクトル、行列、Quaternion、座標変換用の数学API
 
@@ -48,25 +50,27 @@ DirectX 12とC++20で開発中の、Windows向けリアルタイム描画フレ�
 - Windows 10以降
 - Visual Studio 2026とC++20対応MSVCツールセット
 - Windows SDKとDirectX Shader Compiler（DXC）
-- 次の機能を満たすDirectX 12 GPUとドライバー
+- 次の機能を満たすDirectX 12対応GPUとドライバー
   - Mesh Shader Tier 1以上
   - Shader Model 6.6以上
   - Resource Binding Tier 3
 
-## ビルド
+## プロジェクト生成とビルド
 
-- `Project/Premake.bat` を実行します。
-- 生成された `Project/LaziealGraphicsFramework.slnx` を開きます。
-- `x64` の `Debug`、`Develop`、または `Release` をビルドします。
-- 生成物は `generated/outputs/<Configuration>/x64` に出力されます。
+1. `Project/Premake.bat`を実行します。
+2. 生成された`Project/LaziealGraphicsFramework.slnx`を開きます。
+3. x64の`Debug`、`Develop`、または`Release`構成をビルドします。
+
+生成物は`generated/outputs/<Configuration>/x64`に出力されます。
 
 ## 利用方法
 
-- Window、Input、Time、エントリーポイントには別リポジトリの `LaziealRuntime` を使用します。
-- 実行可能なサンプルと検証シーンは別リポジトリの `LaziealSandbox` にあります。
-- アプリケーション側は `ConfigureRuntime()` と `Main()` を定義します。
-- `RuntimeConfig::assetRoot` にFrameworkの `Project/Assets` を指定します。
-- フレームごとにCamera、Light、Skyboxを `SetScene()` し、プリミティブやModelを `Draw()` します。
+- Window、Input、Time、エントリーポイントには別リポジトリのLaziealRuntimeを使用します。
+- 実行可能なサンプルと検証シーンはLaziealSandboxにあります。
+- アプリケーション側は`ConfigureRuntime()`と`Main()`を定義します。
+- `RuntimeConfig::assetRoot`にフレームワークの`Project/Assets`を指定します。
+- フレームごとにCamera、Light、Skyboxを`SetScene()`し、
+  プリミティブやModelを`Draw()`します。
 
 ## 主な依存ライブラリ
 
