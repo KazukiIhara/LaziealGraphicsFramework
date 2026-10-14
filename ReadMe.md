@@ -20,6 +20,7 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
   - Diffuse Irradiance
   - GGX Specular Prefilter
   - BRDF LUT
+- ポイントライトと距離減衰
 - 平行光源と4分割Cascaded Shadow Maps
   - Practical Split、Texel Snapping、境界ブレンド、3 x 3 PCF
 - Assimpによる静的モデル読み込み
@@ -82,7 +83,7 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 
 ## 現在の制限
 
-- 3Dの透過、Alpha Mask、Emissive、複数ライトは未対応です。
+- 3Dの透過、Alpha Mask、Emissive、同種の複数ライトは未対応です。
 - Skinning、Animation、Morph Targetは未対応です。
 - モデルのGPUバッファはUpload Heapに保持され、ロードと転送は同期処理です。
 - 2Dは単色プリミティブ中心で、Sprite、Font、2Dテクスチャ描画は未対応です。

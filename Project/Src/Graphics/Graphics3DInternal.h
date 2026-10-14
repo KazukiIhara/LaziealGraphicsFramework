@@ -5,6 +5,7 @@ namespace LGF {
 	class Camera3DSystem;
 	class DirectXCore;
 	class DirectionalLightSystem;
+	class PointLightSystem;
 	class Renderer3D;
 	class SkyboxSystem;
 
@@ -17,6 +18,9 @@ namespace LGF {
 
 		void SetDirectionalLightSystem(DirectionalLightSystem* lightSystem);
 		void ResetDirectionalLightSystem();
+
+		void SetPointLightSystem(PointLightSystem* lightSystem);
+		void ResetPointLightSystem();
 
 		void SetSkyboxSystem(SkyboxSystem* skyboxSystem);
 		void ResetSkyboxSystem();

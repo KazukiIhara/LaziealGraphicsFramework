@@ -6,6 +6,7 @@
 #include "LGF/Graphics/Material.h"
 #include "LGF/Graphics/Model.h"
 #include "LGF/Graphics/DirectionalLight.h"
+#include "LGF/Graphics/PointLight.h"
 #include "LGF/Graphics/Skybox.h"
 
 #include "LGF/Graphics/Camera2D.h"

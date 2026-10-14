@@ -7,6 +7,7 @@
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
+#include "Graphics/Light/System/PointLightSystem.h"
 #include "Graphics/Skybox/System/SkyboxSystem.h"
 #include "Graphics/Shadow/System/ShadowMapSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
@@ -96,6 +97,14 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 	Graphics3D::Internal::SetDirectionalLightSystem(directionalLightSystem_.get());
 	subsystems_.push_back(directionalLightSystem_.get());
 
+	// 点光源システム初期化
+	pointLightSystem_ = std::make_unique<PointLightSystem>(*directX_);
+	if (!pointLightSystem_->Initialize()) {
+		return failInitialization();
+	}
+	Graphics3D::Internal::SetPointLightSystem(pointLightSystem_.get());
+	subsystems_.push_back(pointLightSystem_.get());
+
 	shadowMapSystem_ = std::make_unique<ShadowMapSystem>(*directX_);
 	if (!shadowMapSystem_->Initialize()) {
 		return failInitialization();
@@ -165,6 +174,7 @@ bool GraphicsSystem::Finalize() {
 	Graphics3D::Internal::ResetRenderer3D();
 	Graphics3D::Internal::ResetCamera3DSystem();
 	Graphics3D::Internal::ResetDirectionalLightSystem();
+	Graphics3D::Internal::ResetPointLightSystem();
 	Graphics3D::Internal::ResetSkyboxSystem();
 	Graphics3D::Internal::ResetDirectXCore();
 
@@ -194,6 +204,7 @@ bool GraphicsSystem::Finalize() {
 	renderer3D_.reset();
 	shadowMapSystem_.reset();
 	directionalLightSystem_.reset();
+	pointLightSystem_.reset();
 	skyboxSystem_.reset();
 	camera3DSystem_.reset();
 	pipelineManager_.reset();
@@ -238,6 +249,7 @@ void GraphicsSystem::EndFrame() {
 
 	camera3DSystem_->EndFrame();
 	directionalLightSystem_->EndFrame();
+	pointLightSystem_->EndFrame();
 	shadowMapSystem_->Update(
 		camera3DSystem_->GetShadowCamera(),
 		directionalLightSystem_->GetLight());
@@ -254,6 +266,7 @@ void GraphicsSystem::EndFrame() {
 	directX_->DrawLightingToSceneColor(
 		*pipelineManager_,
 		*directionalLightSystem_,
+		*pointLightSystem_,
 		*camera3DSystem_,
 		*skyboxSystem_,
 		*shadowMapSystem_);

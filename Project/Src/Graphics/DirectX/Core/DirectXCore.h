@@ -29,6 +29,7 @@ namespace LGF {
 	class RenderTexture;
 	class RenderTextureManager;
 	class DirectionalLightSystem;
+	class PointLightSystem;
 	class Camera3DSystem;
 	class SkyboxSystem;
 	class ShadowMapSystem;
@@ -59,6 +60,7 @@ namespace LGF {
 		void DrawLightingToSceneColor(
 			PipelineManager& pipelineManager,
 			DirectionalLightSystem& lightSystem,
+			PointLightSystem& pointLightSystem,
 			Camera3DSystem& cameraSystem,
 			SkyboxSystem& skyboxSystem,
 			ShadowMapSystem& shadowMapSystem);

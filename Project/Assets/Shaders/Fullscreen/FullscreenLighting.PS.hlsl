@@ -45,6 +45,14 @@ cbuffer DirectionalLightData : register(b0)
 	float gDirectionalLightPadding;
 };
 
+cbuffer PointLightData : register(b4)
+{
+	float3 gPointLightPosition;
+	float gPointLightIntensity;
+	float3 gPointLightColor;
+	float gPointLightRange;
+};
+
 struct FullscreenVertex
 {
 	float4 position : SV_Position;
@@ -81,6 +89,32 @@ float GeometrySmith(float3 normal, float3 view, float3 light, float roughness)
 {
 	return GeometrySchlickGGX(saturate(dot(normal, view)), roughness) *
 		GeometrySchlickGGX(saturate(dot(normal, light)), roughness);
+}
+
+float3 CalculateDirectLighting(
+	float3 albedo,
+	float3 normal,
+	float3 viewDirection,
+	float3 lightDirection,
+	float3 radiance,
+	float roughness,
+	float metallic)
+{
+	const float3 halfwayDirection = normalize(viewDirection + lightDirection);
+	const float normalDotLight = saturate(dot(normal, lightDirection));
+	const float normalDotView = saturate(dot(normal, viewDirection));
+	const float3 reflectanceAtNormal = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
+	const float3 fresnel = FresnelSchlick(
+		saturate(dot(halfwayDirection, viewDirection)),
+		reflectanceAtNormal);
+	const float distribution = DistributionGGX(normal, halfwayDirection, roughness);
+	const float geometry = GeometrySmith(normal, viewDirection, lightDirection, roughness);
+	const float3 specular =
+		distribution * geometry * fresnel /
+		max(4.0f * normalDotView * normalDotLight, 1.0e-6f);
+	const float3 diffuseWeight = (1.0f - fresnel) * (1.0f - metallic);
+	const float3 diffuse = diffuseWeight * albedo / kPi;
+	return (diffuse + specular) * radiance * normalDotLight;
 }
 
 float3 ReconstructWorldPosition(int2 pixel, float depth)
@@ -263,26 +297,44 @@ float4 main(FullscreenVertex input) : SV_Target0
 	const float metallic = saturate(material.b);
 	const float3 worldPosition = ReconstructWorldPosition(pixel, depth);
 	const float3 viewDirection = normalize(gCamera.worldPos - worldPosition);
-	const float3 lightDirection = normalize(-gDirectionalLightDirection);
-	const float3 halfwayDirection = normalize(viewDirection + lightDirection);
-	const float normalDotLight = saturate(dot(normal, lightDirection));
 	const float normalDotView = saturate(dot(normal, viewDirection));
 
 	const float3 reflectanceAtNormal = lerp(float3(0.04f, 0.04f, 0.04f), albedo.rgb, metallic);
-	const float3 fresnel = FresnelSchlick(
-		saturate(dot(halfwayDirection, viewDirection)),
-		reflectanceAtNormal);
-	const float distribution = DistributionGGX(normal, halfwayDirection, roughness);
-	const float geometry = GeometrySmith(normal, viewDirection, lightDirection, roughness);
-	const float3 specular =
-		distribution * geometry * fresnel /
-		max(4.0f * normalDotView * normalDotLight, 1.0e-6f);
+	const float3 directionalLightDirection = normalize(-gDirectionalLightDirection);
+	const float3 directionalRadiance =
+		gDirectionalLightColor * gDirectionalLightIntensity;
+	const float directionalShadow = CalculateShadow(
+		worldPosition,
+		normal,
+		directionalLightDirection);
+	float3 directLighting = CalculateDirectLighting(
+		albedo.rgb,
+		normal,
+		viewDirection,
+		directionalLightDirection,
+		directionalRadiance,
+		roughness,
+		metallic) * directionalShadow;
 
-	const float3 diffuseWeight = (1.0f - fresnel) * (1.0f - metallic);
-	const float3 diffuse = diffuseWeight * albedo.rgb / kPi;
-	const float3 radiance = gDirectionalLightColor * gDirectionalLightIntensity;
-	const float shadow = CalculateShadow(worldPosition, normal, lightDirection);
-	const float3 directLighting = (diffuse + specular) * radiance * normalDotLight * shadow;
+	const float3 pointLightOffset = gPointLightPosition - worldPosition;
+	const float pointLightDistance = length(pointLightOffset);
+	if (pointLightDistance < gPointLightRange && pointLightDistance > 1.0e-6f)
+	{
+		const float3 pointLightDirection = pointLightOffset / pointLightDistance;
+		float pointLightAttenuation = saturate(
+			1.0f - pointLightDistance / max(gPointLightRange, 1.0e-6f));
+		pointLightAttenuation *= pointLightAttenuation;
+		const float3 pointLightRadiance =
+			gPointLightColor * gPointLightIntensity * pointLightAttenuation;
+		directLighting += CalculateDirectLighting(
+			albedo.rgb,
+			normal,
+			viewDirection,
+			pointLightDirection,
+			pointLightRadiance,
+			roughness,
+			metallic);
+	}
 	float3 ambient = albedo.rgb * 0.03f * ambientOcclusion;
 	const bool hasIbl =
 		gIrradianceTextureIndex != 0xffffffffu &&

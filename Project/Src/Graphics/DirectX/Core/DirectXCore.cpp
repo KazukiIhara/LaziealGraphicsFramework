@@ -22,6 +22,7 @@
 #include "Graphics/RenderTexture/RenderTexture.h"
 #include "Graphics/RenderTexture/RenderTextureManager.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
+#include "Graphics/Light/System/PointLightSystem.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Skybox/System/SkyboxSystem.h"
 #include "Graphics/Shadow/System/ShadowMapSystem.h"
@@ -42,6 +43,7 @@ namespace {
 	constexpr char kGBufferNormalShaderName[] = "gGBufferNormal";
 	constexpr char kGBufferMaterialShaderName[] = "gGBufferMaterial";
 	constexpr char kDirectionalLightShaderName[] = "DirectionalLightData";
+	constexpr char kPointLightShaderName[] = "PointLightData";
 	constexpr char kCameraShaderName[] = "gCamera";
 	constexpr char kSkyboxShaderName[] = "SkyboxData";
 	constexpr char kShadowMapShaderName[] = "gShadowMap";
@@ -226,6 +228,7 @@ void DirectXCore::ClearRenderTargets(std::span<RenderTexture* const> renderTextu
 void DirectXCore::DrawLightingToSceneColor(
 	PipelineManager& pipelineManager,
 	DirectionalLightSystem& lightSystem,
+	PointLightSystem& pointLightSystem,
 	Camera3DSystem& cameraSystem,
 	SkyboxSystem& skyboxSystem,
 	ShadowMapSystem& shadowMapSystem) {
@@ -269,6 +272,7 @@ void DirectXCore::DrawLightingToSceneColor(
 		pipeline->GetRootIndex(kDepthTextureShaderName),
 		depthStencil_->GetSRVHandleGPU());
 	lightSystem.Bind(commandList, pipeline->GetRootIndex(kDirectionalLightShaderName));
+	pointLightSystem.Bind(commandList, pipeline->GetRootIndex(kPointLightShaderName));
 	cameraSystem.Bind(commandList, pipeline->GetRootIndex(kCameraShaderName));
 	skyboxSystem.Bind(commandList, pipeline->GetRootIndex(kSkyboxShaderName));
 	commandList->SetGraphicsRootDescriptorTable(
