@@ -43,7 +43,8 @@ namespace {
 	constexpr char kGBufferNormalShaderName[] = "gGBufferNormal";
 	constexpr char kGBufferMaterialShaderName[] = "gGBufferMaterial";
 	constexpr char kDirectionalLightShaderName[] = "DirectionalLightData";
-	constexpr char kPointLightShaderName[] = "PointLightData";
+	constexpr char kPointLightsShaderName[] = "gPointLights";
+	constexpr char kPointLightCountShaderName[] = "PointLightCountData";
 	constexpr char kCameraShaderName[] = "gCamera";
 	constexpr char kSkyboxShaderName[] = "SkyboxData";
 	constexpr char kShadowMapShaderName[] = "gShadowMap";
@@ -272,7 +273,10 @@ void DirectXCore::DrawLightingToSceneColor(
 		pipeline->GetRootIndex(kDepthTextureShaderName),
 		depthStencil_->GetSRVHandleGPU());
 	lightSystem.Bind(commandList, pipeline->GetRootIndex(kDirectionalLightShaderName));
-	pointLightSystem.Bind(commandList, pipeline->GetRootIndex(kPointLightShaderName));
+	pointLightSystem.Bind(
+		commandList,
+		pipeline->GetRootIndex(kPointLightsShaderName),
+		pipeline->GetRootIndex(kPointLightCountShaderName));
 	cameraSystem.Bind(commandList, pipeline->GetRootIndex(kCameraShaderName));
 	skyboxSystem.Bind(commandList, pipeline->GetRootIndex(kSkyboxShaderName));
 	commandList->SetGraphicsRootDescriptorTable(

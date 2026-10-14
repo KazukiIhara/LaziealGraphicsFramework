@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "LGF/Graphics/Color.h"
 #include "LGF/Math/Vector3.h"
 
@@ -10,6 +12,11 @@ namespace LGF {
 	/// </summary>
 	class PointLight {
 	public:
+		/// <summary>
+		/// 1フレームに設定できるポイントライトの最大数
+		/// </summary>
+		static constexpr uint32_t MaxCount = 64u;
+
 		PointLight() = default;
 		PointLight(
 			const Vector3& position,
@@ -18,7 +25,7 @@ namespace LGF {
 			float range = 10.0f);
 
 		/// <summary>
-		/// このフレームで使用する点光源として設定
+		/// このフレームで使用する点光源として追加
 		/// </summary>
 		void SetScene() const;
 

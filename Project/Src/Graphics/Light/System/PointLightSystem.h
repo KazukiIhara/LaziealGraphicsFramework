@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 #include <d3d12.h>
 
@@ -24,10 +25,13 @@ namespace LGF {
 		void Finalize() override;
 
 		void SetLight(const PointLight& light);
-		void Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
+		void Bind(
+			ID3D12GraphicsCommandList* commandList,
+			uint32_t lightsRootParamIdx,
+			uint32_t countRootParamIdx);
 
 	private:
-		PointLight light_;
+		std::vector<PointLight> lights_;
 		std::unique_ptr<PointLightResource> resource_;
 	};
 

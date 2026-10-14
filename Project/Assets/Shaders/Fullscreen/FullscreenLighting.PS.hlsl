@@ -45,12 +45,20 @@ cbuffer DirectionalLightData : register(b0)
 	float gDirectionalLightPadding;
 };
 
-cbuffer PointLightData : register(b4)
+struct PointLightData
 {
-	float3 gPointLightPosition;
-	float gPointLightIntensity;
-	float3 gPointLightColor;
-	float gPointLightRange;
+	float3 position;
+	float intensity;
+	float3 color;
+	float range;
+};
+
+StructuredBuffer<PointLightData> gPointLights : register(t8);
+
+cbuffer PointLightCountData : register(b4)
+{
+	uint gPointLightCount;
+	float3 gPointLightCountPadding;
 };
 
 struct FullscreenVertex
@@ -316,16 +324,24 @@ float4 main(FullscreenVertex input) : SV_Target0
 		roughness,
 		metallic) * directionalShadow;
 
-	const float3 pointLightOffset = gPointLightPosition - worldPosition;
-	const float pointLightDistance = length(pointLightOffset);
-	if (pointLightDistance < gPointLightRange && pointLightDistance > 1.0e-6f)
+	for (uint pointLightIndex = 0u;
+		pointLightIndex < gPointLightCount;
+		++pointLightIndex)
 	{
+		const PointLightData pointLight = gPointLights[pointLightIndex];
+		const float3 pointLightOffset = pointLight.position - worldPosition;
+		const float pointLightDistance = length(pointLightOffset);
+		if (pointLightDistance >= pointLight.range || pointLightDistance <= 1.0e-6f)
+		{
+			continue;
+		}
+
 		const float3 pointLightDirection = pointLightOffset / pointLightDistance;
 		float pointLightAttenuation = saturate(
-			1.0f - pointLightDistance / max(gPointLightRange, 1.0e-6f));
+			1.0f - pointLightDistance / max(pointLight.range, 1.0e-6f));
 		pointLightAttenuation *= pointLightAttenuation;
 		const float3 pointLightRadiance =
-			gPointLightColor * gPointLightIntensity * pointLightAttenuation;
+			pointLight.color * pointLight.intensity * pointLightAttenuation;
 		directLighting += CalculateDirectLighting(
 			albedo.rgb,
 			normal,

@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
+#include <span>
 
 #include <d3d12.h>
 
@@ -22,6 +24,7 @@ namespace LGF {
 		Vector3 color;
 		float range;
 	};
+	static_assert(sizeof(PointLightForGPU) == 32u);
 
 	class PointLightResource {
 	public:
@@ -29,11 +32,22 @@ namespace LGF {
 		~PointLightResource();
 
 		void Initialize();
-		void Update(const PointLight& light);
-		void Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
+		void Update(std::span<const PointLight> lights);
+		void Bind(
+			ID3D12GraphicsCommandList* commandList,
+			uint32_t lightsRootParamIdx,
+			uint32_t countRootParamIdx);
 
 	private:
-		FrameBufferedUploadBuffer resources_;
+		struct PointLightCountForGPU {
+			uint32_t count;
+			float padding[3];
+		};
+		static_assert(sizeof(PointLightCountForGPU) == 16u);
+
+		FrameBufferedUploadBuffer lightResources_;
+		FrameBufferedUploadBuffer countResources_;
+		std::array<uint32_t, kFrameContextCount> lightSrvIndices_{};
 		DirectXCore& directX_;
 	};
 
