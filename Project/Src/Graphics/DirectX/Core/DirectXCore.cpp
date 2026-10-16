@@ -57,11 +57,11 @@ DirectXCore::DirectXCore(
 	void* windowHandle,
 	uint32_t width,
 	uint32_t height,
-	bool enableFrameContexts,
+	bool multiFrameContextEnabled,
 	bool vsyncEnabled) :
 	renderWidth_(width),
 	renderHeight_(height),
-	frameContextsEnabled_(enableFrameContexts),
+	multiFrameContextEnabled_(multiFrameContextEnabled),
 	vsyncEnabled_(vsyncEnabled),
 	windowHandle_(windowHandle) {
 }
@@ -169,7 +169,7 @@ bool DirectXCore::Initialize() {
 
 bool DirectXCore::BeginFrame() {
 	const uint32_t backBufferIndex = swapChain_->GetCurrentBackBufferIndex();
-	currentFrameContextIndex_ = frameContextsEnabled_ ? backBufferIndex : 0u;
+	currentFrameContextIndex_ = multiFrameContextEnabled_ ? backBufferIndex : 0u;
 	FrameContext& frameContext = command_->GetFrameContext(currentFrameContextIndex_);
 	fence_->Wait(frameContext.fenceValue);
 	command_->BeginFrame(currentFrameContextIndex_);

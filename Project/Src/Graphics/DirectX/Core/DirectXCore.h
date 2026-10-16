@@ -49,7 +49,7 @@ namespace LGF {
 			void* windowHandle,
 			uint32_t width,
 			uint32_t height,
-			bool enableFrameContexts = true,
+			bool multiFrameContextEnabled = true,
 			bool vsyncEnabled = true);
 		~DirectXCore();
 
@@ -119,7 +119,7 @@ namespace LGF {
 		FrameBufferedUploadBuffer toneMappingResources_;
 		ToneMappingForGPU toneMappingData_{};
 		uint32_t currentFrameContextIndex_ = 0u;
-		bool frameContextsEnabled_ = true;
+		bool multiFrameContextEnabled_ = true;
 		bool vsyncEnabled_ = true;
 
 		void* windowHandle_ = nullptr;

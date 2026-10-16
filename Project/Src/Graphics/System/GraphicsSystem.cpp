@@ -58,7 +58,7 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 		desc.windowHandle,
 		desc.width,
 		desc.height,
-		desc.enableFrameContexts,
+		desc.multiFrameContextEnabled,
 		desc.vsyncEnabled);
 	if (!directX_->Initialize()) {
 		return failInitialization();
