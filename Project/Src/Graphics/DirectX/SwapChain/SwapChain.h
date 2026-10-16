@@ -29,7 +29,8 @@ namespace LGF {
 			Command& cmd,
 			RTVManager& rtvMgr,
 			Viewport& viewport,
-			ScissorRect& scissorRect);
+			ScissorRect& scissorRect,
+			bool vsyncEnabled);
 		~SwapChain();
 
 		bool Initialize();
@@ -68,6 +69,8 @@ namespace LGF {
 		bool isRtvAllocated_ = false;
 		// バックバッファインデックス
 		UINT backBufferIndex_ = 0;
+		bool vsyncEnabled_ = true;
+		bool tearingSupported_ = false;
 	};
 
 }

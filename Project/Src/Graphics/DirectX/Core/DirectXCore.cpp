@@ -57,10 +57,12 @@ DirectXCore::DirectXCore(
 	void* windowHandle,
 	uint32_t width,
 	uint32_t height,
-	bool enableFrameContexts) :
+	bool enableFrameContexts,
+	bool vsyncEnabled) :
 	renderWidth_(width),
 	renderHeight_(height),
 	frameContextsEnabled_(enableFrameContexts),
+	vsyncEnabled_(vsyncEnabled),
 	windowHandle_(windowHandle) {
 }
 
@@ -84,7 +86,8 @@ bool DirectXCore::Initialize() {
 		*command_,
 		*rtvManager_,
 		*viewport_,
-		*scissorRect_);
+		*scissorRect_,
+		vsyncEnabled_);
 	depthStencil_ = std::make_unique<DepthStencil>(*resourceFactory_, *dsvManager_, *srvUavManager_);
 	fence_ = std::make_unique<Fence>(*device_, *command_);
 	shaderCompiler_ = std::make_unique<ShaderCompiler>();

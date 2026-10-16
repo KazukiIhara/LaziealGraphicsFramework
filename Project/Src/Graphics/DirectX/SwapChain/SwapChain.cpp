@@ -18,13 +18,15 @@ SwapChain::SwapChain(
 	Command& cmd,
 	RTVManager& rtvMgr,
 	Viewport& viewport,
-	ScissorRect& scissorRect) :
+	ScissorRect& scissorRect,
+	bool vsyncEnabled) :
 	windowHandle_(windowHandle),
 	device_(device),
 	cmd_(cmd),
 	rtvMgr_(rtvMgr),
 	viewport_(viewport),
-	scissorRect_(scissorRect) {
+	scissorRect_(scissorRect),
+	vsyncEnabled_(vsyncEnabled) {
 	swapChainDesc_.Width = width;
 	swapChainDesc_.Height = height;
 }
@@ -85,7 +87,11 @@ void SwapChain::EndFrame() {
 }
 
 void SwapChain::Present() {
-	swapChain_->Present(1, 0);
+	const UINT syncInterval = vsyncEnabled_ ? 1u : 0u;
+	const UINT presentFlags = !vsyncEnabled_ && tearingSupported_
+		? DXGI_PRESENT_ALLOW_TEARING
+		: 0u;
+	swapChain_->Present(syncInterval, presentFlags);
 }
 
 void SwapChain::TransitionToRenderTarget() {
@@ -125,11 +131,21 @@ uint32_t SwapChain::GetCurrentBackBufferIndex() const {
 }
 
 bool SwapChain::CreateSwapChain() {
+	BOOL allowTearing = FALSE;
+	const HRESULT tearingResult = device_.GetFactory()->CheckFeatureSupport(
+		DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+		&allowTearing,
+		sizeof(allowTearing));
+	tearingSupported_ = SUCCEEDED(tearingResult) && allowTearing == TRUE;
+
 	// スワップチェーンの設定
 	swapChainDesc_.Format = DXGI_FORMAT_R8G8B8A8_UNORM;					// 色形式
 	swapChainDesc_.SampleDesc.Count = 1;								// マルチサンプルしない
 	swapChainDesc_.BufferCount = kFrameContextCount;					// ダブルバッファ
 	swapChainDesc_.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;			// モニタにうつしたら、中身を破棄
+	swapChainDesc_.Flags = tearingSupported_
+		? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING
+		: 0u;
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
 	HRESULT hr = device_.GetFactory()->CreateSwapChainForHwnd(
 		cmd_.GetQueue(),
