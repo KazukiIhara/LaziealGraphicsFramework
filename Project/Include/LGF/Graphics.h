@@ -29,5 +29,7 @@
 #include "LGF/Graphics/Line3D.h"
 #include "LGF/Graphics/Plane3D.h"
 #include "LGF/Graphics/Sphere3D.h"
+#include "LGF/Graphics/SphericalCap3D.h"
+#include "LGF/Graphics/SphericalShellCap3D.h"
 #include "LGF/Graphics/Triangle3D.h"
 #include "LGF/Graphics/Graphics3D.h"

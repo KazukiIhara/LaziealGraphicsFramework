@@ -23,6 +23,8 @@ namespace LGF {
 	struct ModelDrawOptions;
 	class Plane3D;
 	class Sphere3D;
+	class SphericalCap3D;
+	class SphericalShellCap3D;
 	class Triangle3D;
 
 	namespace Graphics3D {
@@ -94,6 +96,18 @@ namespace LGF {
 		);
 
 		void Draw(
+			const SphericalCap3D& sphericalCap,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color = Color::White
+		);
+
+		void Draw(
+			const SphericalShellCap3D& sphericalShellCap,
+			const Matrix4x4& worldMatrix,
+			const Vector4& color = Color::White
+		);
+
+		void Draw(
 			const Model& model,
 			const Matrix4x4& worldMatrix,
 			const Vector4& color,
@@ -109,6 +123,8 @@ namespace LGF {
 		void Draw(const Plane3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
 		void Draw(const Ground3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
 		void Draw(const Sphere3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
+		void Draw(const SphericalCap3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
+		void Draw(const SphericalShellCap3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
 
 	}
 

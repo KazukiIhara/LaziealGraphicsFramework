@@ -17,6 +17,8 @@
 #include "Graphics/Drawer/3D/Model/ModelDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Plane/PlaneDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Sphere/SphereDrawer3D.h"
+#include "Graphics/Drawer/3D/Primitive/SphericalCap/SphericalCapDrawer3D.h"
+#include "Graphics/Drawer/3D/Primitive/SphericalShellCap/SphericalShellCapDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Triangle/TriangleDrawer3D.h"
 #include "LGF/Graphics/Box3D.h"
 #include "LGF/Graphics/Capsule3D.h"
@@ -27,6 +29,8 @@
 #include "LGF/Graphics/Model.h"
 #include "LGF/Graphics/Plane3D.h"
 #include "LGF/Graphics/Sphere3D.h"
+#include "LGF/Graphics/SphericalCap3D.h"
+#include "LGF/Graphics/SphericalShellCap3D.h"
 #include "LGF/Graphics/Triangle3D.h"
 
 #include "Graphics/Model/ModelResource.h"
@@ -67,6 +71,10 @@ bool Renderer3D::Initialize() {
 	planeDrawer_->Initialize();
 	sphereDrawer_ = std::make_unique<SphereDrawer3D>(context_);
 	sphereDrawer_->Initialize();
+	sphericalCapDrawer_ = std::make_unique<SphericalCapDrawer3D>(context_);
+	sphericalCapDrawer_->Initialize();
+	sphericalShellCapDrawer_ = std::make_unique<SphericalShellCapDrawer3D>(context_);
+	sphericalShellCapDrawer_->Initialize();
 	triangleDrawer_ = std::make_unique<TriangleDrawer3D>(context_);
 	triangleDrawer_->Initialize();
 	// 更新用リストに追加
@@ -80,6 +88,8 @@ bool Renderer3D::Initialize() {
 	drawerList_.push_back(meshletBoundsDrawer_.get());
 	drawerList_.push_back(planeDrawer_.get());
 	drawerList_.push_back(sphereDrawer_.get());
+	drawerList_.push_back(sphericalCapDrawer_.get());
+	drawerList_.push_back(sphericalShellCapDrawer_.get());
 	drawerList_.push_back(triangleDrawer_.get());
 
 	return true;
@@ -106,6 +116,14 @@ void Renderer3D::DrawShadow(ShadowMapSystem& shadowMap) {
 	modelDrawer_->DrawShadow(shadowMap);
 	planeDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowPlane3D"), shadowMap, "gPlane");
 	sphereDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowSphere3D"), shadowMap, "gSphere");
+	sphericalCapDrawer_->DrawShadow(
+		context_.pipelineMgr.GetPipeline("ShadowSphericalCap3D"),
+		shadowMap,
+		"gSphericalCap");
+	sphericalShellCapDrawer_->DrawShadow(
+		context_.pipelineMgr.GetPipeline("ShadowSphericalShellCap3D"),
+		shadowMap,
+		"gSphericalShellCap");
 	triangleDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowTriangle3D"), shadowMap, "gTriangle");
 }
 
@@ -120,6 +138,8 @@ void Renderer3D::Finalize() {
 	modelDrawer_.reset();
 	planeDrawer_.reset();
 	sphereDrawer_.reset();
+	sphericalCapDrawer_.reset();
+	sphericalShellCapDrawer_.reset();
 	triangleDrawer_.reset();
 }
 
@@ -275,6 +295,41 @@ void Renderer3D::AddSphere(const Sphere3D& sphere, const Matrix4x4& worldMatrix,
 	data.radius = sphere.radius;
 
 	sphereDrawer_->AddSphere(data);
+}
+
+void Renderer3D::AddSphericalCap(
+	const SphericalCap3D& sphericalCap,
+	const Matrix4x4& worldMatrix,
+	const Material3D& material) {
+	SphericalCap3DForGPU data{};
+
+	data.instance.worldMatrix = worldMatrix;
+	data.instance.worldInverseTranspose =
+		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
+
+	ApplyMaterial(data.instance, material);
+	data.baseRadius = sphericalCap.baseRadius;
+	data.height = sphericalCap.height;
+
+	sphericalCapDrawer_->AddSphericalCap(data);
+}
+
+void Renderer3D::AddSphericalShellCap(
+	const SphericalShellCap3D& sphericalShellCap,
+	const Matrix4x4& worldMatrix,
+	const Material3D& material) {
+	SphericalShellCap3DForGPU data{};
+
+	data.instance.worldMatrix = worldMatrix;
+	data.instance.worldInverseTranspose =
+		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
+
+	ApplyMaterial(data.instance, material);
+	data.outerRadius = sphericalShellCap.outerRadius;
+	data.innerRadius = sphericalShellCap.innerRadius;
+	data.height = sphericalShellCap.height;
+
+	sphericalShellCapDrawer_->AddSphericalShellCap(data);
 }
 
 void Renderer3D::AddModel(

@@ -11,6 +11,8 @@
 #include "Graphics/Renderer/Renderer3D.h"
 #include "LGF/Graphics/Model.h"
 #include "LGF/Graphics/Skybox.h"
+#include "LGF/Graphics/SphericalCap3D.h"
+#include "LGF/Graphics/SphericalShellCap3D.h"
 
 namespace {
 	LGF::DirectXCore* g_directX = nullptr;
@@ -202,6 +204,30 @@ void LGF::Graphics3D::Draw(const Sphere3D& sphere, const Matrix4x4& worldMatrix,
 }
 
 void LGF::Graphics3D::Draw(
+	const SphericalCap3D& sphericalCap,
+	const Matrix4x4& worldMatrix,
+	const Vector4& color) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddSphericalCap(
+		sphericalCap,
+		worldMatrix,
+		Material3D{ .color = color }
+	);
+}
+
+void LGF::Graphics3D::Draw(
+	const SphericalShellCap3D& sphericalShellCap,
+	const Matrix4x4& worldMatrix,
+	const Vector4& color) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddSphericalShellCap(
+		sphericalShellCap,
+		worldMatrix,
+		Material3D{ .color = color }
+	);
+}
+
+void LGF::Graphics3D::Draw(
 	const Model& model,
 	const Matrix4x4& worldMatrix,
 	const Vector4& color,
@@ -254,4 +280,20 @@ void LGF::Graphics3D::Draw(const Ground3D& shape, const Matrix4x4& worldMatrix, 
 void LGF::Graphics3D::Draw(const Sphere3D& shape, const Matrix4x4& worldMatrix, const Material3D& material) {
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddSphere(shape, worldMatrix, material);
+}
+
+void LGF::Graphics3D::Draw(
+	const SphericalCap3D& shape,
+	const Matrix4x4& worldMatrix,
+	const Material3D& material) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddSphericalCap(shape, worldMatrix, material);
+}
+
+void LGF::Graphics3D::Draw(
+	const SphericalShellCap3D& shape,
+	const Matrix4x4& worldMatrix,
+	const Material3D& material) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddSphericalShellCap(shape, worldMatrix, material);
 }

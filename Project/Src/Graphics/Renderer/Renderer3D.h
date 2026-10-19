@@ -24,6 +24,8 @@ namespace LGF {
 	class ModelDrawer3D;
 	class PlaneDrawer3D;
 	class SphereDrawer3D;
+	class SphericalCapDrawer3D;
+	class SphericalShellCapDrawer3D;
 	class TriangleDrawer3D;
 	class Box3D;
 	class Capsule3D;
@@ -35,6 +37,8 @@ namespace LGF {
 	struct ModelDrawOptions;
 	class Plane3D;
 	class Sphere3D;
+	class SphericalCap3D;
+	class SphericalShellCap3D;
 	class Triangle3D;
 	class ShadowMapSystem;
 
@@ -109,6 +113,18 @@ namespace LGF {
 			const Material3D& material
 		);
 
+		void AddSphericalCap(
+			const SphericalCap3D& sphericalCap,
+			const Matrix4x4& worldMatrix,
+			const Material3D& material
+		);
+
+		void AddSphericalShellCap(
+			const SphericalShellCap3D& sphericalShellCap,
+			const Matrix4x4& worldMatrix,
+			const Material3D& material
+		);
+
 		void AddModel(
 			const Model& model,
 			const Matrix4x4& worldMatrix,
@@ -134,6 +150,8 @@ namespace LGF {
 		std::unique_ptr<ModelDrawer3D> modelDrawer_;
 		std::unique_ptr<PlaneDrawer3D> planeDrawer_;
 		std::unique_ptr<SphereDrawer3D> sphereDrawer_;
+		std::unique_ptr<SphericalCapDrawer3D> sphericalCapDrawer_;
+		std::unique_ptr<SphericalShellCapDrawer3D> sphericalShellCapDrawer_;
 		std::unique_ptr<TriangleDrawer3D> triangleDrawer_;
 	};
 
