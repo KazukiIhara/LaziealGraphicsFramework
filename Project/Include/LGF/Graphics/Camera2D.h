@@ -9,7 +9,6 @@ namespace LGF {
 	/// </summary>
 	class Camera2D {
 	public:
-
 		/// <summary>
 		/// デフォルトのカメラを作成
 		/// </summary>
@@ -21,12 +20,11 @@ namespace LGF {
 		Camera2D(
 			Vector2 translation,
 			float rotation,
-			Vector2 size
-		);
+			Vector2 size);
 
 		~Camera2D();
 
-		void SetScene()const;
+		void SetScene() const;
 
 	public:
 		Vector2 translation{};

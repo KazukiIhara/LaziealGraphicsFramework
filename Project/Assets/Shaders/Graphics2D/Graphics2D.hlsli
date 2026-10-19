@@ -1,4 +1,3 @@
-
 // インスタンシング描画用のデータ
 struct InstanceData2D
 {
@@ -7,8 +6,6 @@ struct InstanceData2D
     float2 uvOffset;
     uint textureIndex;
 };
-
-// カメラデータ
 
 // MSからPSに渡す構造体
 struct MSOutput2D

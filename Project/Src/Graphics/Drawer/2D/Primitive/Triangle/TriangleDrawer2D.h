@@ -17,20 +17,18 @@ namespace LGF {
 	/// <summary>
 	/// 2D三角形
 	/// </summary>
-	class TriangleDrawer2D :public BaseDrawer2D {
+	class TriangleDrawer2D : public BaseDrawer2D {
 	public:
-		TriangleDrawer2D(Graphics2DContext context);
-		~TriangleDrawer2D()override;
+		explicit TriangleDrawer2D(Graphics2DContext context);
+		~TriangleDrawer2D() override;
 
-		void Initialize()override;
-
-		void EndFrame()override;
+		void Initialize() override;
+		void EndFrame() override;
 
 		void AddTriangle(const Triangle2DForGPU& data);
 
 	private:
 		Triangle2DForGPU* instanceData_ = nullptr;
-
 	};
 
 }

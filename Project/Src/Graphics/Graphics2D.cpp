@@ -3,12 +3,13 @@
 #include <cassert>
 
 #include "Graphics2DInternal.h"
-#include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Camera/System/Camera2DSystem.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Renderer/Renderer2D.h"
 #include "LGF/Graphics/Material.h"
 
 namespace {
+
 	LGF::DirectXCore* g_directX = nullptr;
 	LGF::Camera2DSystem* g_camera2DSystem = nullptr;
 	LGF::Renderer2D* g_renderer2D = nullptr;
@@ -62,10 +63,7 @@ void LGF::Graphics2D::Draw(const Triangle2D& triangle, const Vector4& color) {
 
 void LGF::Graphics2D::Draw(const Triangle2D& triangle, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
-	g_renderer2D->AddTriangle(
-		triangle,
-		material
-	);
+	g_renderer2D->AddTriangle(triangle, material);
 }
 
 void LGF::Graphics2D::Draw(const Rect2D& rect, const Vector4& color) {
@@ -74,10 +72,7 @@ void LGF::Graphics2D::Draw(const Rect2D& rect, const Vector4& color) {
 
 void LGF::Graphics2D::Draw(const Rect2D& rect, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
-	g_renderer2D->AddRect(
-		rect,
-		material
-	);
+	g_renderer2D->AddRect(rect, material);
 }
 
 void LGF::Graphics2D::Draw(const Circle2D& circle, const Vector4& color) {
@@ -86,10 +81,7 @@ void LGF::Graphics2D::Draw(const Circle2D& circle, const Vector4& color) {
 
 void LGF::Graphics2D::Draw(const Circle2D& circle, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
-	g_renderer2D->AddCircle(
-		circle,
-		material
-	);
+	g_renderer2D->AddCircle(circle, material);
 }
 
 void LGF::Graphics2D::Draw(const Line2D& line, const Vector4& color) {
@@ -98,10 +90,7 @@ void LGF::Graphics2D::Draw(const Line2D& line, const Vector4& color) {
 
 void LGF::Graphics2D::Draw(const Line2D& line, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
-	g_renderer2D->AddLine(
-		line,
-		material
-	);
+	g_renderer2D->AddLine(line, material);
 }
 
 void LGF::Graphics2D::Draw(const RoundRect2D& roundRect, const Vector4& color) {
@@ -110,8 +99,5 @@ void LGF::Graphics2D::Draw(const RoundRect2D& roundRect, const Vector4& color) {
 
 void LGF::Graphics2D::Draw(const RoundRect2D& roundRect, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
-	g_renderer2D->AddRoundRect(
-		roundRect,
-		material
-	);
+	g_renderer2D->AddRoundRect(roundRect, material);
 }

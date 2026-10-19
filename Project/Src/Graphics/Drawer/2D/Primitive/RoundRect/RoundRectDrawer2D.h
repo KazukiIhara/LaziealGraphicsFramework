@@ -19,20 +19,18 @@ namespace LGF {
 	/// <summary>
 	/// 2D角丸四角形
 	/// </summary>
-	class RoundRectDrawer2D :public BaseDrawer2D {
+	class RoundRectDrawer2D : public BaseDrawer2D {
 	public:
-		RoundRectDrawer2D(Graphics2DContext context);
-		~RoundRectDrawer2D()override;
+		explicit RoundRectDrawer2D(Graphics2DContext context);
+		~RoundRectDrawer2D() override;
 
-		void Initialize()override;
-
-		void EndFrame()override;
+		void Initialize() override;
+		void EndFrame() override;
 
 		void AddRoundRect(const RoundRect2DForGPU& data);
 
 	private:
 		RoundRect2DForGPU* instanceData_ = nullptr;
-
 	};
 
 }

@@ -27,62 +27,41 @@ namespace LGF {
 	/// <summary>
 	/// 全2D描画をするクラス
 	/// </summary>
-	class Renderer2D :public IGraphicsSubsystem {
+	class Renderer2D : public IGraphicsSubsystem {
 	public:
-		Renderer2D(Graphics2DContext context);
+		explicit Renderer2D(Graphics2DContext context);
 		~Renderer2D();
 
-		bool Initialize()override;
-		void BeginFrame()override;
-		void EndFrame()override;
-		void Finalize()override;
+		bool Initialize() override;
+		void BeginFrame() override;
+		void EndFrame() override;
+		void Finalize() override;
 
 		// 各Drawerに描画コマンドを積む関数群
 
-		// 三角形描画
-		void AddTriangle(
-			const Triangle2D& triangle,
-			const Material2D& material
-		);
+		void AddTriangle(const Triangle2D& triangle, const Material2D& material);
 
-		// 四角形描画
-		void AddRect(
-			const Rect2D& rect,
-			const Material2D& material
-		);
+		void AddRect(const Rect2D& rect, const Material2D& material);
 
-		// 円描画
-		void AddCircle(
-			const Circle2D& circle,
-			const Material2D& material
-		);
+		void AddCircle(const Circle2D& circle, const Material2D& material);
 
-		// 線分描画
-		void AddLine(
-			const Line2D& line,
-			const Material2D& material
-		);
+		void AddLine(const Line2D& line, const Material2D& material);
 
-		// 角丸四角形描画
-		void AddRoundRect(
-			const RoundRect2D& roundRect,
-			const Material2D& material
-		);
+		void AddRoundRect(const RoundRect2D& roundRect, const Material2D& material);
 
 	private:
+		static void ApplyMaterial(InstanceData2D& instance, const Material2D& material);
+
 		// 参照
 		Graphics2DContext context_;
 		// 全更新用リスト
 		std::vector<IDrawer*> drawerList_;
 
 		// 描画クラス
-		std::unique_ptr<TriangleDrawer2D> triangleDrawer_ = nullptr;
-		std::unique_ptr<RectDrawer2D> rectDrawer_ = nullptr;
-		std::unique_ptr<CircleDrawer2D> circleDrawer_ = nullptr;
-		std::unique_ptr<RoundRectDrawer2D> roundRectDrawer_ = nullptr;
-
-		static void ApplyMaterial(InstanceData2D& instance, const Material2D& material);
-
-
+		std::unique_ptr<TriangleDrawer2D> triangleDrawer_;
+		std::unique_ptr<RectDrawer2D> rectDrawer_;
+		std::unique_ptr<CircleDrawer2D> circleDrawer_;
+		std::unique_ptr<RoundRectDrawer2D> roundRectDrawer_;
 	};
+
 }

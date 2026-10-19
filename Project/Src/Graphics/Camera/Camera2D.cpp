@@ -1,7 +1,8 @@
 #include "LGF/Graphics/Camera2D.h"
-#include "LGF/Graphics/Graphics2D.h"
 
 #include <cstdint>
+
+#include "LGF/Graphics/Graphics2D.h"
 
 using namespace LGF;
 
@@ -12,14 +13,13 @@ Camera2D::Camera2D() {
 		static_cast<float>(windowWidth),
 		static_cast<float>(windowHeight)
 	};
-	translation = {
-		0.0f,
-		0.0f
-	};
+	translation = { 0.0f, 0.0f };
 }
 
 Camera2D::Camera2D(Vector2 translation, float rotation, Vector2 size) :
-	translation(translation), rotation(rotation), size(size) {
+	translation(translation),
+	rotation(rotation),
+	size(size) {
 }
 
 Camera2D::~Camera2D() = default;

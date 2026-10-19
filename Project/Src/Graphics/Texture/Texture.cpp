@@ -19,15 +19,16 @@ void LGF::TextureSystem::Internal::ResetTextureManager() {
 	g_textureManager = nullptr;
 }
 
-LGF::Texture::Texture(const std::string& name, const TextureLoadDesc& desc) {
+LGF::Texture::Texture(const std::string& filePath, const TextureLoadDesc& desc) {
 	if (!g_textureManager) {
 		throw std::runtime_error("Texture must be loaded after framework initialization.");
 	}
-	const auto& data = g_textureManager->Load(name, desc);
+
+	const auto& data = g_textureManager->Load(filePath, desc);
 	srvIndex_ = data.srvIndex;
 	isCubeMap_ = data.metaData.IsCubemap();
 	resource_ = data.resource.Get();
-	filePath_ = name;
+	filePath_ = filePath;
 }
 
 LGF::Texture::~Texture() = default;
@@ -46,17 +47,17 @@ uint32_t LGF::Texture::GetHeight() const {
 
 LGF::TextureLoadDesc LGF::TextureLoadDesc::Color() {
 	return {
-	   .dimension = TextureDimension::Texture2D,
-	   .colorSpace = TextureColorSpace::SRGB,
-	   .generateMipMaps = true,
+		.dimension = TextureDimension::Texture2D,
+		.colorSpace = TextureColorSpace::SRGB,
+		.generateMipMaps = true,
 	};
 }
 
 LGF::TextureLoadDesc LGF::TextureLoadDesc::Data() {
 	return {
-	   .dimension = TextureDimension::Texture2D,
-	   .colorSpace = TextureColorSpace::Linear,
-	   .generateMipMaps = true,
+		.dimension = TextureDimension::Texture2D,
+		.colorSpace = TextureColorSpace::Linear,
+		.generateMipMaps = true,
 	};
 }
 

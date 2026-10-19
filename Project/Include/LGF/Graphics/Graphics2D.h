@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include "LGF/Math/Matrix3x3.h" 
 #include "LGF/Graphics/Color.h"
 
 namespace LGF {
@@ -38,8 +37,7 @@ namespace LGF {
 		/// </summary>
 		void Draw(
 			const Triangle2D& triangle,
-			const Vector4& color= Color::White
-		);
+			const Vector4& color = Color::White);
 		void Draw(const Triangle2D& triangle, const Material2D& material);
 
 		/// <summary>
@@ -47,8 +45,7 @@ namespace LGF {
 		/// </summary>
 		void Draw(
 			const Rect2D& rect,
-			const Vector4& color= Color::White
-		);
+			const Vector4& color = Color::White);
 		void Draw(const Rect2D& rect, const Material2D& material);
 
 		/// <summary>
@@ -56,8 +53,7 @@ namespace LGF {
 		/// </summary>
 		void Draw(
 			const Circle2D& circle,
-			const Vector4& color= Color::White
-		);
+			const Vector4& color = Color::White);
 		void Draw(const Circle2D& circle, const Material2D& material);
 
 		/// <summary>
@@ -65,8 +61,7 @@ namespace LGF {
 		/// </summary>
 		void Draw(
 			const Line2D& line,
-			const Vector4& color= Color::White
-		);
+			const Vector4& color = Color::White);
 		void Draw(const Line2D& line, const Material2D& material);
 
 		/// <summary>
@@ -74,8 +69,7 @@ namespace LGF {
 		/// </summary>
 		void Draw(
 			const RoundRect2D& roundRect,
-			const Vector4& color= Color::White
-		);
+			const Vector4& color = Color::White);
 		void Draw(const RoundRect2D& roundRect, const Material2D& material);
 
 	}

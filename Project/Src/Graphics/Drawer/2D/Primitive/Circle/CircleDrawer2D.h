@@ -18,20 +18,18 @@ namespace LGF {
 	/// <summary>
 	/// 2D円
 	/// </summary>
-	class CircleDrawer2D :public BaseDrawer2D {
+	class CircleDrawer2D : public BaseDrawer2D {
 	public:
-		CircleDrawer2D(Graphics2DContext context);
-		~CircleDrawer2D()override;
+		explicit CircleDrawer2D(Graphics2DContext context);
+		~CircleDrawer2D() override;
 
-		void Initialize()override;
-
-		void EndFrame()override;
+		void Initialize() override;
+		void EndFrame() override;
 
 		void AddCircle(const Circle2DForGPU& data);
 
 	private:
 		Circle2DForGPU* instanceData_ = nullptr;
-
 	};
 
 }

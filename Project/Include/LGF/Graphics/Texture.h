@@ -35,18 +35,16 @@ namespace LGF {
 	/// </summary>
 	class Texture {
 	public:
-		// 未指定のテクスチャ。Material3D では単色描画になる。
+		/// <summary>マテリアルで単色描画に使用する空のテクスチャを生成</summary>
 		Texture() = default;
-		// UTF-8 パスを同期ロード。失敗時は std::exception 派生の例外を送出する。
+		/// <summary>UTF-8パスからテクスチャを同期読み込み。失敗時は例外を送出</summary>
 		Texture(const std::string& filePath, const TextureLoadDesc& desc = {});
 		~Texture();
 
-		const std::string& GetFilePath()const;
-		uint32_t GetWidth()const;
-		uint32_t GetHeight()const;
+		const std::string& GetFilePath() const;
+		uint32_t GetWidth() const;
+		uint32_t GetHeight() const;
 		bool IsValid() const { return srvIndex_ != UINT32_MAX; }
-
-		// GPU リソースはフレームワーク終了まで内部で共有する。
 
 	private:
 		friend class Renderer3D;
@@ -57,4 +55,5 @@ namespace LGF {
 		bool isCubeMap_ = false;
 		ID3D12Resource* resource_ = nullptr;
 	};
+
 }
