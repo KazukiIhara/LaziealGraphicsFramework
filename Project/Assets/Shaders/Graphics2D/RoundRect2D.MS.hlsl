@@ -70,8 +70,10 @@ void main(
     RoundRectData2D rect = gRoundRect[DTid.x];
 
     const float2 center = (rect.leftTop + rect.rightBottom) * 0.5f;
-    vertices[0].position = float4(center, 0.0f, 1.0f);
-    vertices[0].baseColor = rect.instData.baseColor;
+    vertices[0] = MakeVertex2D(
+        center,
+        rect.instData,
+        float2(0.5f, 0.5f));
 
     for (uint cornerIndex = 0; cornerIndex < kCornerCount; ++cornerIndex)
     {
@@ -84,8 +86,12 @@ void main(
             const float angle = startAngle + (float(segmentIndex) / float(kCornerSegmentCount)) * kPi * 0.5f;
             const float2 offset = float2(cos(angle) * rect.radius.x, sin(angle) * rect.radius.y);
 
-            vertices[vertexIndex].position = float4(cornerCenter + offset, 0.0f, 1.0f);
-            vertices[vertexIndex].baseColor = rect.instData.baseColor;
+            const float2 uv =
+                (cornerCenter + offset - rect.leftTop) / (rect.rightBottom - rect.leftTop);
+            vertices[vertexIndex] = MakeVertex2D(
+                cornerCenter + offset,
+                rect.instData,
+                uv);
         }
     }
 

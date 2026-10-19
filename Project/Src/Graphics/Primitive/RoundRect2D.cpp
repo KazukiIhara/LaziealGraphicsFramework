@@ -1,5 +1,6 @@
 #include "LGF/Graphics/RoundRect2D.h"
 #include "LGF/Graphics/Graphics2D.h"
+#include "LGF/Graphics/Material.h"
 
 using namespace LGF;
 
@@ -25,4 +26,8 @@ RoundRect2D::~RoundRect2D() = default;
 
 void RoundRect2D::Draw(const Vector4& color) const {
 	Graphics2D::Draw(*this, color);
+}
+
+void RoundRect2D::Draw(const Material2D& material) const {
+	Graphics2D::Draw(*this, material);
 }

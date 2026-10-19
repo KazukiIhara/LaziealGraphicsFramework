@@ -5,6 +5,7 @@
 #include "Color.h"
 
 namespace LGF {
+	struct Material2D;
 
 	/// <summary>
 	/// 2D線分
@@ -21,6 +22,7 @@ namespace LGF {
 		~Line2D();
 
 		void Draw(const Vector4& color = Color::White)const;
+		void Draw(const Material2D& material)const;
 
 	public:
 		Vector2 start{};

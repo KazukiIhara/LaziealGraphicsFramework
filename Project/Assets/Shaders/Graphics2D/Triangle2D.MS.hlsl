@@ -23,11 +23,11 @@ void main(
 
     for (uint i = 0; i < 3; ++i)
     {
-        // 頂点を変換
-        vertices[i].position = float4(tri.vertexOffsets[i].xy, 0.0f, 1.0f);
-
-        // 色をセット
-        vertices[i].baseColor = tri.instData.baseColor;
+        // 頂点とマテリアルをセット
+        const float2 uv = i == 0
+            ? float2(0.5f, 0.0f)
+            : (i == 1 ? float2(1.0f, 1.0f) : float2(0.0f, 1.0f));
+        vertices[i] = MakeVertex2D(tri.vertexOffsets[i].xy, tri.instData, uv);
     }
 
     triangles[0] = uint3(0, 1, 2);

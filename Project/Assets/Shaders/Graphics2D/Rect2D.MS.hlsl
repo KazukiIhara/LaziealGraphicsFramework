@@ -23,11 +23,11 @@ void main(
 
     for (uint i = 0; i < 4; ++i)
     {
-        // 頂点をセット
-        vertices[i].position = float4(rect.vertices[i].xy, 0.0f, 1.0f);
-
-        // 色をセット
-        vertices[i].baseColor = rect.instData.baseColor;
+        // 頂点とマテリアルをセット
+        vertices[i] = MakeVertex2D(
+            rect.vertices[i].xy,
+            rect.instData,
+            float2(i % 2, i / 2));
     }
 
     triangles[0] = uint3(0, 1, 2);

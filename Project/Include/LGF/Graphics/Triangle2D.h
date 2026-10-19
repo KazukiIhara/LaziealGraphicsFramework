@@ -8,6 +8,7 @@
 #include "Color.h"
 
 namespace LGF {
+	struct Material2D;
 
 	/// <summary>
 	/// 2D三角形
@@ -22,6 +23,7 @@ namespace LGF {
 		~Triangle2D();
 
 		void Draw(const Vector4& color = Color::White)const;
+		void Draw(const Material2D& material)const;
 
 	public:
 		// 頂点 上→右下→左下(時計回り)

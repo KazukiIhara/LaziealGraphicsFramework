@@ -42,12 +42,15 @@ namespace LGF {
 		~Texture();
 
 		const std::string& GetFilePath()const;
+		uint32_t GetWidth()const;
+		uint32_t GetHeight()const;
 		bool IsValid() const { return srvIndex_ != UINT32_MAX; }
 
 		// GPU リソースはフレームワーク終了まで内部で共有する。
 
 	private:
 		friend class Renderer3D;
+		friend class Renderer2D;
 		friend class SkyboxSystem;
 		std::string filePath_;
 		uint32_t srvIndex_ = UINT32_MAX;

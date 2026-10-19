@@ -16,6 +16,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
+
+#include "LGF/Graphics/Material.h"
 
 using namespace LGF;
 
@@ -77,10 +80,10 @@ void Renderer2D::Finalize() {
 	roundRectDrawer_.reset();
 }
 
-void Renderer2D::AddTriangle(const Triangle2D& triangle, const Vector4& color) {
+void Renderer2D::AddTriangle(const Triangle2D& triangle, const Material2D& material) {
 	Triangle2DForGPU data{};
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 
 	for (uint32_t i = 0; i < triangle.vertices.size(); ++i) {
 		data.vertexOffsets[i] = ToClipSpace(triangle.vertices[i]);
@@ -89,10 +92,10 @@ void Renderer2D::AddTriangle(const Triangle2D& triangle, const Vector4& color) {
 	triangleDrawer_->AddTriangle(data);
 }
 
-void Renderer2D::AddRect(const Rect2D& rect, const Vector4& color) {
+void Renderer2D::AddRect(const Rect2D& rect, const Material2D& material) {
 	Rect2DForGPU data{};
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 
 	const Vector2 leftTop = rect.leftTop;
 	const Vector2 rightTop = { rect.leftTop.x + rect.size.x, rect.leftTop.y };
@@ -107,13 +110,13 @@ void Renderer2D::AddRect(const Rect2D& rect, const Vector4& color) {
 	rectDrawer_->AddRect(data);
 }
 
-void Renderer2D::AddCircle(const Circle2D& circle, const Vector4& color) {
+void Renderer2D::AddCircle(const Circle2D& circle, const Material2D& material) {
 	Circle2DForGPU data{};
 
 	const float width = static_cast<float>(Graphics2D::GetWindowWidth());
 	const float height = static_cast<float>(Graphics2D::GetWindowHeight());
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 	data.center = ToClipSpace(circle.center);
 	data.radius = {
 		(circle.radius / width) * 2.0f,
@@ -123,7 +126,7 @@ void Renderer2D::AddCircle(const Circle2D& circle, const Vector4& color) {
 	circleDrawer_->AddCircle(data);
 }
 
-void Renderer2D::AddLine(const Line2D& line, const Vector4& color) {
+void Renderer2D::AddLine(const Line2D& line, const Material2D& material) {
 	if (line.thickness <= 0.0f) {
 		return;
 	}
@@ -142,7 +145,7 @@ void Renderer2D::AddLine(const Line2D& line, const Vector4& color) {
 
 	Rect2DForGPU data{};
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 	data.vertices[0] = ToClipSpace(line.start - normal);
 	data.vertices[1] = ToClipSpace(line.start + normal);
 	data.vertices[2] = ToClipSpace(line.end - normal);
@@ -151,7 +154,7 @@ void Renderer2D::AddLine(const Line2D& line, const Vector4& color) {
 	rectDrawer_->AddRect(data);
 }
 
-void Renderer2D::AddRoundRect(const RoundRect2D& roundRect, const Vector4& color) {
+void Renderer2D::AddRoundRect(const RoundRect2D& roundRect, const Material2D& material) {
 	if (roundRect.size.x <= 0.0f || roundRect.size.y <= 0.0f) {
 		return;
 	}
@@ -162,7 +165,7 @@ void Renderer2D::AddRoundRect(const RoundRect2D& roundRect, const Vector4& color
 
 	RoundRect2DForGPU data{};
 
-	data.instance.baseColor = color;
+	ApplyMaterial(data.instance, material);
 	data.leftTop = ToClipSpace(roundRect.leftTop);
 	data.rightBottom = ToClipSpace(roundRect.leftTop + roundRect.size);
 	data.radius = {
@@ -171,5 +174,15 @@ void Renderer2D::AddRoundRect(const RoundRect2D& roundRect, const Vector4& color
 	};
 
 	roundRectDrawer_->AddRoundRect(data);
+}
+
+void Renderer2D::ApplyMaterial(InstanceData2D& instance, const Material2D& material) {
+	if (material.baseColorTexture.isCubeMap_) {
+		throw std::invalid_argument("Material2D baseColorTexture must be a Texture2D.");
+	}
+	instance.baseColor = material.color;
+	instance.textureIndex = material.baseColorTexture.srvIndex_;
+	instance.uvScale = material.uvScale;
+	instance.uvOffset = material.uvOffset;
 }
 

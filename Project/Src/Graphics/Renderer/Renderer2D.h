@@ -21,6 +21,8 @@ namespace LGF {
 	class Circle2D;
 	class Line2D;
 	class RoundRect2D;
+	struct Material2D;
+	struct InstanceData2D;
 
 	/// <summary>
 	/// 全2D描画をするクラス
@@ -40,31 +42,31 @@ namespace LGF {
 		// 三角形描画
 		void AddTriangle(
 			const Triangle2D& triangle,
-			const Vector4& color
+			const Material2D& material
 		);
 
 		// 四角形描画
 		void AddRect(
 			const Rect2D& rect,
-			const Vector4& color
+			const Material2D& material
 		);
 
 		// 円描画
 		void AddCircle(
 			const Circle2D& circle,
-			const Vector4& color
+			const Material2D& material
 		);
 
 		// 線分描画
 		void AddLine(
 			const Line2D& line,
-			const Vector4& color
+			const Material2D& material
 		);
 
 		// 角丸四角形描画
 		void AddRoundRect(
 			const RoundRect2D& roundRect,
-			const Vector4& color
+			const Material2D& material
 		);
 
 	private:
@@ -78,6 +80,8 @@ namespace LGF {
 		std::unique_ptr<RectDrawer2D> rectDrawer_ = nullptr;
 		std::unique_ptr<CircleDrawer2D> circleDrawer_ = nullptr;
 		std::unique_ptr<RoundRectDrawer2D> roundRectDrawer_ = nullptr;
+
+		static void ApplyMaterial(InstanceData2D& instance, const Material2D& material);
 
 
 	};

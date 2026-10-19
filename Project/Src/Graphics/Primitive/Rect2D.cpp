@@ -1,5 +1,6 @@
 #include "LGF/Graphics/Rect2D.h"
 #include "LGF/Graphics/Graphics2D.h"
+#include "LGF/Graphics/Material.h"
 
 using namespace LGF;
 
@@ -22,4 +23,8 @@ Rect2D::~Rect2D() = default;
 
 void Rect2D::Draw(const Vector4& color) const {
 	Graphics2D::Draw(*this, color);
+}
+
+void Rect2D::Draw(const Material2D& material) const {
+	Graphics2D::Draw(*this, material);
 }

@@ -6,6 +6,7 @@
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Camera/System/Camera2DSystem.h"
 #include "Graphics/Renderer/Renderer2D.h"
+#include "LGF/Graphics/Material.h"
 
 namespace {
 	LGF::DirectXCore* g_directX = nullptr;
@@ -56,41 +57,61 @@ void LGF::Graphics2D::SetCamera(const Camera2D& camera) {
 }
 
 void LGF::Graphics2D::Draw(const Triangle2D& triangle, const Vector4& color) {
+	Draw(triangle, Material2D{ .color = color });
+}
+
+void LGF::Graphics2D::Draw(const Triangle2D& triangle, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
 	g_renderer2D->AddTriangle(
 		triangle,
-		color
+		material
 	);
 }
 
 void LGF::Graphics2D::Draw(const Rect2D& rect, const Vector4& color) {
+	Draw(rect, Material2D{ .color = color });
+}
+
+void LGF::Graphics2D::Draw(const Rect2D& rect, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
 	g_renderer2D->AddRect(
 		rect,
-		color
+		material
 	);
 }
 
 void LGF::Graphics2D::Draw(const Circle2D& circle, const Vector4& color) {
+	Draw(circle, Material2D{ .color = color });
+}
+
+void LGF::Graphics2D::Draw(const Circle2D& circle, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
 	g_renderer2D->AddCircle(
 		circle,
-		color
+		material
 	);
 }
 
 void LGF::Graphics2D::Draw(const Line2D& line, const Vector4& color) {
+	Draw(line, Material2D{ .color = color });
+}
+
+void LGF::Graphics2D::Draw(const Line2D& line, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
 	g_renderer2D->AddLine(
 		line,
-		color
+		material
 	);
 }
 
 void LGF::Graphics2D::Draw(const RoundRect2D& roundRect, const Vector4& color) {
+	Draw(roundRect, Material2D{ .color = color });
+}
+
+void LGF::Graphics2D::Draw(const RoundRect2D& roundRect, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
 	g_renderer2D->AddRoundRect(
 		roundRect,
-		color
+		material
 	);
 }

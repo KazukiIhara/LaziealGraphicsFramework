@@ -8,6 +8,7 @@
 #include "Graphics/Drawer/BaseDrawer.h"
 
 #include "LGF/Math/Vector4.h"
+#include "LGF/Math/Vector2.h"
 #include "LGF/Math/Matrix4x4.h"
 
 #include "Graphics/Graphics2DContext.h"
@@ -19,7 +20,11 @@ namespace LGF {
 	/// </summary>
 	struct InstanceData2D {
 		Vector4 baseColor;
+		Vector2 uvScale{ 1.0f, 1.0f };
+		Vector2 uvOffset{};
+		uint32_t textureIndex = UINT32_MAX;
 	};
+	static_assert(sizeof(InstanceData2D) == 36);
 
 	/// <summary>
 	/// 2D描画基底クラス

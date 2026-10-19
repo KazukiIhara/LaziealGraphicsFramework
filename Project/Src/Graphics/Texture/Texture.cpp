@@ -36,6 +36,14 @@ const std::string& LGF::Texture::GetFilePath() const {
 	return filePath_;
 }
 
+uint32_t LGF::Texture::GetWidth() const {
+	return resource_ ? static_cast<uint32_t>(resource_->GetDesc().Width) : 0u;
+}
+
+uint32_t LGF::Texture::GetHeight() const {
+	return resource_ ? resource_->GetDesc().Height : 0u;
+}
+
 LGF::TextureLoadDesc LGF::TextureLoadDesc::Color() {
 	return {
 	   .dimension = TextureDimension::Texture2D,

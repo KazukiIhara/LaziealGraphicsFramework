@@ -1,5 +1,6 @@
 #include "LGF/Graphics/Triangle2D.h"
 #include "LGF/Graphics/Graphics2D.h"
+#include "LGF/Graphics/Material.h"
 
 using namespace LGF;
 
@@ -19,4 +20,8 @@ Triangle2D::~Triangle2D() = default;
 
 void Triangle2D::Draw(const Vector4& color) const {
 	Graphics2D::Draw(*this, color);
+}
+
+void Triangle2D::Draw(const Material2D& material) const {
+	Graphics2D::Draw(*this, material);
 }

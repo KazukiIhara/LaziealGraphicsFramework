@@ -8,6 +8,7 @@
 namespace LGF {
 
 	class Camera2D;
+	struct Material2D;
 
 	class Triangle2D;
 	class Rect2D;
@@ -39,6 +40,7 @@ namespace LGF {
 			const Triangle2D& triangle,
 			const Vector4& color= Color::White
 		);
+		void Draw(const Triangle2D& triangle, const Material2D& material);
 
 		/// <summary>
 		/// 四角形描画
@@ -47,6 +49,7 @@ namespace LGF {
 			const Rect2D& rect,
 			const Vector4& color= Color::White
 		);
+		void Draw(const Rect2D& rect, const Material2D& material);
 
 		/// <summary>
 		/// 円描画
@@ -55,6 +58,7 @@ namespace LGF {
 			const Circle2D& circle,
 			const Vector4& color= Color::White
 		);
+		void Draw(const Circle2D& circle, const Material2D& material);
 
 		/// <summary>
 		/// 線分描画
@@ -63,6 +67,7 @@ namespace LGF {
 			const Line2D& line,
 			const Vector4& color= Color::White
 		);
+		void Draw(const Line2D& line, const Material2D& material);
 
 		/// <summary>
 		/// 角丸四角形描画
@@ -71,6 +76,7 @@ namespace LGF {
 			const RoundRect2D& roundRect,
 			const Vector4& color= Color::White
 		);
+		void Draw(const RoundRect2D& roundRect, const Material2D& material);
 
 	}
 }
