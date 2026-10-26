@@ -7,6 +7,8 @@
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Renderer/Renderer2D.h"
 #include "LGF/Graphics/Material.h"
+#include "LGF/Graphics/Rect2D.h"
+#include "LGF/Graphics/Sprite.h"
 
 namespace {
 
@@ -100,4 +102,13 @@ void LGF::Graphics2D::Draw(const RoundRect2D& roundRect, const Vector4& color) {
 void LGF::Graphics2D::Draw(const RoundRect2D& roundRect, const Material2D& material) {
 	assert(g_renderer2D != nullptr);
 	g_renderer2D->AddRoundRect(roundRect, material);
+}
+
+void LGF::Graphics2D::Draw(const Sprite& sprite, const Vector4& color) {
+	Draw(Rect2D{ sprite.leftTop, sprite.size }, Material2D{
+		.color = color,
+		.baseColorTexture = sprite.texture,
+		.uvScale = sprite.uvScale,
+		.uvOffset = sprite.uvOffset,
+	});
 }

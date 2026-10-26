@@ -1,7 +1,6 @@
 #include "LGF/Graphics/Sprite.h"
 
-#include "LGF/Graphics/Material.h"
-#include "LGF/Graphics/Rect2D.h"
+#include "LGF/Graphics/Graphics2D.h"
 
 using namespace LGF;
 
@@ -36,10 +35,5 @@ Sprite::Sprite(const Texture& texture, const Vector2& leftTop, const Vector2& si
 Sprite::~Sprite() = default;
 
 void Sprite::Draw(const Vector4& color) const {
-	Rect2D{ leftTop, size }.Draw(Material2D{
-		.color = color,
-		.baseColorTexture = texture,
-		.uvScale = uvScale,
-		.uvOffset = uvOffset,
-	});
+	Graphics2D::Draw(*this, color);
 }

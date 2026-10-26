@@ -14,6 +14,7 @@ namespace LGF {
 	class Circle2D;
 	class Line2D;
 	class RoundRect2D;
+	class Sprite;
 
 	namespace Graphics2D {
 
@@ -71,6 +72,13 @@ namespace LGF {
 			const RoundRect2D& roundRect,
 			const Vector4& color = Color::White);
 		void Draw(const RoundRect2D& roundRect, const Material2D& material);
+
+		/// <summary>
+		/// スプライト描画
+		/// </summary>
+		void Draw(
+			const Sprite& sprite,
+			const Vector4& color = Color::White);
 
 	}
 }
