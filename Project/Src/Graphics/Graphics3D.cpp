@@ -95,10 +95,7 @@ bool LGF::Graphics3D::ClearGpuParticleWorld(GpuParticleWorldHandle handle) {
 	return g_renderer3D && g_renderer3D->ClearGpuParticleWorld(handle);
 }
 
-bool LGF::Graphics3D::UpdateGpuParticleWorld(
-	GpuParticleWorldHandle handle,
-	float deltaTime,
-	std::span<const GpuParticleSpawnBatch3D> spawnBatches) {
+bool LGF::Graphics3D::UpdateGpuParticleWorld(GpuParticleWorldHandle handle, float deltaTime, std::span<const GpuParticleSpawnBatch3D> spawnBatches) {
 	return g_renderer3D && g_renderer3D->UpdateGpuParticleWorld(handle, deltaTime, spawnBatches);
 }
 
@@ -236,10 +233,7 @@ void LGF::Graphics3D::Draw(const Sphere3D& sphere, const Matrix4x4& worldMatrix,
 	);
 }
 
-void LGF::Graphics3D::Draw(
-	const SphericalCap3D& sphericalCap,
-	const Matrix4x4& worldMatrix,
-	const Vector4& color) {
+void LGF::Graphics3D::Draw(const SphericalCap3D& sphericalCap, const Matrix4x4& worldMatrix, const Vector4& color) {
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddSphericalCap(
 		sphericalCap,
@@ -248,10 +242,7 @@ void LGF::Graphics3D::Draw(
 	);
 }
 
-void LGF::Graphics3D::Draw(
-	const SphericalShellCap3D& sphericalShellCap,
-	const Matrix4x4& worldMatrix,
-	const Vector4& color) {
+void LGF::Graphics3D::Draw(const SphericalShellCap3D& sphericalShellCap, const Matrix4x4& worldMatrix, const Vector4& color) {
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddSphericalShellCap(
 		sphericalShellCap,
@@ -260,11 +251,7 @@ void LGF::Graphics3D::Draw(
 	);
 }
 
-void LGF::Graphics3D::Draw(
-	const Model& model,
-	const Matrix4x4& worldMatrix,
-	const Vector4& color,
-	const ModelDrawOptions& options) {
+void LGF::Graphics3D::Draw(const Model& model, const Matrix4x4& worldMatrix, const Vector4& color, const ModelDrawOptions& options) {
 
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddModel(model, worldMatrix, color, options);
@@ -315,18 +302,12 @@ void LGF::Graphics3D::Draw(const Sphere3D& shape, const Matrix4x4& worldMatrix, 
 	g_renderer3D->AddSphere(shape, worldMatrix, material);
 }
 
-void LGF::Graphics3D::Draw(
-	const SphericalCap3D& shape,
-	const Matrix4x4& worldMatrix,
-	const Material3D& material) {
+void LGF::Graphics3D::Draw(const SphericalCap3D& shape, const Matrix4x4& worldMatrix, const Material3D& material) {
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddSphericalCap(shape, worldMatrix, material);
 }
 
-void LGF::Graphics3D::Draw(
-	const SphericalShellCap3D& shape,
-	const Matrix4x4& worldMatrix,
-	const Material3D& material) {
+void LGF::Graphics3D::Draw(const SphericalShellCap3D& shape, const Matrix4x4& worldMatrix, const Material3D& material) {
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddSphericalShellCap(shape, worldMatrix, material);
 }

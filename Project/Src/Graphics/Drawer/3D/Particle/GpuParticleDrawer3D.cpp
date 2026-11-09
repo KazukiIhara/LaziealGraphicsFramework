@@ -34,10 +34,7 @@ namespace {
 		return barrier;
 	}
 
-	D3D12_RESOURCE_BARRIER MakeTransitionBarrier(
-		ID3D12Resource* resource,
-		D3D12_RESOURCE_STATES before,
-		D3D12_RESOURCE_STATES after) {
+	D3D12_RESOURCE_BARRIER MakeTransitionBarrier(ID3D12Resource* resource, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) {
 		D3D12_RESOURCE_BARRIER barrier{};
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 		barrier.Transition.pResource = resource;
@@ -61,12 +58,28 @@ namespace LGF {
 		resetStatisticsPipeline_ = context_.pipelineMgr.GetPipeline("GpuParticleResetStatistics3D");
 		spawnPipeline_ = context_.pipelineMgr.GetPipeline("GpuParticleSpawn3D");
 		updatePipeline_ = context_.pipelineMgr.GetPipeline("GpuParticleUpdate3D");
+		buildDrawArgumentsPipeline_ = context_.pipelineMgr.GetPipeline("GpuParticleBuildDrawArguments3D");
 		drawPipeline_ = context_.pipelineMgr.GetPipeline("GpuParticleBillboard3D");
-		return initializePipeline_ && initializePipeline_->IsValid() &&
+		if (!(initializePipeline_ && initializePipeline_->IsValid() &&
 			resetStatisticsPipeline_ && resetStatisticsPipeline_->IsValid() &&
 			spawnPipeline_ && spawnPipeline_->IsValid() &&
 			updatePipeline_ && updatePipeline_->IsValid() &&
-			drawPipeline_ && drawPipeline_->IsValid();
+			buildDrawArgumentsPipeline_ && buildDrawArgumentsPipeline_->IsValid() &&
+			drawPipeline_ && drawPipeline_->IsValid())) {
+			return false;
+		}
+
+		// Argument Bufferの3つのuintをDispatchMesh(X, Y, Z)として解釈する。
+		D3D12_INDIRECT_ARGUMENT_DESC argumentDesc{};
+		argumentDesc.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH_MESH;
+		D3D12_COMMAND_SIGNATURE_DESC signatureDesc{};
+		signatureDesc.ByteStride = sizeof(DrawArgumentsForGPU);
+		signatureDesc.NumArgumentDescs = 1u;
+		signatureDesc.pArgumentDescs = &argumentDesc;
+		return SUCCEEDED(context_.directX.GetDevice()->CreateCommandSignature(
+			&signatureDesc,
+			nullptr,
+			IID_PPV_ARGS(&drawCommandSignature_)));
 	}
 
 	void GpuParticleDrawer3D::BeginFrame() {
@@ -111,6 +124,7 @@ namespace LGF {
 	void GpuParticleDrawer3D::Finalize() {
 		worlds_.clear();
 		freeWorldIndices_.clear();
+		drawCommandSignature_.Reset();
 	}
 
 	GpuParticleWorldHandle GpuParticleDrawer3D::CreateWorld(const GpuParticleWorldDesc& desc) {
@@ -155,6 +169,9 @@ namespace LGF {
 		views->Release(world->particleUavIndex);
 		views->Release(world->freeListUavIndex);
 		views->Release(world->counterUavIndex);
+		views->Release(world->aliveListUavIndex);
+		views->Release(world->aliveCountUavIndex);
+		views->Release(world->drawArgumentUavIndex);
 		for (const uint32_t spawnSrvIndex : world->spawnSrvIndices) {
 			views->Release(spawnSrvIndex);
 		}
@@ -175,10 +192,7 @@ namespace LGF {
 		return true;
 	}
 
-	bool GpuParticleDrawer3D::UpdateWorld(
-		GpuParticleWorldHandle handle,
-		float deltaTime,
-		std::span<const GpuParticleSpawnBatch3D> spawnBatches) {
+	bool GpuParticleDrawer3D::UpdateWorld(GpuParticleWorldHandle handle, float deltaTime, std::span<const GpuParticleSpawnBatch3D> spawnBatches) {
 		World* world = FindWorld(handle);
 		if (!world || !std::isfinite(deltaTime) || deltaTime < 0.0f ||
 			spawnBatches.size() > world->desc.maximumSpawnBatchCount) {
@@ -220,7 +234,7 @@ namespace LGF {
 		auto* factory = context_.directX.GetResourceFactory();
 		auto* views = context_.directX.GetResMgr().srvuav;
 		const uint32_t particleCount = world.desc.maximumParticleCount;
-		const uint32_t requiredViewCount = 3u + kFrameContextCount;
+		const uint32_t requiredViewCount = 6u + kFrameContextCount;
 		if (!views->CanAllocate(requiredViewCount)) {
 			return false;
 		}
@@ -228,22 +242,46 @@ namespace LGF {
 		world.particleResource = factory->CreateUAVBufferResource(sizeof(ParticleForGPU) * particleCount);
 		world.freeListResource = factory->CreateUAVBufferResource(sizeof(uint32_t) * particleCount);
 		world.counterResource = factory->CreateUAVBufferResource(sizeof(CountersForGPU));
-		if (!world.particleResource || !world.freeListResource || !world.counterResource) {
+		world.aliveListResource = factory->CreateUAVBufferResource(sizeof(uint32_t) * particleCount);
+		world.aliveCountResource = factory->CreateUAVBufferResource(sizeof(uint32_t));
+		world.drawArgumentResource = factory->CreateUAVBufferResource(sizeof(DrawArgumentsForGPU));
+		if (!world.particleResource || !world.freeListResource || !world.counterResource ||
+			!world.aliveListResource || !world.aliveCountResource || !world.drawArgumentResource) {
 			return false;
 		}
 
 		world.particleUavIndex = views->Allocate();
 		world.freeListUavIndex = views->Allocate();
 		world.counterUavIndex = views->Allocate();
+		world.aliveListUavIndex = views->Allocate();
+		world.aliveCountUavIndex = views->Allocate();
+		world.drawArgumentUavIndex = views->Allocate();
 		views->CreateUavStructuredBuffer(
-			world.particleUavIndex, world.particleResource.Get(), particleCount, sizeof(ParticleForGPU));
+			world.particleUavIndex,
+			world.particleResource.Get(),
+			particleCount,
+			sizeof(ParticleForGPU));
 		views->CreateUavStructuredBuffer(
-			world.freeListUavIndex, world.freeListResource.Get(), particleCount, sizeof(uint32_t));
+			world.freeListUavIndex,
+			world.freeListResource.Get(),
+			particleCount,
+			sizeof(uint32_t));
+		views->CreateUavStructuredBuffer(world.counterUavIndex, world.counterResource.Get(), 1u, sizeof(CountersForGPU));
 		views->CreateUavStructuredBuffer(
-			world.counterUavIndex, world.counterResource.Get(), 1u, sizeof(CountersForGPU));
+			world.aliveListUavIndex,
+			world.aliveListResource.Get(),
+			particleCount,
+			sizeof(uint32_t));
+		views->CreateUavStructuredBuffer(world.aliveCountUavIndex, world.aliveCountResource.Get(), 1u, sizeof(uint32_t));
+		views->CreateUavStructuredBuffer(
+			world.drawArgumentUavIndex,
+			world.drawArgumentResource.Get(),
+			1u,
+			sizeof(DrawArgumentsForGPU));
 
 		const bool spawnInitialized = world.spawnResources.Initialize(
-			*factory, sizeof(SpawnBatchForGPU) * world.desc.maximumSpawnBatchCount);
+			*factory,
+			sizeof(SpawnBatchForGPU) * world.desc.maximumSpawnBatchCount);
 		const bool constantInitialized = world.constantResources.Initialize(*factory, kConstantBufferSize);
 		if (!spawnInitialized || !constantInitialized) {
 			return false;
@@ -324,15 +362,31 @@ namespace LGF {
 
 	void GpuParticleDrawer3D::DispatchInitialize(World& world) {
 		auto* commandList = context_.directX.GetCommandList();
+		if (world.drawArgumentsInitialized) {
+			D3D12_RESOURCE_BARRIER barrier = MakeTransitionBarrier(
+				world.drawArgumentResource.Get(),
+				D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT,
+				D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			commandList->ResourceBarrier(1u, &barrier);
+		}
 		commandList->SetComputeRootSignature(initializePipeline_->GetRootSignature());
 		commandList->SetPipelineState(initializePipeline_->GetPipelineState());
 		auto* views = context_.directX.GetResMgr().srvuav;
 		commandList->SetComputeRootDescriptorTable(
-			initializePipeline_->GetRootIndex("gParticles"), views->GetGPUDescriptorHandle(world.particleUavIndex));
+			initializePipeline_->GetRootIndex("gParticles"),
+			views->GetGPUDescriptorHandle(world.particleUavIndex));
 		commandList->SetComputeRootDescriptorTable(
-			initializePipeline_->GetRootIndex("gFreeList"), views->GetGPUDescriptorHandle(world.freeListUavIndex));
+			initializePipeline_->GetRootIndex("gFreeList"),
+			views->GetGPUDescriptorHandle(world.freeListUavIndex));
 		commandList->SetComputeRootDescriptorTable(
-			initializePipeline_->GetRootIndex("gCounters"), views->GetGPUDescriptorHandle(world.counterUavIndex));
+			initializePipeline_->GetRootIndex("gCounters"),
+			views->GetGPUDescriptorHandle(world.counterUavIndex));
+		commandList->SetComputeRootDescriptorTable(
+			initializePipeline_->GetRootIndex("gAliveCount"),
+			views->GetGPUDescriptorHandle(world.aliveCountUavIndex));
+		commandList->SetComputeRootDescriptorTable(
+			initializePipeline_->GetRootIndex("gDrawArguments"),
+			views->GetGPUDescriptorHandle(world.drawArgumentUavIndex));
 		const uint32_t frameIndex = context_.directX.GetCurrentFrameContextIndex();
 		auto* constants = reinterpret_cast<ConstantsForGPU*>(world.constantResources.GetMappedData(frameIndex));
 		*constants = { .maximumParticleCount = world.desc.maximumParticleCount };
@@ -340,12 +394,19 @@ namespace LGF {
 			initializePipeline_->GetRootIndex("GpuParticleConstants"),
 			world.constantResources.GetGPUVirtualAddress(frameIndex));
 		commandList->Dispatch(DispatchCount(world.desc.maximumParticleCount), 1u, 1u);
-		const D3D12_RESOURCE_BARRIER barriers[] = {
+		const D3D12_RESOURCE_BARRIER uavBarriers[] = {
 			MakeUavBarrier(world.particleResource.Get()),
 			MakeUavBarrier(world.freeListResource.Get()),
 			MakeUavBarrier(world.counterResource.Get()),
+			MakeUavBarrier(world.aliveCountResource.Get()),
 		};
-		commandList->ResourceBarrier(_countof(barriers), barriers);
+		commandList->ResourceBarrier(_countof(uavBarriers), uavBarriers);
+		D3D12_RESOURCE_BARRIER argumentBarrier = MakeTransitionBarrier(
+			world.drawArgumentResource.Get(),
+			D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+			D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		commandList->ResourceBarrier(1u, &argumentBarrier);
+		world.drawArgumentsInitialized = true;
 	}
 
 	void GpuParticleDrawer3D::DispatchSimulation(World& world, uint32_t frameIndex) {
@@ -355,24 +416,36 @@ namespace LGF {
 		commandList->SetComputeRootSignature(resetStatisticsPipeline_->GetRootSignature());
 		commandList->SetPipelineState(resetStatisticsPipeline_->GetPipelineState());
 		commandList->SetComputeRootDescriptorTable(
-			resetStatisticsPipeline_->GetRootIndex("gCounters"), views->GetGPUDescriptorHandle(world.counterUavIndex));
+			resetStatisticsPipeline_->GetRootIndex("gCounters"),
+			views->GetGPUDescriptorHandle(world.counterUavIndex));
+		commandList->SetComputeRootDescriptorTable(
+			resetStatisticsPipeline_->GetRootIndex("gAliveCount"),
+			views->GetGPUDescriptorHandle(world.aliveCountUavIndex));
 		commandList->Dispatch(1u, 1u, 1u);
-		D3D12_RESOURCE_BARRIER barrier = MakeUavBarrier(world.counterResource.Get());
-		commandList->ResourceBarrier(1u, &barrier);
+		const D3D12_RESOURCE_BARRIER resetBarriers[] = {
+			MakeUavBarrier(world.counterResource.Get()),
+			MakeUavBarrier(world.aliveCountResource.Get()),
+		};
+		commandList->ResourceBarrier(_countof(resetBarriers), resetBarriers);
 
 		if (!world.spawnBatches.empty()) {
 			commandList->SetComputeRootSignature(spawnPipeline_->GetRootSignature());
 			commandList->SetPipelineState(spawnPipeline_->GetPipelineState());
 			commandList->SetComputeRootDescriptorTable(
-				spawnPipeline_->GetRootIndex("gParticles"), views->GetGPUDescriptorHandle(world.particleUavIndex));
+				spawnPipeline_->GetRootIndex("gParticles"),
+				views->GetGPUDescriptorHandle(world.particleUavIndex));
 			commandList->SetComputeRootDescriptorTable(
-				spawnPipeline_->GetRootIndex("gFreeList"), views->GetGPUDescriptorHandle(world.freeListUavIndex));
+				spawnPipeline_->GetRootIndex("gFreeList"),
+				views->GetGPUDescriptorHandle(world.freeListUavIndex));
 			commandList->SetComputeRootDescriptorTable(
-				spawnPipeline_->GetRootIndex("gCounters"), views->GetGPUDescriptorHandle(world.counterUavIndex));
+				spawnPipeline_->GetRootIndex("gCounters"),
+				views->GetGPUDescriptorHandle(world.counterUavIndex));
 			commandList->SetComputeRootDescriptorTable(
-				spawnPipeline_->GetRootIndex("gSpawnBatches"), views->GetGPUDescriptorHandle(world.spawnSrvIndices[frameIndex]));
+				spawnPipeline_->GetRootIndex("gSpawnBatches"),
+				views->GetGPUDescriptorHandle(world.spawnSrvIndices[frameIndex]));
 			commandList->SetComputeRootConstantBufferView(
-				spawnPipeline_->GetRootIndex("GpuParticleConstants"), world.constantResources.GetGPUVirtualAddress(frameIndex));
+				spawnPipeline_->GetRootIndex("GpuParticleConstants"),
+				world.constantResources.GetGPUVirtualAddress(frameIndex));
 			commandList->Dispatch(static_cast<uint32_t>(world.spawnBatches.size()), 1u, 1u);
 			const D3D12_RESOURCE_BARRIER spawnBarriers[] = {
 				MakeUavBarrier(world.particleResource.Get()),
@@ -385,20 +458,59 @@ namespace LGF {
 		commandList->SetComputeRootSignature(updatePipeline_->GetRootSignature());
 		commandList->SetPipelineState(updatePipeline_->GetPipelineState());
 		commandList->SetComputeRootDescriptorTable(
-			updatePipeline_->GetRootIndex("gParticles"), views->GetGPUDescriptorHandle(world.particleUavIndex));
+			updatePipeline_->GetRootIndex("gParticles"),
+			views->GetGPUDescriptorHandle(world.particleUavIndex));
 		commandList->SetComputeRootDescriptorTable(
-			updatePipeline_->GetRootIndex("gFreeList"), views->GetGPUDescriptorHandle(world.freeListUavIndex));
+			updatePipeline_->GetRootIndex("gFreeList"),
+			views->GetGPUDescriptorHandle(world.freeListUavIndex));
 		commandList->SetComputeRootDescriptorTable(
-			updatePipeline_->GetRootIndex("gCounters"), views->GetGPUDescriptorHandle(world.counterUavIndex));
+			updatePipeline_->GetRootIndex("gCounters"),
+			views->GetGPUDescriptorHandle(world.counterUavIndex));
+		commandList->SetComputeRootDescriptorTable(
+			updatePipeline_->GetRootIndex("gAliveList"),
+			views->GetGPUDescriptorHandle(world.aliveListUavIndex));
+		commandList->SetComputeRootDescriptorTable(
+			updatePipeline_->GetRootIndex("gAliveCount"),
+			views->GetGPUDescriptorHandle(world.aliveCountUavIndex));
 		commandList->SetComputeRootConstantBufferView(
-			updatePipeline_->GetRootIndex("GpuParticleConstants"), world.constantResources.GetGPUVirtualAddress(frameIndex));
+			updatePipeline_->GetRootIndex("GpuParticleConstants"),
+			world.constantResources.GetGPUVirtualAddress(frameIndex));
 		commandList->Dispatch(DispatchCount(world.desc.maximumParticleCount), 1u, 1u);
 		const D3D12_RESOURCE_BARRIER updateBarriers[] = {
 			MakeUavBarrier(world.particleResource.Get()),
 			MakeUavBarrier(world.freeListResource.Get()),
 			MakeUavBarrier(world.counterResource.Get()),
+			MakeUavBarrier(world.aliveListResource.Get()),
+			MakeUavBarrier(world.aliveCountResource.Get()),
 		};
 		commandList->ResourceBarrier(_countof(updateBarriers), updateBarriers);
+		DispatchBuildDrawArguments(world);
+	}
+
+	void GpuParticleDrawer3D::DispatchBuildDrawArguments(World& world) {
+		auto* commandList = context_.directX.GetCommandList();
+		auto* views = context_.directX.GetResMgr().srvuav;
+		D3D12_RESOURCE_BARRIER barrier = MakeTransitionBarrier(
+			world.drawArgumentResource.Get(),
+			D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT,
+			D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		commandList->ResourceBarrier(1u, &barrier);
+
+		commandList->SetComputeRootSignature(buildDrawArgumentsPipeline_->GetRootSignature());
+		commandList->SetPipelineState(buildDrawArgumentsPipeline_->GetPipelineState());
+		commandList->SetComputeRootDescriptorTable(
+			buildDrawArgumentsPipeline_->GetRootIndex("gAliveCount"),
+			views->GetGPUDescriptorHandle(world.aliveCountUavIndex));
+		commandList->SetComputeRootDescriptorTable(
+			buildDrawArgumentsPipeline_->GetRootIndex("gDrawArguments"),
+			views->GetGPUDescriptorHandle(world.drawArgumentUavIndex));
+		commandList->Dispatch(1u, 1u, 1u);
+
+		barrier = MakeTransitionBarrier(
+			world.drawArgumentResource.Get(),
+			D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+			D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		commandList->ResourceBarrier(1u, &barrier);
 	}
 
 	void GpuParticleDrawer3D::DispatchDraw(World& world) {
@@ -408,19 +520,37 @@ namespace LGF {
 		commandList->SetPipelineState(drawPipeline_->GetPipelineState());
 		context_.cameraSys.Bind(commandList, drawPipeline_->GetRootIndex("gCamera"));
 		commandList->SetGraphicsRootDescriptorTable(
-			drawPipeline_->GetRootIndex("gParticles"), views->GetGPUDescriptorHandle(world.particleUavIndex));
-		commandList->DispatchMesh(world.desc.maximumParticleCount, 1u, 1u);
+			drawPipeline_->GetRootIndex("gParticles"),
+			views->GetGPUDescriptorHandle(world.particleUavIndex));
+		commandList->SetGraphicsRootDescriptorTable(
+			drawPipeline_->GetRootIndex("gAliveList"),
+			views->GetGPUDescriptorHandle(world.aliveListUavIndex));
+		commandList->ExecuteIndirect(
+			drawCommandSignature_.Get(),
+			1u,
+			world.drawArgumentResource.Get(),
+			0u,
+			nullptr,
+			0u);
 	}
 
 	void GpuParticleDrawer3D::CopyStatistics(World& world, uint32_t frameIndex) {
 		auto* commandList = context_.directX.GetCommandList();
 		D3D12_RESOURCE_BARRIER barrier = MakeTransitionBarrier(
-			world.counterResource.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE);
+			world.counterResource.Get(),
+			D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+			D3D12_RESOURCE_STATE_COPY_SOURCE);
 		commandList->ResourceBarrier(1u, &barrier);
 		commandList->CopyBufferRegion(
-			world.readbackResources[frameIndex].Get(), 0u, world.counterResource.Get(), 0u, sizeof(CountersForGPU));
+			world.readbackResources[frameIndex].Get(),
+			0u,
+			world.counterResource.Get(),
+			0u,
+			sizeof(CountersForGPU));
 		barrier = MakeTransitionBarrier(
-			world.counterResource.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+			world.counterResource.Get(),
+			D3D12_RESOURCE_STATE_COPY_SOURCE,
+			D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		commandList->ResourceBarrier(1u, &barrier);
 		world.hasReadback[frameIndex] = true;
 	}

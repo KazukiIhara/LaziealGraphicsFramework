@@ -37,10 +37,7 @@ namespace LGF {
 		GpuParticleWorldHandle CreateGpuParticleWorld(const GpuParticleWorldDesc& desc);
 		bool RemoveGpuParticleWorld(GpuParticleWorldHandle handle);
 		bool ClearGpuParticleWorld(GpuParticleWorldHandle handle);
-		bool UpdateGpuParticleWorld(
-			GpuParticleWorldHandle handle,
-			float deltaTime,
-			std::span<const GpuParticleSpawnBatch3D> spawnBatches);
+		bool UpdateGpuParticleWorld(GpuParticleWorldHandle handle, float deltaTime, std::span<const GpuParticleSpawnBatch3D> spawnBatches);
 		bool DrawGpuParticleWorld(GpuParticleWorldHandle handle);
 		GpuParticleStatistics3D GetGpuParticleStatistics(GpuParticleWorldHandle handle);
 
@@ -56,78 +53,18 @@ namespace LGF {
 		/// <summary>トーンマッピング前の露出をEV単位で設定する。+1で2倍、-1で半分。</summary>
 		void SetExposure(float exposureEV);
 
-		void Draw(
-			const Triangle3D& triangle,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const Box3D& box,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const Capsule3D& capsule,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const Cone3D& cone,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const Cylinder3D& cylinder,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const Line3D& line,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const Plane3D& plane,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const Ground3D& ground,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const Sphere3D& sphere,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const SphericalCap3D& sphericalCap,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const SphericalShellCap3D& sphericalShellCap,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color = Color::White
-		);
-
-		void Draw(
-			const Model& model,
-			const Matrix4x4& worldMatrix,
-			const Vector4& color,
-			const ModelDrawOptions& options
-			);
+		void Draw(const Triangle3D& triangle, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const Box3D& box, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const Capsule3D& capsule, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const Cone3D& cone, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const Cylinder3D& cylinder, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const Line3D& line, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const Plane3D& plane, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const Ground3D& ground, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const Sphere3D& sphere, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const SphericalCap3D& sphericalCap, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const SphericalShellCap3D& sphericalShellCap, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const Model& model, const Matrix4x4& worldMatrix, const Vector4& color, const ModelDrawOptions& options);
 
 		void Draw(const Triangle3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);
 		void Draw(const Box3D& shape, const Matrix4x4& worldMatrix, const Material3D& material);

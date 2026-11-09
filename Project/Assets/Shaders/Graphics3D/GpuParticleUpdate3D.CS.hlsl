@@ -3,6 +3,8 @@
 RWStructuredBuffer<GpuParticleData> gParticles : register(u0);
 RWStructuredBuffer<uint> gFreeList : register(u1);
 RWStructuredBuffer<GpuParticleCounters> gCounters : register(u2);
+RWStructuredBuffer<uint> gAliveList : register(u3);
+RWStructuredBuffer<uint> gAliveCount : register(u4);
 
 [numthreads(64, 1, 1)]
 void main(uint3 id : SV_DispatchThreadID)
@@ -32,6 +34,9 @@ void main(uint3 id : SV_DispatchThreadID)
     if (!expired && !outside)
     {
         gParticles[id.x] = particle;
+        uint aliveListIndex;
+        InterlockedAdd(gAliveCount[0], 1u, aliveListIndex);
+        gAliveList[aliveListIndex] = id.x;
         return;
     }
 

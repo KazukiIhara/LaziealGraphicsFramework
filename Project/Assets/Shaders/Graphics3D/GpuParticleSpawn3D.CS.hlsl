@@ -51,6 +51,7 @@ void main(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
             RandomRange(batch.minimumVelocity.x, batch.maximumVelocity.x, seed + 1u),
             RandomRange(batch.minimumVelocity.y, batch.maximumVelocity.y, seed + 2u),
             RandomRange(batch.minimumVelocity.z, batch.maximumVelocity.z, seed + 3u));
+
         particle.acceleration = batch.acceleration;
         particle.lifetime = RandomRange(batch.minimumLifetime, batch.maximumLifetime, seed + 4u);
         particle.startColor = batch.startColor;
@@ -58,7 +59,9 @@ void main(uint3 groupId : SV_GroupID, uint3 threadId : SV_GroupThreadID)
         particle.startSize = batch.startSize;
         particle.endSize = batch.endSize;
         particle.angularVelocity = RandomRange(
-            batch.minimumAngularVelocity, batch.maximumAngularVelocity, seed + 5u);
+            batch.minimumAngularVelocity,
+            batch.maximumAngularVelocity,
+            seed + 5u);
         particle.textureIndex = batch.textureIndex;
         particle.alive = 1u;
         gParticles[particleIndex] = particle;

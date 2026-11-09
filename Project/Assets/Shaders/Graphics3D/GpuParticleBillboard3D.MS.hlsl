@@ -4,19 +4,15 @@
 
 ConstantBuffer<CameraData3D> gCamera : register(b0);
 RWStructuredBuffer<GpuParticleData> gParticles : register(u0);
+RWStructuredBuffer<uint> gAliveList : register(u1);
 
 [outputtopology("triangle")]
 [numthreads(1, 1, 1)]
-void main(uint3 id : SV_DispatchThreadID,
-    out vertices ParticleBillboardOutput vertices[4],
-    out indices uint3 triangles[2])
+void main(uint3 id : SV_DispatchThreadID, out vertices ParticleBillboardOutput vertices[4], out indices uint3 triangles[2])
 {
-    GpuParticleData particle = gParticles[id.x];
-	SetMeshOutputCounts(particle.alive != 0u ? 4u : 0u, particle.alive != 0u ? 2u : 0u);
-    if (particle.alive == 0u)
-    {
-        return;
-    }
+    const uint particleIndex = gAliveList[id.x];
+    GpuParticleData particle = gParticles[particleIndex];
+    SetMeshOutputCounts(4u, 2u);
     const float t = saturate(particle.age / particle.lifetime);
     const float4 color = lerp(particle.startColor, particle.endColor, t);
     const float2 size = lerp(particle.startSize, particle.endSize, t);

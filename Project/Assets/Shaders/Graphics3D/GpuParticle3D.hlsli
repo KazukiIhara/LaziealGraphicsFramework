@@ -48,6 +48,13 @@ struct GpuParticleCounters
     uint outOfBoundsCount;
 };
 
+struct GpuParticleDispatchArguments
+{
+    uint threadGroupCountX;
+    uint threadGroupCountY;
+    uint threadGroupCountZ;
+};
+
 cbuffer GpuParticleConstants : register(b0)
 {
     float3 gWorldMinimum;

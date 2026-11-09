@@ -17,7 +17,7 @@ namespace LGF {
 	class Pipeline;
 
 	// GPU上で生成・更新・破棄を行うParticle Worldの描画バックエンド。
-	// 初期版では最大粒子数をDispatchし、aliveフラグで描画対象を選別する。
+	// 更新時にAliveListを構築し、描画時は生存粒子数分だけMesh Shaderを起動する。
 	class GpuParticleDrawer3D {
 	private:
 		struct ParticleForGPU {
@@ -82,11 +82,22 @@ namespace LGF {
 		};
 		static_assert(sizeof(CountersForGPU) == 24u);
 
+		// ExecuteIndirectがDispatchMeshの引数として読むGPU側のコマンドデータ。
+		struct DrawArgumentsForGPU {
+			uint32_t threadGroupCountX{};
+			uint32_t threadGroupCountY = 1u;
+			uint32_t threadGroupCountZ = 1u;
+		};
+		static_assert(sizeof(DrawArgumentsForGPU) == sizeof(D3D12_DISPATCH_MESH_ARGUMENTS));
+
 		struct World {
 			GpuParticleWorldDesc desc{};
 			ComPtr<ID3D12Resource> particleResource;
 			ComPtr<ID3D12Resource> freeListResource;
 			ComPtr<ID3D12Resource> counterResource;
+			ComPtr<ID3D12Resource> aliveListResource;
+			ComPtr<ID3D12Resource> aliveCountResource;
+			ComPtr<ID3D12Resource> drawArgumentResource;
 			FrameBufferedUploadBuffer spawnResources;
 			FrameBufferedUploadBuffer constantResources;
 			std::array<ComPtr<ID3D12Resource>, kFrameContextCount> readbackResources{};
@@ -95,9 +106,13 @@ namespace LGF {
 			uint32_t particleUavIndex{};
 			uint32_t freeListUavIndex{};
 			uint32_t counterUavIndex{};
+			uint32_t aliveListUavIndex{};
+			uint32_t aliveCountUavIndex{};
+			uint32_t drawArgumentUavIndex{};
 			std::vector<GpuParticleSpawnBatch3D> spawnBatches;
 			GpuParticleStatistics3D latestStatistics{};
 			bool needsInitialization = true;
+			bool drawArgumentsInitialized{};
 			bool hasUpdate{};
 			bool shouldDraw{};
 			float deltaTime{};
@@ -120,10 +135,7 @@ namespace LGF {
 		GpuParticleWorldHandle CreateWorld(const GpuParticleWorldDesc& desc);
 		bool RemoveWorld(GpuParticleWorldHandle handle);
 		bool ClearWorld(GpuParticleWorldHandle handle);
-		bool UpdateWorld(
-			GpuParticleWorldHandle handle,
-			float deltaTime,
-			std::span<const GpuParticleSpawnBatch3D> spawnBatches);
+		bool UpdateWorld(GpuParticleWorldHandle handle, float deltaTime, std::span<const GpuParticleSpawnBatch3D> spawnBatches);
 		bool DrawWorld(GpuParticleWorldHandle handle);
 		GpuParticleStatistics3D GetStatistics(GpuParticleWorldHandle handle) const;
 
@@ -135,6 +147,7 @@ namespace LGF {
 		void WriteFrameData(World& world, uint32_t frameIndex);
 		void DispatchInitialize(World& world);
 		void DispatchSimulation(World& world, uint32_t frameIndex);
+		void DispatchBuildDrawArguments(World& world);
 		void DispatchDraw(World& world);
 		void CopyStatistics(World& world, uint32_t frameIndex);
 
@@ -144,7 +157,9 @@ namespace LGF {
 		Pipeline* resetStatisticsPipeline_{};
 		Pipeline* spawnPipeline_{};
 		Pipeline* updatePipeline_{};
+		Pipeline* buildDrawArgumentsPipeline_{};
 		Pipeline* drawPipeline_{};
+		ComPtr<ID3D12CommandSignature> drawCommandSignature_;
 		std::vector<WorldSlot> worlds_;
 		std::vector<uint32_t> freeWorldIndices_;
 	};

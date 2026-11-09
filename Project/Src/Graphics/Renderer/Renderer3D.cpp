@@ -170,10 +170,7 @@ bool Renderer3D::ClearGpuParticleWorld(GpuParticleWorldHandle handle) {
 	return gpuParticleDrawer_->ClearWorld(handle);
 }
 
-bool Renderer3D::UpdateGpuParticleWorld(
-	GpuParticleWorldHandle handle,
-	float deltaTime,
-	std::span<const GpuParticleSpawnBatch3D> spawnBatches) {
+bool Renderer3D::UpdateGpuParticleWorld(GpuParticleWorldHandle handle, float deltaTime, std::span<const GpuParticleSpawnBatch3D> spawnBatches) {
 	return gpuParticleDrawer_->UpdateWorld(handle, deltaTime, spawnBatches);
 }
 
@@ -318,9 +315,9 @@ void Renderer3D::AddPlane(const Plane3D& plane, const Matrix4x4& worldMatrix, co
 	const float halfHeight = plane.height * 0.5f;
 
 	data.vertexOffsets[0] = { -halfWidth, -halfHeight, 0.0f };
-	data.vertexOffsets[1] = {  halfWidth, -halfHeight, 0.0f };
+	data.vertexOffsets[1] = { halfWidth, -halfHeight, 0.0f };
 	data.vertexOffsets[2] = { -halfWidth,  halfHeight, 0.0f };
-	data.vertexOffsets[3] = {  halfWidth,  halfHeight, 0.0f };
+	data.vertexOffsets[3] = { halfWidth,  halfHeight, 0.0f };
 
 	planeDrawer_->AddPlane(data);
 }
@@ -340,8 +337,8 @@ void Renderer3D::AddGround(const Ground3D& ground, const Matrix4x4& worldMatrix,
 
 	data.vertexOffsets[0] = { -halfWidth, 0.0f, -halfDepth };
 	data.vertexOffsets[1] = { -halfWidth, 0.0f,  halfDepth };
-	data.vertexOffsets[2] = {  halfWidth, 0.0f, -halfDepth };
-	data.vertexOffsets[3] = {  halfWidth, 0.0f,  halfDepth };
+	data.vertexOffsets[2] = { halfWidth, 0.0f, -halfDepth };
+	data.vertexOffsets[3] = { halfWidth, 0.0f,  halfDepth };
 
 	groundDrawer_->AddGround(data);
 }
@@ -360,10 +357,7 @@ void Renderer3D::AddSphere(const Sphere3D& sphere, const Matrix4x4& worldMatrix,
 	sphereDrawer_->AddSphere(data);
 }
 
-void Renderer3D::AddSphericalCap(
-	const SphericalCap3D& sphericalCap,
-	const Matrix4x4& worldMatrix,
-	const Material3D& material) {
+void Renderer3D::AddSphericalCap(const SphericalCap3D& sphericalCap, const Matrix4x4& worldMatrix, const Material3D& material) {
 	SphericalCap3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -377,10 +371,7 @@ void Renderer3D::AddSphericalCap(
 	sphericalCapDrawer_->AddSphericalCap(data);
 }
 
-void Renderer3D::AddSphericalShellCap(
-	const SphericalShellCap3D& sphericalShellCap,
-	const Matrix4x4& worldMatrix,
-	const Material3D& material) {
+void Renderer3D::AddSphericalShellCap(const SphericalShellCap3D& sphericalShellCap, const Matrix4x4& worldMatrix, const Material3D& material) {
 	SphericalShellCap3DForGPU data{};
 
 	data.instance.worldMatrix = worldMatrix;
@@ -395,17 +386,13 @@ void Renderer3D::AddSphericalShellCap(
 	sphericalShellCapDrawer_->AddSphericalShellCap(data);
 }
 
-void Renderer3D::AddModel(
-	const Model& model,
-	const Matrix4x4& worldMatrix,
-	const Vector4& color,
-	const ModelDrawOptions& options) {
+void Renderer3D::AddModel(const Model& model, const Matrix4x4& worldMatrix, const Vector4& color, const ModelDrawOptions& options) {
 
 	const float worldMaximumScale = std::max({
 		Math::Length(Vector3{ worldMatrix.m[0][0], worldMatrix.m[0][1], worldMatrix.m[0][2] }),
 		Math::Length(Vector3{ worldMatrix.m[1][0], worldMatrix.m[1][1], worldMatrix.m[1][2] }),
 		Math::Length(Vector3{ worldMatrix.m[2][0], worldMatrix.m[2][1], worldMatrix.m[2][2] }),
-	});
+		});
 
 	modelDrawer_->AddModel(
 		model.resource_,
