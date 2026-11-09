@@ -14,23 +14,32 @@
 
 using namespace LGF;
 
+namespace {
+
+	std::string ToUtf8String(const std::filesystem::path& path) {
+		const auto value = path.u8string();
+		return std::string(value.begin(), value.end());
+	}
+
+}
+
 TextureManager::TextureManager(DirectXCore& directX) : directX_(directX) {}
 TextureManager::~TextureManager() = default;
 bool TextureManager::Initialize() { return true; }
 void TextureManager::Finalize() { textures_.clear(); }
 
-const TextureData& TextureManager::Load(const std::string& filePath, const TextureLoadDesc& desc) {
-    const auto check = [&filePath](HRESULT hr, const char* operation) {
+const TextureData& TextureManager::Load(const std::filesystem::path& filePath, const TextureLoadDesc& desc) {
+    const std::string debugName = ToUtf8String(filePath);
+    const auto check = [&debugName](HRESULT hr, const char* operation) {
         if (FAILED(hr)) {
             throw std::runtime_error(std::format("Texture '{}': {} failed (0x{:08X}).",
-                filePath, operation, static_cast<uint32_t>(hr)));
+                debugName, operation, static_cast<uint32_t>(hr)));
         }
     };
     if (filePath.empty()) {
         throw std::invalid_argument("Texture path must not be empty.");
     }
-    const auto path = std::filesystem::absolute(std::filesystem::path(
-        std::u8string(filePath.begin(), filePath.end()))).lexically_normal();
+    const auto path = std::filesystem::absolute(filePath).lexically_normal();
     const auto key = std::format(L"{}|{}|{}|{}", path.native(),
         static_cast<int>(desc.dimension), static_cast<int>(desc.colorSpace), desc.generateMipMaps);
     if (const auto it = textures_.find(key); it != textures_.end()) {
@@ -51,7 +60,7 @@ const TextureData& TextureManager::Load(const std::string& filePath, const Textu
         check(DirectX::LoadFromWICFile(path.c_str(), DirectX::WIC_FLAGS_FORCE_RGB, nullptr, image), "LoadWIC");
     }
 
-    return Store(std::move(key), filePath, std::move(image), desc);
+    return Store(std::move(key), debugName, std::move(image), desc);
 }
 
 const TextureData& TextureManager::LoadFromMemory(

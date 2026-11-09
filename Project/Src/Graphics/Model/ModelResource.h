@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
+#include <filesystem>
 #include <vector>
 
 #include <d3d12.h>
@@ -51,7 +51,7 @@ namespace LGF {
 	};
 
 	struct ModelResource {
-		std::string filePath;
+		std::filesystem::path filePath;
 		std::vector<ModelMeshResource> meshes;
 	};
 

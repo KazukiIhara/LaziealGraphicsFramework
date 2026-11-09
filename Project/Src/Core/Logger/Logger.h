@@ -30,7 +30,7 @@ private:
 	// 現在のローカル時刻を取得
 	static std::tm GetLocalTime();
 	// ログファイル名を生成
-	static std::string CreateLogFilePath(const std::filesystem::path& logDirectory);
+	static std::filesystem::path CreateLogFilePath(const std::filesystem::path& logDirectory);
 	// 時刻付きログ文字列を生成
 	static std::string CreateLogMessage(const std::string& message);
 

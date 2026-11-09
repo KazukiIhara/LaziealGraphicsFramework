@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <vector>
 #include <string>
 #include <optional>
@@ -14,11 +15,11 @@ namespace LGF {
 	class PipelineJsonLoader {
 	public:
 		struct ShaderParam {
-			std::string amplification;
-			std::string mesh;
-			std::string vertex;
-			std::string pixel;
-			std::string compute;
+			std::filesystem::path amplification;
+			std::filesystem::path mesh;
+			std::filesystem::path vertex;
+			std::filesystem::path pixel;
+			std::filesystem::path compute;
 		};
 
 		struct RasterizerParam {
@@ -62,11 +63,11 @@ namespace LGF {
 		PipelineJsonLoader();
 		~PipelineJsonLoader();
 
-		Param Load(const std::string& filePath);
+		Param Load(const std::filesystem::path& filePath);
 
 	private:
-		nlohmann::json LoadJson(const std::string& filePath);
-		std::string LoadTextFile(const std::string& filePath);
+		nlohmann::json LoadJson(const std::filesystem::path& filePath);
+		std::string LoadTextFile(const std::filesystem::path& filePath);
 	};
 
 }

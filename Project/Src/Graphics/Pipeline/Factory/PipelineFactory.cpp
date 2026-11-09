@@ -205,7 +205,7 @@ PipelineFactory::PipelineFactory(
 
 PipelineFactory::~PipelineFactory() = default;
 
-std::unique_ptr<Pipeline> PipelineFactory::CreatePipeline(const std::string& jsonPath) {
+std::unique_ptr<Pipeline> PipelineFactory::CreatePipeline(const std::filesystem::path& jsonPath) {
 	// jsonからパラメータをロード
 	PipelineJsonLoader loader;
 	const PipelineJsonLoader::Param jsonParam = loader.Load(jsonPath);
@@ -258,8 +258,7 @@ std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonL
 		ShaderBlob shaderBlob{};
 		shaderBlob.stageName = "AS";
 		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
-			(shaderDirectory_ / std::filesystem::path(
-				std::u8string(shaderParam.amplification.begin(), shaderParam.amplification.end()))).wstring(),
+			shaderDirectory_ / shaderParam.amplification,
 			L"as_6_6");
 		assert(shaderBlob.blob != nullptr);
 
@@ -271,8 +270,7 @@ std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonL
 		ShaderBlob shaderBlob{};
 		shaderBlob.stageName = "MS";
 		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
-			(shaderDirectory_ / std::filesystem::path(
-				std::u8string(shaderParam.mesh.begin(), shaderParam.mesh.end()))).wstring(),
+			shaderDirectory_ / shaderParam.mesh,
 			L"ms_6_6");
 		assert(shaderBlob.blob != nullptr);
 
@@ -284,8 +282,7 @@ std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonL
 		ShaderBlob shaderBlob{};
 		shaderBlob.stageName = "PS";
 		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
-			(shaderDirectory_ / std::filesystem::path(
-				std::u8string(shaderParam.pixel.begin(), shaderParam.pixel.end()))).wstring(),
+			shaderDirectory_ / shaderParam.pixel,
 			L"ps_6_6");
 		assert(shaderBlob.blob != nullptr);
 
@@ -297,8 +294,7 @@ std::vector<ShaderBlob> LGF::PipelineFactory::CompileShaders(const PipelineJsonL
 		ShaderBlob shaderBlob{};
 		shaderBlob.stageName = "CS";
 		shaderBlob.blob = directX_.GetShaderCompiler()->Compile(
-			(shaderDirectory_ / std::filesystem::path(
-				std::u8string(shaderParam.compute.begin(), shaderParam.compute.end()))).wstring(),
+			shaderDirectory_ / shaderParam.compute,
 			L"cs_6_6");
 		assert(shaderBlob.blob != nullptr);
 

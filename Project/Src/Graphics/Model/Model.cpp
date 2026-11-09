@@ -20,7 +20,7 @@ void LGF::ModelSystem::Internal::ResetModelManager() {
 	g_modelManager = nullptr;
 }
 
-LGF::Model::Model(const std::string& filePath) :
+LGF::Model::Model(const std::filesystem::path& filePath) :
 	filePath_(filePath) {
 
 	if (!g_modelManager) {
@@ -56,7 +56,7 @@ void LGF::Model::DrawInstanced(
 			options);
 	}
 }
-const std::string& LGF::Model::GetFilePath() const {
+const std::filesystem::path& LGF::Model::GetFilePath() const {
 	return filePath_;
 }
 

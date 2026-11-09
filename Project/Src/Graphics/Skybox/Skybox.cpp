@@ -4,7 +4,7 @@
 
 using namespace LGF;
 
-Skybox::Skybox(const std::string& filePath)
+Skybox::Skybox(const std::filesystem::path& filePath)
 	: texture_(filePath, TextureLoadDesc{
 		.dimension = TextureDimension::Texture2D,
 		.colorSpace = TextureColorSpace::Linear,

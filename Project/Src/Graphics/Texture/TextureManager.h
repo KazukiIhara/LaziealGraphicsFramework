@@ -1,8 +1,9 @@
 #pragma once
 
-#include <string>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
+#include <filesystem>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -35,7 +36,7 @@ namespace LGF {
 
 		void Finalize();
 
-		const TextureData& Load(const std::string& filePath, const TextureLoadDesc& desc);
+		const TextureData& Load(const std::filesystem::path& filePath, const TextureLoadDesc& desc);
 		const TextureData& LoadFromMemory(
 			const std::wstring& cacheKey,
 			const void* data,

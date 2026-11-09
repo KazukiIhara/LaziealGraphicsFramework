@@ -1,8 +1,8 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <span>
-#include <string>
 
 #include "LGF/Math/MathUtils.h"
 #include "LGF/Math/Vector4.h"
@@ -43,7 +43,7 @@ namespace LGF {
 	class Model {
 	public:
 		Model() = default;
-		explicit Model(const std::string& filePath);
+		explicit Model(const std::filesystem::path& filePath);
 		~Model();
 
 		void Draw(
@@ -56,14 +56,14 @@ namespace LGF {
 			const ModelDrawOptions& options = {}
 		) const;
 
-		const std::string& GetFilePath() const;
+		const std::filesystem::path& GetFilePath() const;
 		bool IsValid() const;
 
 	private:
 		friend class Renderer3D;
 
 		std::shared_ptr<ModelResource> resource_;
-		std::string filePath_;
+		std::filesystem::path filePath_;
 	};
 
 }

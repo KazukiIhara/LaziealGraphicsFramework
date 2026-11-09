@@ -1,7 +1,7 @@
 #pragma once
 
 // C++
-#include <string>
+#include <filesystem>
 
 // DirectX
 #include <d3d12.h>
@@ -21,9 +21,7 @@ namespace LGF {
 
 		bool Initialize();
 
-		ComPtr<ID3DBlob> Compile(
-			const std::wstring& filePath,
-			const wchar_t* profile);
+		ComPtr<ID3DBlob> Compile(const std::filesystem::path& filePath, const wchar_t* profile);
 
 		IDxcUtils* GetUtils();
 

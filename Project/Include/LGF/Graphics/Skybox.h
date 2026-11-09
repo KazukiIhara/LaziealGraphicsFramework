@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <filesystem>
 
 #include "LGF/Graphics/Texture.h"
 
@@ -13,7 +13,7 @@ namespace LGF {
 	/// </summary>
 	class Skybox {
 	public:
-		explicit Skybox(const std::string& filePath);
+		explicit Skybox(const std::filesystem::path& filePath);
 		~Skybox() = default;
 
 		/// <summary>このフレームで使用するSkyboxとして設定</summary>

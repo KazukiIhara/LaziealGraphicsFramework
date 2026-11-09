@@ -1,7 +1,7 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
-#include <string>
 #include <unordered_map>
 
 namespace LGF {
@@ -18,7 +18,7 @@ namespace LGF {
 		bool Initialize();
 		void Finalize();
 
-		std::shared_ptr<ModelResource> Load(const std::string& filePath);
+		std::shared_ptr<ModelResource> Load(const std::filesystem::path& filePath);
 
 	private:
 		DirectXCore& directX_;

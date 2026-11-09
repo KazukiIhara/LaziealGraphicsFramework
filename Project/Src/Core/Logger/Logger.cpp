@@ -164,17 +164,16 @@ std::tm Logger::GetLocalTime() {
 	return localTime;
 }
 
-std::string Logger::CreateLogFilePath(const std::filesystem::path& logDirectory) {
+std::filesystem::path Logger::CreateLogFilePath(const std::filesystem::path& logDirectory) {
 	// 現在時刻を取得
 	const std::tm localTime = GetLocalTime();
 
 	// ファイル名を組み立て
 	std::ostringstream stream;
-	stream << logDirectory.string() << "/"
-		<< std::put_time(&localTime, "%Y%m%d_%H%M%S")
+	stream << std::put_time(&localTime, "%Y%m%d_%H%M%S")
 		<< ".txt";
 
-	return stream.str();
+	return logDirectory / stream.str();
 }
 
 std::string Logger::CreateLogMessage(const std::string& message) {

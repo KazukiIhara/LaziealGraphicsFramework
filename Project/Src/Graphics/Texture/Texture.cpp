@@ -19,7 +19,7 @@ void LGF::TextureSystem::Internal::ResetTextureManager() {
 	g_textureManager = nullptr;
 }
 
-LGF::Texture::Texture(const std::string& filePath, const TextureLoadDesc& desc) {
+LGF::Texture::Texture(const std::filesystem::path& filePath, const TextureLoadDesc& desc) {
 	if (!g_textureManager) {
 		throw std::runtime_error("Texture must be loaded after framework initialization.");
 	}
@@ -33,7 +33,7 @@ LGF::Texture::Texture(const std::string& filePath, const TextureLoadDesc& desc) 
 
 LGF::Texture::~Texture() = default;
 
-const std::string& LGF::Texture::GetFilePath() const {
+const std::filesystem::path& LGF::Texture::GetFilePath() const {
 	return filePath_;
 }
 

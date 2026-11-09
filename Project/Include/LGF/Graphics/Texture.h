@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
+#include <filesystem>
 
 struct ID3D12Resource;
 
@@ -37,11 +37,11 @@ namespace LGF {
 	public:
 		/// <summary>マテリアルで単色描画に使用する空のテクスチャを生成</summary>
 		Texture() = default;
-		/// <summary>UTF-8パスからテクスチャを同期読み込み。失敗時は例外を送出</summary>
-		Texture(const std::string& filePath, const TextureLoadDesc& desc = {});
+		/// <summary>パスからテクスチャを同期読み込み。失敗時は例外を送出</summary>
+		Texture(const std::filesystem::path& filePath, const TextureLoadDesc& desc = {});
 		~Texture();
 
-		const std::string& GetFilePath() const;
+		const std::filesystem::path& GetFilePath() const;
 		uint32_t GetWidth() const;
 		uint32_t GetHeight() const;
 		bool IsValid() const { return srvIndex_ != UINT32_MAX; }
@@ -52,7 +52,7 @@ namespace LGF {
 		friend class GpuParticleDrawer3D;
 		friend class Renderer2D;
 		friend class SkyboxSystem;
-		std::string filePath_;
+		std::filesystem::path filePath_;
 		uint32_t srvIndex_ = UINT32_MAX;
 		bool isCubeMap_ = false;
 		ID3D12Resource* resource_ = nullptr;

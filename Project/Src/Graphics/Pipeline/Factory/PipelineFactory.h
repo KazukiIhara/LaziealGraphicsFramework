@@ -36,7 +36,7 @@ namespace LGF {
 			std::filesystem::path shaderDirectory);
 		~PipelineFactory();
 
-		std::unique_ptr<Pipeline> CreatePipeline(const std::string& jsonPath);
+		std::unique_ptr<Pipeline> CreatePipeline(const std::filesystem::path& jsonPath);
 
 	private:
 		std::vector<ShaderBlob> CompileShaders(

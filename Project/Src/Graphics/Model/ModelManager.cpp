@@ -108,7 +108,7 @@ namespace {
 
 		const auto texturePath =
 			(modelPath.parent_path() / ToPath(reference)).lexically_normal();
-		return textureManager.Load(ToUtf8String(texturePath), loadDesc).srvIndex;
+		return textureManager.Load(texturePath, loadDesc).srvIndex;
 	}
 
 	constexpr size_t kMaxMeshletVertices = 128;
@@ -134,12 +134,13 @@ void ModelManager::Finalize() {
 	models_.clear();
 }
 
-std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
+std::shared_ptr<ModelResource> ModelManager::Load(const std::filesystem::path& filePath) {
 	if (filePath.empty()) {
 		throw std::invalid_argument("Model path must not be empty.");
 	}
 
-	const auto path = std::filesystem::absolute(ToPath(filePath)).lexically_normal();
+	const auto path = std::filesystem::absolute(filePath).lexically_normal();
+	const std::string debugName = ToUtf8String(filePath);
 	if (const auto it = models_.find(path.native()); it != models_.end()) {
 		return it->second;
 	}
@@ -158,7 +159,7 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 	if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0 || !scene->mRootNode) {
 		throw std::runtime_error(std::format(
 			"Model '{}': Assimp import failed: {}",
-			filePath,
+			debugName,
 			importer.GetErrorString()));
 	}
 
@@ -175,7 +176,7 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 		if (!sourceMesh->HasNormals()) {
 			throw std::runtime_error(std::format(
 				"Model '{}': mesh {} has no normals.",
-				filePath,
+				debugName,
 				meshIndex));
 		}
 
@@ -224,7 +225,7 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 			if (face.mNumIndices != 3) {
 				throw std::runtime_error(std::format(
 					"Model '{}': mesh {} contains a non-triangle face after triangulation.",
-					filePath,
+					debugName,
 					meshIndex));
 			}
 			indices.insert(indices.end(), face.mIndices, face.mIndices + 3);
@@ -253,14 +254,14 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 		if (FAILED(meshletHr)) {
 			throw std::runtime_error(std::format(
 				"Model '{}': meshlet generation failed for mesh {} (0x{:08X}).",
-				filePath,
+				debugName,
 				meshIndex,
 				static_cast<uint32_t>(meshletHr)));
 		}
 		if (meshlets.empty() || meshletVertexIndexBytes.empty() || meshletPrimitives.empty()) {
 			throw std::runtime_error(std::format(
 				"Model '{}': meshlet generation produced no drawable data for mesh {}.",
-				filePath,
+				debugName,
 				meshIndex));
 		}
 		if ((meshletVertexIndexBytes.size() % sizeof(uint32_t)) != 0) {
@@ -289,7 +290,7 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 		if (FAILED(cullDataHr)) {
 			throw std::runtime_error(std::format(
 				"Model '{}': meshlet cull-data generation failed for mesh {} (0x{:08X}).",
-				filePath,
+				debugName,
 				meshIndex,
 				static_cast<uint32_t>(cullDataHr)));
 		}
@@ -465,7 +466,7 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::string& filePath) {
 	}
 
 	if (model->meshes.empty()) {
-		throw std::runtime_error("Model '" + filePath + "': no drawable triangle meshes were found.");
+		throw std::runtime_error("Model '" + debugName + "': no drawable triangle meshes were found.");
 	}
 
 	return models_.emplace(path.native(), std::move(model)).first->second;

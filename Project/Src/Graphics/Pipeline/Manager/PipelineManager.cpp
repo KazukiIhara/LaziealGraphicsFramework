@@ -49,7 +49,7 @@ void PipelineManager::LoadAll() {
 		}
 
 		// パイプラインを作成
-		auto pipeline = factory_->CreatePipeline(entry.path().string());
+		auto pipeline = factory_->CreatePipeline(entry.path());
 
 		// パイプラインをマップにセット
 		pipelines_.insert({ pipeline->GetName(), std::move(pipeline) });

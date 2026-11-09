@@ -30,9 +30,9 @@ bool ShaderCompiler::Initialize() {
 	return true;
 }
 
-ComPtr<ID3DBlob> ShaderCompiler::Compile(const std::wstring& filePath, const wchar_t* profile) {
+ComPtr<ID3DBlob> ShaderCompiler::Compile(const std::filesystem::path& filePath, const wchar_t* profile) {
 	// ログ出力
-	Logger::Log(Logger::ConvertString(std::format(L"Begin CompileShader, path:{}, profile:{}\n", filePath, profile)));
+	Logger::Log(Logger::ConvertString(std::format(L"Begin CompileShader, path:{}, profile:{}\n", filePath.native(), profile)));
 
 	// HLSLファイルの読み込み
 	ComPtr<IDxcBlobEncoding> shaderSource = nullptr;
@@ -40,7 +40,7 @@ ComPtr<ID3DBlob> ShaderCompiler::Compile(const std::wstring& filePath, const wch
 	if (FAILED(hr) || !shaderSource) {
 		throw std::runtime_error(std::format(
 			"Failed to load shader '{}' (0x{:08X}).",
-			Logger::ConvertString(filePath),
+			Logger::ConvertString(filePath.native()),
 			static_cast<uint32_t>(hr)));
 	}
 
@@ -71,7 +71,7 @@ ComPtr<ID3DBlob> ShaderCompiler::Compile(const std::wstring& filePath, const wch
 	if (FAILED(hr) || !shaderResult) {
 		throw std::runtime_error(std::format(
 			"Failed to invoke shader compiler for '{}' (0x{:08X}).",
-			Logger::ConvertString(filePath),
+			Logger::ConvertString(filePath.native()),
 			static_cast<uint32_t>(hr)));
 	}
 
@@ -87,7 +87,7 @@ ComPtr<ID3DBlob> ShaderCompiler::Compile(const std::wstring& filePath, const wch
 	if (FAILED(hr) || FAILED(compileStatus)) {
 		throw std::runtime_error(std::format(
 			"Shader compilation failed for '{}'.",
-			Logger::ConvertString(filePath)));
+			Logger::ConvertString(filePath.native())));
 	}
 
 	// バイナリを取得
@@ -96,12 +96,12 @@ ComPtr<ID3DBlob> ShaderCompiler::Compile(const std::wstring& filePath, const wch
 	if (FAILED(hr) || !shaderBlob) {
 		throw std::runtime_error(std::format(
 			"Shader compiler produced no object for '{}' (0x{:08X}).",
-			Logger::ConvertString(filePath),
+			Logger::ConvertString(filePath.native()),
 			static_cast<uint32_t>(hr)));
 	}
 
 	// コンパイル終了ログ
-	Logger::Log(Logger::ConvertString(std::format(L"Compile Succeeded, path:{}, profile:{}\n", filePath, profile)));
+	Logger::Log(Logger::ConvertString(std::format(L"Compile Succeeded, path:{}, profile:{}\n", filePath.native(), profile)));
 
 	return shaderBlob;
 }
