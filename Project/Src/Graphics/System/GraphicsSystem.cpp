@@ -271,6 +271,8 @@ void GraphicsSystem::EndFrame() {
 		*camera3DSystem_,
 		*skyboxSystem_,
 		*shadowMapSystem_);
+	directX_->BeginParticlePass();
+	renderer3D_->DrawParticles();
 	directX_->DrawSceneToSwapChain(*pipelineManager_);
 
 	// 2DとImGuiはトーンマッピング後のSwapChainへ描画する。

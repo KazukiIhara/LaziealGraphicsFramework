@@ -319,6 +319,16 @@ void DirectXCore::DrawSceneToSwapChain(PipelineManager& pipelineManager) {
 	commandList6->DispatchMesh(1, 1, 1);
 }
 
+void DirectXCore::BeginParticlePass() {
+	// ライティングで参照した深度をDSVとして再使用する。PSO側では深度を書き込まない。
+	auto* commandList = command_->GetList();
+	depthStencil_->Transition(commandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	sceneColor_->Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	const auto rtv = sceneColor_->GetRTVHandleCPU();
+	const auto dsv = depthStencil_->GetDSVHandleCPU();
+	commandList->OMSetRenderTargets(1, &rtv, false, &dsv);
+}
+
 void DirectXCore::RestoreGBufferRenderTargets() {
 	RenderTexture* renderTargets[] = { gBufferAlbedo_, gBufferNormal_, gBufferMaterial_ };
 	SetRenderTargets(renderTargets);

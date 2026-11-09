@@ -4,6 +4,8 @@
 #include <stdexcept>
 
 #include "Graphics/Drawer/IDrawer.h"
+#include "Graphics/Drawer/3D/Particle/ParticleDrawer3D.h"
+#include "LGF/Graphics/Billboard3D.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Shadow/System/ShadowMapSystem.h"
 
@@ -50,6 +52,8 @@ Renderer3D::Renderer3D(Graphics3DContext context) :
 Renderer3D::~Renderer3D() = default;
 
 bool Renderer3D::Initialize() {
+	particleDrawer_ = std::make_unique<ParticleDrawer3D>(context_);
+	particleDrawer_->Initialize();
 	// レンダラーを作成
 	boxDrawer_ = std::make_unique<BoxDrawer3D>(context_);
 	boxDrawer_->Initialize();
@@ -96,6 +100,7 @@ bool Renderer3D::Initialize() {
 }
 
 void Renderer3D::BeginFrame() {
+	particleDrawer_->BeginFrame();
 	for (const auto& drawer : drawerList_) {
 		drawer->BeginFrame();
 	}
@@ -127,7 +132,25 @@ void Renderer3D::DrawShadow(ShadowMapSystem& shadowMap) {
 	triangleDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowTriangle3D"), shadowMap, "gTriangle");
 }
 
+void Renderer3D::DrawParticles() {
+	particleDrawer_->EndFrame();
+}
+
+void Renderer3D::AddBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture) {
+	if (texture.isCubeMap_) {
+		throw std::invalid_argument("Billboard3D requires a 2D texture.");
+	}
+	ParticleBillboardForGPU data{};
+	data.position = billboard.position;
+	data.rotation = billboard.rotation;
+	data.size = billboard.size;
+	data.textureIndex = texture.srvIndex_;
+	data.color = color;
+	particleDrawer_->AddParticle(data);
+}
+
 void Renderer3D::Finalize() {
+	particleDrawer_.reset();
 	boxDrawer_.reset();
 	capsuleDrawer_.reset();
 	coneDrawer_.reset();

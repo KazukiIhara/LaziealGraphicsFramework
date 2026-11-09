@@ -77,6 +77,11 @@ void LGF::Graphics3D::Internal::ResetRenderer3D() {
 	g_renderer3D = nullptr;
 }
 
+void LGF::Graphics3D::DrawBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddBillboard(billboard, color, texture);
+}
+
 uint32_t LGF::Graphics3D::GetWindowWidth() {
 	assert(g_directX != nullptr);
 	return g_directX->GetRenderWidth();

@@ -20,6 +20,7 @@
 #include "LGF/Graphics/Graphics2D.h"
 
 #include "LGF/Graphics/Camera3D.h"
+#include "LGF/Graphics/Billboard3D.h"
 #include "LGF/Graphics/Transform3D.h"
 #include "LGF/Graphics/Box3D.h"
 #include "LGF/Graphics/Capsule3D.h"

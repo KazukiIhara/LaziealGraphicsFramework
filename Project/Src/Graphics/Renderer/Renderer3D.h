@@ -23,6 +23,8 @@ namespace LGF {
 	class MeshletBoundsDrawer3D;
 	class ModelDrawer3D;
 	class PlaneDrawer3D;
+	class ParticleDrawer3D;
+	struct Billboard3D;
 	class SphereDrawer3D;
 	class SphericalCapDrawer3D;
 	class SphericalShellCapDrawer3D;
@@ -54,6 +56,8 @@ namespace LGF {
 		void BeginFrame()override;
 		void EndFrame()override;
 		void DrawShadow(ShadowMapSystem& shadowMap);
+		void DrawParticles();
+		void AddBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture);
 		void Finalize()override;
 
 		// 各Drawerに描画コマンドを積む関数群
@@ -149,6 +153,7 @@ namespace LGF {
 		std::unique_ptr<MeshletBoundsDrawer3D> meshletBoundsDrawer_;
 		std::unique_ptr<ModelDrawer3D> modelDrawer_;
 		std::unique_ptr<PlaneDrawer3D> planeDrawer_;
+		std::unique_ptr<ParticleDrawer3D> particleDrawer_;
 		std::unique_ptr<SphereDrawer3D> sphereDrawer_;
 		std::unique_ptr<SphericalCapDrawer3D> sphericalCapDrawer_;
 		std::unique_ptr<SphericalShellCapDrawer3D> sphericalShellCapDrawer_;

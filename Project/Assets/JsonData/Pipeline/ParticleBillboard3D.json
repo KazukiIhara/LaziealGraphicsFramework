@@ -1,0 +1,14 @@
+{
+  "Name": "ParticleBillboard3D",
+  "PipelineKind": "MeshGraphics",
+  "Shaders": {
+    "MS": "Graphics3D/ParticleBillboard3D.MS.hlsl",
+    "PS": "Graphics3D/ParticleBillboard3D.PS.hlsl"
+  },
+  "Rasterizer": { "CullMode": "None", "FillMode": "Solid" },
+  "Blend": { "Mode": "Add" },
+  "Depth": { "Enable": true, "Write": false, "Func": "LessEqual" },
+  "RenderTarget": { "Formats": [ "R16G16B16A16_FLOAT" ] },
+  "DepthStencil": { "Format": "D24_UNORM_S8_UINT" },
+  "PrimitiveTopology": "Triangle"
+}

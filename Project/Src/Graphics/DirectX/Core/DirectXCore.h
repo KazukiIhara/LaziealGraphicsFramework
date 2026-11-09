@@ -66,6 +66,7 @@ namespace LGF {
 			SkyboxSystem& skyboxSystem,
 			ShadowMapSystem& shadowMapSystem);
 		void DrawSceneToSwapChain(PipelineManager& pipelineManager);
+		void BeginParticlePass();
 		void DrawDepthToSwapChain(PipelineManager& pipelineManager);
 		void SetExposure(float exposureEV);
 		void EndFrame();

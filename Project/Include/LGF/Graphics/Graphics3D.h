@@ -9,6 +9,7 @@
 namespace LGF {
 
 	class Camera3D;
+	struct Billboard3D;
 	class DirectionalLight;
 	class PointLight;
 	class Skybox;
@@ -28,6 +29,8 @@ namespace LGF {
 	class Triangle3D;
 
 	namespace Graphics3D {
+
+		void DrawBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture);
 
 		uint32_t GetWindowWidth();
 		uint32_t GetWindowHeight();
