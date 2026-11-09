@@ -5,6 +5,7 @@
 
 #include "Graphics/Drawer/IDrawer.h"
 #include "Graphics/Drawer/3D/Particle/ParticleDrawer3D.h"
+#include "Graphics/Drawer/3D/Particle/GpuParticleDrawer3D.h"
 #include "LGF/Graphics/Billboard3D.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Shadow/System/ShadowMapSystem.h"
@@ -54,6 +55,10 @@ Renderer3D::~Renderer3D() = default;
 bool Renderer3D::Initialize() {
 	particleDrawer_ = std::make_unique<ParticleDrawer3D>(context_);
 	particleDrawer_->Initialize();
+	gpuParticleDrawer_ = std::make_unique<GpuParticleDrawer3D>(context_);
+	if (!gpuParticleDrawer_->Initialize()) {
+		return false;
+	}
 	// レンダラーを作成
 	boxDrawer_ = std::make_unique<BoxDrawer3D>(context_);
 	boxDrawer_->Initialize();
@@ -101,6 +106,7 @@ bool Renderer3D::Initialize() {
 
 void Renderer3D::BeginFrame() {
 	particleDrawer_->BeginFrame();
+	gpuParticleDrawer_->BeginFrame();
 	for (const auto& drawer : drawerList_) {
 		drawer->BeginFrame();
 	}
@@ -133,6 +139,9 @@ void Renderer3D::DrawShadow(ShadowMapSystem& shadowMap) {
 }
 
 void Renderer3D::DrawParticles() {
+	// GPU ParticleはCompute更新の直後に同じUAVをMesh Shaderから読む。
+	// CPU Particleと同じ加算パスへ出すことで、利用側の描画順を単純に保つ。
+	gpuParticleDrawer_->EndFrame();
 	particleDrawer_->EndFrame();
 }
 
@@ -149,7 +158,38 @@ void Renderer3D::AddBillboard(const Billboard3D& billboard, const Vector4& color
 	particleDrawer_->AddParticle(data);
 }
 
+GpuParticleWorldHandle Renderer3D::CreateGpuParticleWorld(const GpuParticleWorldDesc& desc) {
+	return gpuParticleDrawer_->CreateWorld(desc);
+}
+
+bool Renderer3D::RemoveGpuParticleWorld(GpuParticleWorldHandle handle) {
+	return gpuParticleDrawer_->RemoveWorld(handle);
+}
+
+bool Renderer3D::ClearGpuParticleWorld(GpuParticleWorldHandle handle) {
+	return gpuParticleDrawer_->ClearWorld(handle);
+}
+
+bool Renderer3D::UpdateGpuParticleWorld(
+	GpuParticleWorldHandle handle,
+	float deltaTime,
+	std::span<const GpuParticleSpawnBatch3D> spawnBatches) {
+	return gpuParticleDrawer_->UpdateWorld(handle, deltaTime, spawnBatches);
+}
+
+bool Renderer3D::DrawGpuParticleWorld(GpuParticleWorldHandle handle) {
+	return gpuParticleDrawer_->DrawWorld(handle);
+}
+
+GpuParticleStatistics3D Renderer3D::GetGpuParticleStatistics(GpuParticleWorldHandle handle) const {
+	return gpuParticleDrawer_->GetStatistics(handle);
+}
+
 void Renderer3D::Finalize() {
+	if (gpuParticleDrawer_) {
+		gpuParticleDrawer_->Finalize();
+	}
+	gpuParticleDrawer_.reset();
 	particleDrawer_.reset();
 	boxDrawer_.reset();
 	capsuleDrawer_.reset();

@@ -1,0 +1,5 @@
+{
+  "Name": "GpuParticleUpdate3D",
+  "PipelineKind": "Compute",
+  "Shaders": { "CS": "Graphics3D/GpuParticleUpdate3D.CS.hlsl" }
+}

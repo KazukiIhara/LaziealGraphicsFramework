@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
 #include <d3d12.h>
 
@@ -34,6 +35,8 @@ namespace LGF {
 
 		// ViewIndexの割り当て
 		uint32_t Allocate();
+		// GPUがViewを参照し終えた後にIndexを再利用可能へ戻す。
+		void Release(uint32_t index);
 		// CPUハンドルを取得
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(uint32_t index)const;
 		// GPUハンドルを取得
@@ -46,6 +49,7 @@ namespace LGF {
 		uint32_t GetUseIndex()const;
 		// Viewの最大数を下回っているか
 		bool IsLowerViewMax()const;
+		bool CanAllocate(uint32_t count) const;
 
 	private:
 		// Device
@@ -58,6 +62,7 @@ namespace LGF {
 		uint32_t descriptorSize_ = 0u;
 		// 使用しているViewIndex
 		uint32_t useIndex_ = 0u;
+		std::vector<uint32_t> freeIndices_;
 		// Viewの最大数
 		uint32_t maxViewCount_ = 0u;
 		// ShaderVisibleかどうか

@@ -1,12 +1,14 @@
 #pragma once
 
 #include <memory>
+#include <span>
 #include <vector>
 
 #include "Graphics/System/IGraphicsSubsystem.h"
 
 #include "LGF/Math/MathTypes.h"
 #include "LGF/Graphics/Material.h"
+#include "LGF/Graphics/GpuParticle3D.h"
 
 #include "Graphics/Graphics3DContext.h"
 
@@ -24,6 +26,7 @@ namespace LGF {
 	class ModelDrawer3D;
 	class PlaneDrawer3D;
 	class ParticleDrawer3D;
+	class GpuParticleDrawer3D;
 	struct Billboard3D;
 	class SphereDrawer3D;
 	class SphericalCapDrawer3D;
@@ -58,6 +61,15 @@ namespace LGF {
 		void DrawShadow(ShadowMapSystem& shadowMap);
 		void DrawParticles();
 		void AddBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture);
+		GpuParticleWorldHandle CreateGpuParticleWorld(const GpuParticleWorldDesc& desc);
+		bool RemoveGpuParticleWorld(GpuParticleWorldHandle handle);
+		bool ClearGpuParticleWorld(GpuParticleWorldHandle handle);
+		bool UpdateGpuParticleWorld(
+			GpuParticleWorldHandle handle,
+			float deltaTime,
+			std::span<const GpuParticleSpawnBatch3D> spawnBatches);
+		bool DrawGpuParticleWorld(GpuParticleWorldHandle handle);
+		GpuParticleStatistics3D GetGpuParticleStatistics(GpuParticleWorldHandle handle) const;
 		void Finalize()override;
 
 		// 各Drawerに描画コマンドを積む関数群
@@ -154,6 +166,7 @@ namespace LGF {
 		std::unique_ptr<ModelDrawer3D> modelDrawer_;
 		std::unique_ptr<PlaneDrawer3D> planeDrawer_;
 		std::unique_ptr<ParticleDrawer3D> particleDrawer_;
+		std::unique_ptr<GpuParticleDrawer3D> gpuParticleDrawer_;
 		std::unique_ptr<SphereDrawer3D> sphereDrawer_;
 		std::unique_ptr<SphericalCapDrawer3D> sphericalCapDrawer_;
 		std::unique_ptr<SphericalShellCapDrawer3D> sphericalShellCapDrawer_;

@@ -1,0 +1,5 @@
+{
+  "Name": "GpuParticleSpawn3D",
+  "PipelineKind": "Compute",
+  "Shaders": { "CS": "Graphics3D/GpuParticleSpawn3D.CS.hlsl" }
+}

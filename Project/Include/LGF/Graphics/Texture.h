@@ -45,9 +45,11 @@ namespace LGF {
 		uint32_t GetWidth() const;
 		uint32_t GetHeight() const;
 		bool IsValid() const { return srvIndex_ != UINT32_MAX; }
+		bool operator==(const Texture&) const = default;
 
 	private:
 		friend class Renderer3D;
+		friend class GpuParticleDrawer3D;
 		friend class Renderer2D;
 		friend class SkyboxSystem;
 		std::string filePath_;

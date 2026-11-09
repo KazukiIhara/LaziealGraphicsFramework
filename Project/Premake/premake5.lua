@@ -54,11 +54,13 @@ project "DirectXTex"
    filter "configurations:Debug"
       defines { "_DEBUG" }
       symbols "On"
+      debugformat "C7"
       runtime "Debug"
 
    filter "configurations:Develop"
       defines { "NDEBUG", "PROFILE" }
       symbols "On"
+      debugformat "C7"
       optimize "Debug"
       runtime "Release"
 
@@ -121,11 +123,13 @@ project "Texconv"
    filter "configurations:Debug"
       defines { "_DEBUG" }
       symbols "On"
+      debugformat "C7"
       runtime "Debug"
 
    filter "configurations:Develop"
       defines { "NDEBUG", "PROFILE" }
       symbols "On"
+      debugformat "C7"
       optimize "Debug"
       runtime "Release"
 
@@ -163,11 +167,13 @@ project "ImGui"
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
+      debugformat "C7"
       runtime "Debug"
 
    filter "configurations:Develop"
       defines { "DEBUG", "DEVELOP" }
       symbols "On"
+      debugformat "C7"
       optimize "Debug"
       runtime "Release"
 
@@ -213,11 +219,13 @@ project "DirectXMesh"
    filter "configurations:Debug"
       defines { "_DEBUG" }
       symbols "On"
+      debugformat "C7"
       runtime "Debug"
 
    filter "configurations:Develop"
       defines { "NDEBUG", "PROFILE" }
       symbols "On"
+      debugformat "C7"
       optimize "Debug"
       runtime "Release"
 
@@ -242,12 +250,14 @@ local function configureLaziealCppProject()
    filter "configurations:Debug"
       defines { "DEBUG" }
       symbols "On"
+      debugformat "C7"
       fatalwarnings { "All" }
       runtime "Debug"
 
    filter "configurations:Develop"
       defines { "DEBUG", "DEVELOP" }
       symbols "On"
+      debugformat "C7"
       optimize "Debug"
       runtime "Release"
 

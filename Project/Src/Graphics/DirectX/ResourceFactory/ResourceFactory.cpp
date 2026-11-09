@@ -40,6 +40,32 @@ ComPtr<ID3D12Resource> ResourceFactory::CreateUploadBufferResource(size_t sizeIn
 	return resource;
 }
 
+ComPtr<ID3D12Resource> ResourceFactory::CreateReadbackBufferResource(size_t sizeInBytes) {
+	assert(sizeInBytes > 0u);
+	D3D12_HEAP_PROPERTIES heapProperties{};
+	heapProperties.Type = D3D12_HEAP_TYPE_READBACK;
+
+	D3D12_RESOURCE_DESC resourceDesc{};
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resourceDesc.Width = sizeInBytes;
+	resourceDesc.Height = 1u;
+	resourceDesc.DepthOrArraySize = 1u;
+	resourceDesc.MipLevels = 1u;
+	resourceDesc.SampleDesc.Count = 1u;
+	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+	ComPtr<ID3D12Resource> resource;
+	const HRESULT result = device_.GetDevice()->CreateCommittedResource(
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&resource));
+	assert(SUCCEEDED(result));
+	return resource;
+}
+
 ComPtr<ID3D12Resource> ResourceFactory::CreateUAVBufferResource(size_t sizeInBytes) {
 	// DefaultHeap設定
 	D3D12_HEAP_PROPERTIES heapProperties{};

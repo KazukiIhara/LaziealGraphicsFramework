@@ -1,0 +1,5 @@
+{
+  "Name": "GpuParticleResetStatistics3D",
+  "PipelineKind": "Compute",
+  "Shaders": { "CS": "Graphics3D/GpuParticleResetStatistics3D.CS.hlsl" }
+}

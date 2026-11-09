@@ -82,6 +82,34 @@ void LGF::Graphics3D::DrawBillboard(const Billboard3D& billboard, const Vector4&
 	g_renderer3D->AddBillboard(billboard, color, texture);
 }
 
+LGF::GpuParticleWorldHandle LGF::Graphics3D::CreateGpuParticleWorld(const GpuParticleWorldDesc& desc) {
+	assert(g_renderer3D != nullptr);
+	return g_renderer3D->CreateGpuParticleWorld(desc);
+}
+
+bool LGF::Graphics3D::RemoveGpuParticleWorld(GpuParticleWorldHandle handle) {
+	return g_renderer3D && g_renderer3D->RemoveGpuParticleWorld(handle);
+}
+
+bool LGF::Graphics3D::ClearGpuParticleWorld(GpuParticleWorldHandle handle) {
+	return g_renderer3D && g_renderer3D->ClearGpuParticleWorld(handle);
+}
+
+bool LGF::Graphics3D::UpdateGpuParticleWorld(
+	GpuParticleWorldHandle handle,
+	float deltaTime,
+	std::span<const GpuParticleSpawnBatch3D> spawnBatches) {
+	return g_renderer3D && g_renderer3D->UpdateGpuParticleWorld(handle, deltaTime, spawnBatches);
+}
+
+bool LGF::Graphics3D::DrawGpuParticleWorld(GpuParticleWorldHandle handle) {
+	return g_renderer3D && g_renderer3D->DrawGpuParticleWorld(handle);
+}
+
+LGF::GpuParticleStatistics3D LGF::Graphics3D::GetGpuParticleStatistics(GpuParticleWorldHandle handle) {
+	return g_renderer3D ? g_renderer3D->GetGpuParticleStatistics(handle) : GpuParticleStatistics3D{};
+}
+
 uint32_t LGF::Graphics3D::GetWindowWidth() {
 	assert(g_directX != nullptr);
 	return g_directX->GetRenderWidth();

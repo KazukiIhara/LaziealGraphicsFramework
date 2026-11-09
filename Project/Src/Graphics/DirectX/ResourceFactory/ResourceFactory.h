@@ -30,6 +30,8 @@ namespace LGF {
 
 		// Uploadバッファリソースの作成
 		ComPtr<ID3D12Resource> CreateUploadBufferResource(size_t sizeInBytes);
+		// GPUからCPUへ結果を回収するReadbackバッファリソースの作成
+		ComPtr<ID3D12Resource> CreateReadbackBufferResource(size_t sizeInBytes);
 		// UAVバッファリソースの作成
 		ComPtr<ID3D12Resource> CreateUAVBufferResource(size_t sizeInBytes);
 		// UAVとして生成し、後からTexture2DまたはTextureCubeのSRVとして利用するテクスチャ

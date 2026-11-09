@@ -76,6 +76,7 @@ namespace LGF {
 		uint32_t GetRenderWidth() const;
 		uint32_t GetRenderHeight() const;
 		uint32_t GetCurrentFrameContextIndex() const;
+		uint32_t GetFrameContextCountInUse() const;
 
 		ID3D12Device* GetDevice();
 		ID3D12GraphicsCommandList* GetCommandList();

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <span>
 
 #include "LGF/Math/Matrix4x4.h"
 #include "LGF/Graphics/Color.h"
 #include "LGF/Graphics/Material.h"
+#include "LGF/Graphics/GpuParticle3D.h"
 
 namespace LGF {
 
@@ -31,6 +33,16 @@ namespace LGF {
 	namespace Graphics3D {
 
 		void DrawBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture);
+
+		GpuParticleWorldHandle CreateGpuParticleWorld(const GpuParticleWorldDesc& desc);
+		bool RemoveGpuParticleWorld(GpuParticleWorldHandle handle);
+		bool ClearGpuParticleWorld(GpuParticleWorldHandle handle);
+		bool UpdateGpuParticleWorld(
+			GpuParticleWorldHandle handle,
+			float deltaTime,
+			std::span<const GpuParticleSpawnBatch3D> spawnBatches);
+		bool DrawGpuParticleWorld(GpuParticleWorldHandle handle);
+		GpuParticleStatistics3D GetGpuParticleStatistics(GpuParticleWorldHandle handle);
 
 		uint32_t GetWindowWidth();
 		uint32_t GetWindowHeight();

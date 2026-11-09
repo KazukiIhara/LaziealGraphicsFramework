@@ -1,6 +1,7 @@
 #include "BaseViewManager.h"
 
 #include <cassert>
+#include <algorithm>
 
 #include "Graphics/DirectX/DescriptorHeap/DescriptorHeapFactory.h"
 #include "Graphics/DirectX/Device/Device.h"
@@ -19,6 +20,7 @@ void BaseViewManager::Initialize(
 	maxViewCount_ = maxViewCount;
 	isShaderVisible_ = shaderVisible;
 	useIndex_ = 0u;
+	freeIndices_.clear();
 
 	descriptorHeap_ = descriptorHeapManager_.CreateDescriptorHeap(
 		heapType,
@@ -29,11 +31,22 @@ void BaseViewManager::Initialize(
 }
 
 uint32_t BaseViewManager::Allocate() {
+	if (!freeIndices_.empty()) {
+		const uint32_t index = freeIndices_.back();
+		freeIndices_.pop_back();
+		return index;
+	}
 	assert(useIndex_ < maxViewCount_);
 
 	uint32_t index = useIndex_;
 	++useIndex_;
 	return index;
+}
+
+void BaseViewManager::Release(uint32_t index) {
+	assert(index < useIndex_);
+	assert(std::find(freeIndices_.begin(), freeIndices_.end(), index) == freeIndices_.end());
+	freeIndices_.push_back(index);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE BaseViewManager::GetCPUDescriptorHandle(uint32_t index)const {
@@ -66,5 +79,10 @@ uint32_t BaseViewManager::GetUseIndex()const {
 }
 
 bool BaseViewManager::IsLowerViewMax()const {
-	return useIndex_ < maxViewCount_;
+	return !freeIndices_.empty() || useIndex_ < maxViewCount_;
+}
+
+bool BaseViewManager::CanAllocate(uint32_t count) const {
+	const uint32_t unusedCount = maxViewCount_ - useIndex_;
+	return count <= unusedCount + static_cast<uint32_t>(freeIndices_.size());
 }

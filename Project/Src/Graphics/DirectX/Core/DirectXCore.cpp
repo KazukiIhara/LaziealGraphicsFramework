@@ -438,6 +438,10 @@ uint32_t DirectXCore::GetCurrentFrameContextIndex() const {
 	return currentFrameContextIndex_;
 }
 
+uint32_t DirectXCore::GetFrameContextCountInUse() const {
+	return multiFrameContextEnabled_ ? kFrameContextCount : 1u;
+}
+
 void DirectXCore::WaitIdle() {
 	if (fence_ && fence_->IsInitialized()) {
 		fence_->WaitIdle();
