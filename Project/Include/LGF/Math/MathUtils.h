@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LGF/Math/Functions/VectorMath.h"
+#include "LGF/Math/Functions/InterpolationMath.h"
 #include "LGF/Math/Functions/MatrixMath.h"
 #include "LGF/Math/Functions/QuaternionMath.h"
 #include "LGF/Math/Functions/TransformMath.h"
