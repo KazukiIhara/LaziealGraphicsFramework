@@ -7,6 +7,7 @@
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Renderer/Renderer2D.h"
 #include "LGF/Graphics/Material.h"
+#include "LGF/Graphics/Font2D.h"
 #include "LGF/Graphics/Rect2D.h"
 #include "LGF/Graphics/Sprite.h"
 
@@ -42,6 +43,16 @@ void LGF::Graphics2D::Internal::SetRenderer2D(Renderer2D* renderer) {
 
 void LGF::Graphics2D::Internal::ResetRenderer2D() {
 	g_renderer2D = nullptr;
+}
+
+void LGF::Graphics2D::Internal::DrawFont(
+	const Font2D& font,
+	std::string_view text,
+	const Vector2& position,
+	const Font2DDrawOptions& options) {
+
+	assert(g_renderer2D != nullptr);
+	g_renderer2D->AddText(font, text, position, options);
 }
 
 uint32_t LGF::Graphics2D::GetWindowWidth() {

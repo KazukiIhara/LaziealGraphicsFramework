@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 #include <filesystem>
 #include <stdexcept>
 #include <format>
@@ -96,6 +97,51 @@ const TextureData& TextureManager::LoadFromMemory(
     }
 
     return Store(std::move(key), "embedded texture", std::move(image), desc);
+}
+
+const TextureData& TextureManager::LoadFromPixels(
+    const std::wstring& cacheKey,
+    const void* pixels,
+    uint32_t width,
+    uint32_t height,
+    size_t rowPitch,
+    const TextureLoadDesc& desc) {
+
+    if (cacheKey.empty()) {
+        throw std::invalid_argument("Texture pixel cache key must not be empty.");
+    }
+    if (!pixels || width == 0 || height == 0 || rowPitch < static_cast<size_t>(width) * 4u) {
+        throw std::invalid_argument("Texture pixel data is invalid.");
+    }
+
+    const auto key = std::format(L"pixels:{}|{}|{}|{}", cacheKey,
+        static_cast<int>(desc.dimension), static_cast<int>(desc.colorSpace), desc.generateMipMaps);
+    if (const auto it = textures_.find(key); it != textures_.end()) {
+        return it->second;
+    }
+
+    DirectX::ScratchImage image;
+    const HRESULT hr = image.Initialize2D(
+        DXGI_FORMAT_R8G8B8A8_UNORM,
+        width,
+        height,
+        1,
+        1);
+    if (FAILED(hr)) {
+        throw std::runtime_error(std::format(
+            "Texture pixels: Initialize2D failed (0x{:08X}).",
+            static_cast<uint32_t>(hr)));
+    }
+
+    const DirectX::Image* destination = image.GetImage(0, 0, 0);
+    for (uint32_t y = 0; y < height; ++y) {
+        std::memcpy(
+            destination->pixels + destination->rowPitch * y,
+            static_cast<const uint8_t*>(pixels) + rowPitch * y,
+            static_cast<size_t>(width) * 4u);
+    }
+
+    return Store(std::move(key), "pixel texture", std::move(image), desc);
 }
 
 const TextureData& TextureManager::Store(

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string_view>
 #include <vector>
 
 #include "Graphics/System/IGraphicsSubsystem.h"
@@ -21,6 +22,8 @@ namespace LGF {
 	class Circle2D;
 	class Line2D;
 	class RoundRect2D;
+	class Font2D;
+	struct Font2DDrawOptions;
 	struct Material2D;
 	struct InstanceData2D;
 
@@ -48,6 +51,12 @@ namespace LGF {
 		void AddLine(const Line2D& line, const Material2D& material);
 
 		void AddRoundRect(const RoundRect2D& roundRect, const Material2D& material);
+
+		void AddText(
+			const Font2D& font,
+			std::string_view text,
+			const Vector2& position,
+			const Font2DDrawOptions& options);
 
 	private:
 		static void ApplyMaterial(InstanceData2D& instance, const Material2D& material);

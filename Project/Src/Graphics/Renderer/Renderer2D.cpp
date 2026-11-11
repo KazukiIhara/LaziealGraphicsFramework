@@ -9,8 +9,11 @@
 #include "Graphics/Drawer/2D/Primitive/Rect/RectDrawer2D.h"
 #include "Graphics/Drawer/2D/Primitive/RoundRect/RoundRectDrawer2D.h"
 #include "Graphics/Drawer/2D/Primitive/Triangle/TriangleDrawer2D.h"
+#include "Graphics/Font/FontResource.h"
+#include "Graphics/Font/FontLayout.h"
 #include "LGF/Graphics/Circle2D.h"
 #include "LGF/Graphics/Graphics2D.h"
+#include "LGF/Graphics/Font2D.h"
 #include "LGF/Graphics/Line2D.h"
 #include "LGF/Graphics/Material.h"
 #include "LGF/Graphics/Rect2D.h"
@@ -173,6 +176,34 @@ void Renderer2D::AddRoundRect(const RoundRect2D& roundRect, const Material2D& ma
 	};
 
 	roundRectDrawer_->AddRoundRect(data);
+}
+
+void Renderer2D::AddText(
+	const Font2D& font,
+	std::string_view text,
+	const Vector2& position,
+	const Font2DDrawOptions& options) {
+
+	if (!font.resource_ || font.resource_->atlasSrvIndex == UINT32_MAX) {
+		throw std::invalid_argument("Font resource is not ready for drawing.");
+	}
+
+	const FontResource& resource = *font.resource_;
+	const FontTextLayout layout = BuildFontTextLayout(resource, text);
+	const Vector2 anchorOffset = layout.size * options.anchor;
+	for (const FontGlyphLayout& glyph : layout.glyphs) {
+		const Vector2 glyphLeftTop = position + glyph.leftTop - anchorOffset;
+		Rect2DForGPU data{};
+		data.instance.baseColor = options.color;
+		data.instance.textureIndex = resource.atlasSrvIndex;
+		data.instance.uvScale = glyph.uvScale;
+		data.instance.uvOffset = glyph.uvOffset;
+		data.vertices[0] = ScreenToClipSpace(glyphLeftTop);
+		data.vertices[1] = ScreenToClipSpace({ glyphLeftTop.x + glyph.size.x, glyphLeftTop.y });
+		data.vertices[2] = ScreenToClipSpace({ glyphLeftTop.x, glyphLeftTop.y + glyph.size.y });
+		data.vertices[3] = ScreenToClipSpace(glyphLeftTop + glyph.size);
+		rectDrawer_->AddRect(data);
+	}
 }
 
 void Renderer2D::ApplyMaterial(InstanceData2D& instance, const Material2D& material) {

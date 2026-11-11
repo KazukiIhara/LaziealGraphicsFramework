@@ -10,6 +10,7 @@
 #include "Graphics/Skybox/System/SkyboxSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
 #include "LGF/Graphics/Model.h"
+#include "LGF/Graphics/Font3D.h"
 #include "LGF/Graphics/Skybox.h"
 #include "LGF/Graphics/SphericalCap3D.h"
 #include "LGF/Graphics/SphericalShellCap3D.h"
@@ -75,6 +76,16 @@ void LGF::Graphics3D::Internal::SetRenderer3D(Renderer3D* renderer) {
 
 void LGF::Graphics3D::Internal::ResetRenderer3D() {
 	g_renderer3D = nullptr;
+}
+
+void LGF::Graphics3D::Internal::DrawFont(
+	const Font3D& font,
+	std::string_view text,
+	const Vector3& position,
+	const Font3DDrawOptions& options) {
+
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddFont(font, text, position, options);
 }
 
 void LGF::Graphics3D::DrawBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture) {

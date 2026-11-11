@@ -17,6 +17,8 @@
 #include "Graphics/ImGui/ImGuiSystem.h"
 #include "Graphics/Texture/TextureManager.h"
 #include "Graphics/Texture/TextureSystemInternal.h"
+#include "Graphics/Font/FontManager.h"
+#include "Graphics/Font/FontSystemInternal.h"
 #include "Graphics/Model/ModelManager.h"
 #include "Graphics/Model/ModelSystemInternal.h"
 
@@ -70,6 +72,13 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 		return failInitialization();
 	}
 	TextureSystem::Internal::SetTextureManager(textureManager_.get());
+
+	// フォントマネージャ初期化
+	fontManager_ = std::make_unique<FontManager>(*textureManager_);
+	if (!fontManager_->Initialize()) {
+		return failInitialization();
+	}
+	FontSystem::Internal::SetFontManager(fontManager_.get());
 
 	// 静的モデルマネージャ初期化
 	modelManager_ = std::make_unique<ModelManager>(*directX_, *textureManager_);
@@ -170,6 +179,7 @@ bool GraphicsSystem::Finalize() {
 		directX_->WaitIdle();
 	}
 	ModelSystem::Internal::ResetModelManager();
+	FontSystem::Internal::ResetFontManager();
 	TextureSystem::Internal::ResetTextureManager();
 
 	Graphics3D::Internal::ResetRenderer3D();
@@ -193,6 +203,9 @@ bool GraphicsSystem::Finalize() {
 	if (modelManager_) {
 		modelManager_->Finalize();
 	}
+	if (fontManager_) {
+		fontManager_->Finalize();
+	}
 	if (textureManager_) {
 		textureManager_->Finalize();
 	}
@@ -210,6 +223,7 @@ bool GraphicsSystem::Finalize() {
 	camera3DSystem_.reset();
 	pipelineManager_.reset();
 	modelManager_.reset();
+	fontManager_.reset();
 	textureManager_.reset();
 	directX_.reset();
 	isFrameRenderable_ = false;
@@ -271,8 +285,8 @@ void GraphicsSystem::EndFrame() {
 		*camera3DSystem_,
 		*skyboxSystem_,
 		*shadowMapSystem_);
-	directX_->BeginParticlePass();
-	renderer3D_->DrawParticles();
+	directX_->BeginTransparentPass();
+	renderer3D_->DrawTransparent();
 	directX_->DrawSceneToSwapChain(*pipelineManager_);
 
 	// 2DとImGuiはトーンマッピング後のSwapChainへ描画する。

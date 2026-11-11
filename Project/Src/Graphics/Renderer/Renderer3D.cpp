@@ -6,7 +6,11 @@
 #include "Graphics/Drawer/IDrawer.h"
 #include "Graphics/Drawer/3D/Particle/ParticleDrawer3D.h"
 #include "Graphics/Drawer/3D/Particle/GpuParticleDrawer3D.h"
+#include "Graphics/Drawer/3D/Font/FontDrawer3D.h"
+#include "Graphics/Font/FontLayout.h"
+#include "Graphics/Font/FontResource.h"
 #include "LGF/Graphics/Billboard3D.h"
+#include "LGF/Graphics/Font3D.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Shadow/System/ShadowMapSystem.h"
 
@@ -55,6 +59,8 @@ Renderer3D::~Renderer3D() = default;
 bool Renderer3D::Initialize() {
 	particleDrawer_ = std::make_unique<ParticleDrawer3D>(context_);
 	particleDrawer_->Initialize();
+	fontDrawer_ = std::make_unique<FontDrawer3D>(context_);
+	fontDrawer_->Initialize();
 	gpuParticleDrawer_ = std::make_unique<GpuParticleDrawer3D>(context_);
 	if (!gpuParticleDrawer_->Initialize()) {
 		return false;
@@ -106,6 +112,7 @@ bool Renderer3D::Initialize() {
 
 void Renderer3D::BeginFrame() {
 	particleDrawer_->BeginFrame();
+	fontDrawer_->BeginFrame();
 	gpuParticleDrawer_->BeginFrame();
 	for (const auto& drawer : drawerList_) {
 		drawer->BeginFrame();
@@ -138,11 +145,12 @@ void Renderer3D::DrawShadow(ShadowMapSystem& shadowMap) {
 	triangleDrawer_->DrawShadow(context_.pipelineMgr.GetPipeline("ShadowTriangle3D"), shadowMap, "gTriangle");
 }
 
-void Renderer3D::DrawParticles() {
+void Renderer3D::DrawTransparent() {
 	// GPU ParticleはCompute更新の直後に同じUAVをMesh Shaderから読む。
-	// CPU Particleと同じ加算パスへ出すことで、利用側の描画順を単純に保つ。
+	// Font3Dもライティング後のSceneColorへ通常アルファ合成する。
 	gpuParticleDrawer_->EndFrame();
 	particleDrawer_->EndFrame();
+	fontDrawer_->EndFrame();
 }
 
 void Renderer3D::AddBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture) {
@@ -156,6 +164,40 @@ void Renderer3D::AddBillboard(const Billboard3D& billboard, const Vector4& color
 	data.textureIndex = texture.srvIndex_;
 	data.color = color;
 	particleDrawer_->AddParticle(data);
+}
+
+void Renderer3D::AddFont(
+	const Font3D& font,
+	std::string_view text,
+	const Vector3& position,
+	const Font3DDrawOptions& options) {
+
+	if (!font.resource_ || font.resource_->atlasSrvIndex == UINT32_MAX) {
+		throw std::invalid_argument("Font3D resource is not ready for drawing.");
+	}
+
+	const FontResource& resource = *font.resource_;
+	const FontTextLayout layout = BuildFontTextLayout(resource, text);
+	const Vector2 anchorOffset = layout.size * options.anchor;
+	const Matrix4x4 rotation = Math::MakeRotateMatrix(options.rotation);
+	const Vector3 right = Math::TransformNormal({ 1.0f, 0.0f, 0.0f }, rotation);
+	const Vector3 up = Math::TransformNormal({ 0.0f, 1.0f, 0.0f }, rotation);
+	const uint32_t billboard = options.mode == Font3DMode::Billboard ? 1u : 0u;
+
+	for (const FontGlyphLayout& glyph : layout.glyphs) {
+		FontGlyph3DForGPU data{};
+		data.origin = position;
+		data.offset = (glyph.leftTop - anchorOffset) * options.worldUnitsPerPixel;
+		data.size = glyph.size * options.worldUnitsPerPixel;
+		data.uvScale = glyph.uvScale;
+		data.uvOffset = glyph.uvOffset;
+		data.right = right;
+		data.textureIndex = resource.atlasSrvIndex;
+		data.up = up;
+		data.billboard = billboard;
+		data.color = options.color;
+		fontDrawer_->AddGlyph(data);
+	}
 }
 
 GpuParticleWorldHandle Renderer3D::CreateGpuParticleWorld(const GpuParticleWorldDesc& desc) {
@@ -187,6 +229,7 @@ void Renderer3D::Finalize() {
 		gpuParticleDrawer_->Finalize();
 	}
 	gpuParticleDrawer_.reset();
+	fontDrawer_.reset();
 	particleDrawer_.reset();
 	boxDrawer_.reset();
 	capsuleDrawer_.reset();

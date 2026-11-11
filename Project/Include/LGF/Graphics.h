@@ -3,6 +3,8 @@
 #include "LGF/Graphics/Color.h"
 #include "LGF/Graphics/BlendMode.h"
 #include "LGF/Graphics/Texture.h"
+#include "LGF/Graphics/Font2D.h"
+#include "LGF/Graphics/Font3D.h"
 #include "LGF/Graphics/Sprite.h"
 #include "LGF/Graphics/Material.h"
 #include "LGF/Graphics/Model.h"

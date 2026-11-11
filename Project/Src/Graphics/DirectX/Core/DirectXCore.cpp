@@ -319,7 +319,7 @@ void DirectXCore::DrawSceneToSwapChain(PipelineManager& pipelineManager) {
 	commandList6->DispatchMesh(1, 1, 1);
 }
 
-void DirectXCore::BeginParticlePass() {
+void DirectXCore::BeginTransparentPass() {
 	// ライティングで参照した深度をDSVとして再使用する。PSO側では深度を書き込まない。
 	auto* commandList = command_->GetList();
 	depthStencil_->Transition(commandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);

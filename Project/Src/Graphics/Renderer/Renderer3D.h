@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <span>
+#include <string_view>
 #include <vector>
 
 #include "Graphics/System/IGraphicsSubsystem.h"
@@ -27,7 +28,10 @@ namespace LGF {
 	class PlaneDrawer3D;
 	class ParticleDrawer3D;
 	class GpuParticleDrawer3D;
+	class FontDrawer3D;
 	struct Billboard3D;
+	class Font3D;
+	struct Font3DDrawOptions;
 	class SphereDrawer3D;
 	class SphericalCapDrawer3D;
 	class SphericalShellCapDrawer3D;
@@ -59,8 +63,13 @@ namespace LGF {
 		void BeginFrame()override;
 		void EndFrame()override;
 		void DrawShadow(ShadowMapSystem& shadowMap);
-		void DrawParticles();
+		void DrawTransparent();
 		void AddBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture);
+		void AddFont(
+			const Font3D& font,
+			std::string_view text,
+			const Vector3& position,
+			const Font3DDrawOptions& options);
 		GpuParticleWorldHandle CreateGpuParticleWorld(const GpuParticleWorldDesc& desc);
 		bool RemoveGpuParticleWorld(GpuParticleWorldHandle handle);
 		bool ClearGpuParticleWorld(GpuParticleWorldHandle handle);
@@ -104,6 +113,7 @@ namespace LGF {
 		std::unique_ptr<PlaneDrawer3D> planeDrawer_;
 		std::unique_ptr<ParticleDrawer3D> particleDrawer_;
 		std::unique_ptr<GpuParticleDrawer3D> gpuParticleDrawer_;
+		std::unique_ptr<FontDrawer3D> fontDrawer_;
 		std::unique_ptr<SphereDrawer3D> sphereDrawer_;
 		std::unique_ptr<SphericalCapDrawer3D> sphericalCapDrawer_;
 		std::unique_ptr<SphericalShellCapDrawer3D> sphericalShellCapDrawer_;

@@ -43,6 +43,14 @@ namespace LGF {
 			size_t size,
 			const TextureLoadDesc& desc
 		);
+		const TextureData& LoadFromPixels(
+			const std::wstring& cacheKey,
+			const void* pixels,
+			uint32_t width,
+			uint32_t height,
+			size_t rowPitch,
+			const TextureLoadDesc& desc
+			);
 
 	private:
 		const TextureData& Store(
