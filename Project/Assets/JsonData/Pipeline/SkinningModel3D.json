@@ -1,0 +1,5 @@
+{
+  "Name": "SkinningModel3D",
+  "PipelineKind": "Compute",
+  "Shaders": { "CS": "Graphics3D/SkinningModel3D.CS.hlsl" }
+}

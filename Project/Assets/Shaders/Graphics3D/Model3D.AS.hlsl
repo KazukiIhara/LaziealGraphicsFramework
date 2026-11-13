@@ -59,9 +59,14 @@ void main(
 
         StructuredBuffer<ModelInstanceData> instanceBuffer =
             ResourceDescriptorHeap[gCullingModel.instanceBufferIndex];
-        StructuredBuffer<MeshletCullData> cullDataBuffer =
-            ResourceDescriptorHeap[gCullingModel.meshletCullDataBufferIndex];
-        if (IsVisible(cullDataBuffer[meshletIndex], instanceBuffer[instanceIndex]))
+        bool isVisible = true;
+        if (gCullingModel.meshletCullDataBufferIndex != 0xffffffffu)
+        {
+            StructuredBuffer<MeshletCullData> cullDataBuffer =
+                ResourceDescriptorHeap[gCullingModel.meshletCullDataBufferIndex];
+            isVisible = IsVisible(cullDataBuffer[meshletIndex], instanceBuffer[instanceIndex]);
+        }
+        if (isVisible)
         {
             uint payloadIndex;
             InterlockedAdd(gVisibleMeshletCount, 1, payloadIndex);

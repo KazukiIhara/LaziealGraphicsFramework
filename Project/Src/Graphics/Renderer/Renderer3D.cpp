@@ -465,6 +465,7 @@ void Renderer3D::AddModel(const Model& model, const Matrix4x4& worldMatrix, cons
 
 	modelDrawer_->AddModel(
 		model.resource_,
+		nullptr,
 		worldMatrix,
 		Math::Transpose(Math::Inverse(worldMatrix)),
 		color,
@@ -498,6 +499,25 @@ void Renderer3D::AddModel(const Model& model, const Matrix4x4& worldMatrix, cons
 			meshletBoundsDrawer_->AddBounds(data);
 		}
 	}
+}
+
+void Renderer3D::AddModel(
+	const Model& model,
+	const ModelAnimator& animator,
+	const Matrix4x4& worldMatrix,
+	const Vector4& color,
+	const ModelDrawOptions& options) {
+	const float worldMaximumScale = std::max({
+		Math::Length(Vector3{ worldMatrix.m[0][0], worldMatrix.m[0][1], worldMatrix.m[0][2] }),
+		Math::Length(Vector3{ worldMatrix.m[1][0], worldMatrix.m[1][1], worldMatrix.m[1][2] }),
+		Math::Length(Vector3{ worldMatrix.m[2][0], worldMatrix.m[2][1], worldMatrix.m[2][2] }),
+		});
+	modelDrawer_->AddModel(
+		model.resource_, animator.resource_, worldMatrix,
+		Math::Transpose(Math::Inverse(worldMatrix)), color, worldMaximumScale,
+		Math::Determinant(worldMatrix) < 0.0f ? -1.0f : 1.0f,
+		options.debugDraw.showMeshletColors, options.enableNormalMap, options.normalScale,
+		options.metallicScale, options.roughnessScale, options.occlusionStrength, options.unlit);
 }
 
 void Renderer3D::ApplyMaterial(InstanceData3D& instance, const Material3D& material) {

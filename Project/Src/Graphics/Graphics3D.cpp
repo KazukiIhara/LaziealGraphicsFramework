@@ -281,6 +281,16 @@ void LGF::Graphics3D::Draw(const Model& model, const Matrix4x4& worldMatrix, con
 	g_renderer3D->AddModel(model, worldMatrix, color, options);
 }
 
+void LGF::Graphics3D::Draw(
+	const Model& model,
+	const ModelAnimator& animator,
+	const Matrix4x4& worldMatrix,
+	const Vector4& color,
+	const ModelDrawOptions& options) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddModel(model, animator, worldMatrix, color, options);
+}
+
 void LGF::Graphics3D::Draw(const Triangle3D& shape, const Matrix4x4& worldMatrix, const Material3D& material) {
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddTriangle(shape, worldMatrix, material);

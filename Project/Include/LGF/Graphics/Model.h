@@ -3,6 +3,9 @@
 #include <filesystem>
 #include <memory>
 #include <span>
+#include <string>
+#include <string_view>
+#include <vector>
 
 #include "LGF/Math/MathUtils.h"
 #include "LGF/Math/Vector4.h"
@@ -35,10 +38,12 @@ namespace LGF {
 	};
 
 	struct ModelResource;
+	struct ModelAnimatorResource;
 	class Renderer3D;
+	class ModelAnimator;
 
 	/// <summary>
-	/// ファイルから読み込んだ静的3Dモデル
+	/// ファイルから読み込んだ3Dモデル
 	/// </summary>
 	class Model {
 	public:
@@ -50,9 +55,19 @@ namespace LGF {
 			const Matrix4x4& worldMatrix = Math::Identity4x4(),
 			const ModelDrawOptions& options = {}
 		) const;
+		void Draw(
+			const Matrix4x4& worldMatrix,
+			const ModelAnimator& animator,
+			const ModelDrawOptions& options = {}
+		) const;
 
 		void DrawInstanced(
 			std::span<const ModelInstance3D> instances,
+			const ModelDrawOptions& options = {}
+		) const;
+		void DrawInstanced(
+			std::span<const ModelInstance3D> instances,
+			const ModelAnimator& animator,
 			const ModelDrawOptions& options = {}
 		) const;
 
@@ -61,9 +76,41 @@ namespace LGF {
 
 	private:
 		friend class Renderer3D;
+		friend class ModelAnimator;
 
 		std::shared_ptr<ModelResource> resource_;
 		std::filesystem::path filePath_;
+	};
+
+	struct ModelAnimationPlayOptions {
+		bool loop = true;
+		float playbackSpeed = 1.0f;
+		float fadeDuration = 0.0f;
+	};
+
+	/// <summary>
+	/// Modelごとのアニメーション再生状態。同じModelAnimatorを使った描画は同じ姿勢としてまとめられる。
+	/// </summary>
+	class ModelAnimator {
+	public:
+		ModelAnimator() = default;
+		explicit ModelAnimator(const Model& model);
+		~ModelAnimator();
+
+		bool Play(std::string_view animationName, const ModelAnimationPlayOptions& options = {});
+		void Stop();
+		void Update(float deltaTime);
+
+		std::vector<std::string> GetAnimationNames() const;
+		std::string_view GetCurrentAnimationName() const;
+		bool IsPlaying() const;
+		bool IsValid() const;
+
+	private:
+		friend class Model;
+		friend class Renderer3D;
+
+		std::shared_ptr<ModelAnimatorResource> resource_;
 	};
 
 }

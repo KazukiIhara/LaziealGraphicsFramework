@@ -4,6 +4,10 @@
 #include <cstring>
 #include <filesystem>
 #include <format>
+#include <functional>
+#include <cmath>
+#include <limits>
+#include <ranges>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -22,6 +26,7 @@
 #include "Graphics/DirectX/ViewManagers/SRVUAVManager/SRVUAVManager.h"
 #include "Graphics/Texture/TextureManager.h"
 #include "LGF/Graphics/Texture.h"
+#include "LGF/Math/MathUtils.h"
 #include "ModelResource.h"
 
 using namespace LGF;
@@ -117,6 +122,38 @@ namespace {
 	static_assert(sizeof(DirectX::MeshletTriangle) == sizeof(uint32_t));
 	static_assert(sizeof(DirectX::CullData) == 24);
 
+	Matrix4x4 ConvertMatrix(const aiMatrix4x4& matrix) {
+		return { {
+			{ matrix.a1, matrix.b1, matrix.c1, matrix.d1 },
+			{ matrix.a2, matrix.b2, matrix.c2, matrix.d2 },
+			{ matrix.a3, matrix.b3, matrix.c3, matrix.d3 },
+			{ matrix.a4, matrix.b4, matrix.c4, matrix.d4 },
+		} };
+	}
+
+	ModelNodeTransform ConvertTransform(const aiMatrix4x4& matrix) {
+		aiVector3D scale;
+		aiQuaternion rotation;
+		aiVector3D translation;
+		matrix.Decompose(scale, rotation, translation);
+		return {
+			.scale = { scale.x, scale.y, scale.z },
+			.rotation = { rotation.x, rotation.y, rotation.z, rotation.w },
+			.translation = { translation.x, translation.y, translation.z },
+		};
+	}
+
+	bool NearlyEqual(const Matrix4x4& a, const Matrix4x4& b) {
+		for (size_t row = 0; row < 4; ++row) {
+			for (size_t column = 0; column < 4; ++column) {
+				if (std::abs(a.m[row][column] - b.m[row][column]) > 1.0e-4f) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 }
 
 ModelManager::ModelManager(DirectXCore& directX, TextureManager& textureManager) :
@@ -151,7 +188,6 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::filesystem::path& f
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_GenSmoothNormals |
 		aiProcess_CalcTangentSpace |
-		aiProcess_PreTransformVertices |
 		aiProcess_ImproveCacheLocality |
 		aiProcess_ConvertToLeftHanded |
 		aiProcess_ValidateDataStructure;
@@ -163,10 +199,49 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::filesystem::path& f
 			importer.GetErrorString()));
 	}
 
+	bool hasRig = false;
+	for (uint32_t meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex) {
+		hasRig |= scene->mMeshes[meshIndex] && scene->mMeshes[meshIndex]->HasBones();
+	}
+	if (!hasRig) {
+		scene = importer.ApplyPostProcessing(aiProcess_PreTransformVertices);
+		if (!scene) {
+			throw std::runtime_error(std::format(
+				"Model '{}': static vertex pre-transform failed: {}",
+				debugName,
+				importer.GetErrorString()));
+		}
+	}
+
 	auto model = std::make_shared<ModelResource>();
 	model->filePath = filePath;
 	model->meshes.reserve(scene->mNumMeshes);
 	uint32_t meshletIndexOffset = 0;
+	std::unordered_map<std::string, uint32_t> nodeIndices;
+	std::unordered_map<std::string, uint32_t> boneIndices;
+	if (hasRig) {
+		model->rig.emplace();
+		std::function<void(const aiNode*, int32_t)> loadNode =
+			[&](const aiNode* sourceNode, int32_t parentIndex) {
+				const std::string name = sourceNode->mName.C_Str();
+				if (nodeIndices.contains(name)) {
+					throw std::runtime_error(std::format(
+						"Model '{}': animated node name '{}' is duplicated.", debugName, name));
+				}
+				const uint32_t nodeIndex = static_cast<uint32_t>(model->rig->nodes.size());
+				nodeIndices.emplace(name, nodeIndex);
+				model->rig->nodes.push_back({
+					.name = name,
+					.parentIndex = parentIndex,
+					.bindTransform = ConvertTransform(sourceNode->mTransformation),
+				});
+				for (uint32_t childIndex = 0; childIndex < sourceNode->mNumChildren; ++childIndex) {
+					loadNode(sourceNode->mChildren[childIndex], static_cast<int32_t>(nodeIndex));
+				}
+			};
+		loadNode(scene->mRootNode, -1);
+		model->rig->inverseRootMatrix = Math::Inverse(ConvertMatrix(scene->mRootNode->mTransformation));
+	}
 
 	for (uint32_t meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex) {
 		const aiMesh* sourceMesh = scene->mMeshes[meshIndex];
@@ -181,6 +256,7 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::filesystem::path& f
 		}
 
 		std::vector<ModelVertex> vertices(sourceMesh->mNumVertices);
+		std::vector<ModelVertexInfluence> influences(sourceMesh->mNumVertices);
 		for (uint32_t vertexIndex = 0; vertexIndex < sourceMesh->mNumVertices; ++vertexIndex) {
 			const aiVector3D& position = sourceMesh->mVertices[vertexIndex];
 			const aiVector3D& normal = sourceMesh->mNormals[vertexIndex];
@@ -216,6 +292,66 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::filesystem::path& f
 				.uv = { uv.x, uv.y },
 				.tangent = tangent,
 			};
+		}
+
+		if (hasRig) {
+			std::vector<std::vector<std::pair<uint32_t, float>>> vertexWeights(sourceMesh->mNumVertices);
+			for (uint32_t sourceBoneIndex = 0; sourceBoneIndex < sourceMesh->mNumBones; ++sourceBoneIndex) {
+				const aiBone* sourceBone = sourceMesh->mBones[sourceBoneIndex];
+				const std::string boneName = sourceBone->mName.C_Str();
+				const auto nodeIt = nodeIndices.find(boneName);
+				if (nodeIt == nodeIndices.end()) {
+					throw std::runtime_error(std::format(
+						"Model '{}': bone '{}' has no matching node.", debugName, boneName));
+				}
+				uint32_t boneIndex = 0;
+				if (const auto it = boneIndices.find(boneName); it != boneIndices.end()) {
+					boneIndex = it->second;
+					if (!NearlyEqual(
+						model->rig->bones[boneIndex].inverseBindMatrix,
+						ConvertMatrix(sourceBone->mOffsetMatrix))) {
+						throw std::runtime_error(std::format(
+							"Model '{}': bone '{}' uses different inverse bind matrices across meshes.",
+							debugName,
+							boneName));
+					}
+				} else {
+					boneIndex = static_cast<uint32_t>(model->rig->bones.size());
+					boneIndices.emplace(boneName, boneIndex);
+					model->rig->bones.push_back({
+						.nodeIndex = nodeIt->second,
+						.inverseBindMatrix = ConvertMatrix(sourceBone->mOffsetMatrix),
+					});
+				}
+				for (uint32_t weightIndex = 0; weightIndex < sourceBone->mNumWeights; ++weightIndex) {
+					const aiVertexWeight& weight = sourceBone->mWeights[weightIndex];
+					if (weight.mVertexId < vertexWeights.size() && weight.mWeight > 0.0f) {
+						vertexWeights[weight.mVertexId].emplace_back(boneIndex + 1u, weight.mWeight);
+					}
+				}
+			}
+			for (uint32_t vertexIndex = 0; vertexIndex < sourceMesh->mNumVertices; ++vertexIndex) {
+				auto& weights = vertexWeights[vertexIndex];
+				std::ranges::sort(
+					weights,
+					std::ranges::less{},
+					&std::pair<uint32_t, float>::second);
+				std::ranges::reverse(weights);
+				float totalWeight = 0.0f;
+				const size_t influenceCount = std::min<size_t>(weights.size(), 4);
+				for (size_t influenceIndex = 0; influenceIndex < influenceCount; ++influenceIndex) {
+					influences[vertexIndex].boneIndices[influenceIndex] = weights[influenceIndex].first;
+					influences[vertexIndex].weights[influenceIndex] = weights[influenceIndex].second;
+					totalWeight += weights[influenceIndex].second;
+				}
+				if (totalWeight > 0.0f) {
+					for (float& weight : influences[vertexIndex].weights) {
+						weight /= totalWeight;
+					}
+				} else {
+					influences[vertexIndex].weights[0] = 1.0f;
+				}
+			}
 		}
 
 		std::vector<uint32_t> indices;
@@ -301,6 +437,10 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::filesystem::path& f
 		mesh.meshletVertexIndexResource = CreateUploadBuffer(directX_, meshletVertexIndices);
 		mesh.meshletPrimitiveResource = CreateUploadBuffer(directX_, meshletPrimitives);
 		mesh.meshletCullDataResource = CreateUploadBuffer(directX_, meshletCullData);
+		mesh.vertexCount = static_cast<uint32_t>(vertices.size());
+		if (hasRig) {
+			mesh.influenceResource = CreateUploadBuffer(directX_, influences);
+		}
 		mesh.meshletCount = static_cast<uint32_t>(meshlets.size());
 		mesh.meshletIndexOffset = meshletIndexOffset;
 		meshletIndexOffset += mesh.meshletCount;
@@ -325,6 +465,17 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::filesystem::path& f
 			mesh.vertexResource.Get(),
 			static_cast<uint32_t>(vertices.size()),
 			static_cast<UINT>(sizeof(ModelVertex)));
+		if (hasRig) {
+			if (!views->IsLowerViewMax()) {
+				throw std::runtime_error("Model descriptor heap is full.");
+			}
+			mesh.influenceSrvIndex = views->Allocate();
+			views->CreateSrvStructuredBuffer(
+				mesh.influenceSrvIndex,
+				mesh.influenceResource.Get(),
+				static_cast<uint32_t>(influences.size()),
+				static_cast<UINT>(sizeof(ModelVertexInfluence)));
+		}
 
 		if (!views->IsLowerViewMax()) {
 			throw std::runtime_error("Model descriptor heap is full.");
@@ -463,6 +614,52 @@ std::shared_ptr<ModelResource> ModelManager::Load(const std::filesystem::path& f
 		}
 
 		model->meshes.push_back(std::move(mesh));
+	}
+
+	if (hasRig) {
+		for (uint32_t animationIndex = 0; animationIndex < scene->mNumAnimations; ++animationIndex) {
+			const aiAnimation* sourceAnimation = scene->mAnimations[animationIndex];
+			const double ticksPerSecond = sourceAnimation->mTicksPerSecond > 0.0
+				? sourceAnimation->mTicksPerSecond
+				: 25.0;
+			ModelAnimationClip clip{};
+			clip.name = sourceAnimation->mName.length > 0
+				? sourceAnimation->mName.C_Str()
+				: std::format("Animation{}", animationIndex);
+			clip.duration = static_cast<float>(sourceAnimation->mDuration / ticksPerSecond);
+			clip.tracks.reserve(sourceAnimation->mNumChannels);
+			for (uint32_t channelIndex = 0; channelIndex < sourceAnimation->mNumChannels; ++channelIndex) {
+				const aiNodeAnim* sourceTrack = sourceAnimation->mChannels[channelIndex];
+				const auto nodeIt = nodeIndices.find(sourceTrack->mNodeName.C_Str());
+				if (nodeIt == nodeIndices.end()) {
+					continue;
+				}
+				ModelAnimationTrack track{ .nodeIndex = nodeIt->second };
+				for (uint32_t i = 0; i < sourceTrack->mNumScalingKeys; ++i) {
+					const auto& key = sourceTrack->mScalingKeys[i];
+					track.scales.push_back({ static_cast<float>(key.mTime / ticksPerSecond), { key.mValue.x, key.mValue.y, key.mValue.z } });
+				}
+				for (uint32_t i = 0; i < sourceTrack->mNumRotationKeys; ++i) {
+					const auto& key = sourceTrack->mRotationKeys[i];
+					track.rotations.push_back({ static_cast<float>(key.mTime / ticksPerSecond), { key.mValue.x, key.mValue.y, key.mValue.z, key.mValue.w } });
+				}
+				for (uint32_t i = 0; i < sourceTrack->mNumPositionKeys; ++i) {
+					const auto& key = sourceTrack->mPositionKeys[i];
+					track.translations.push_back({
+						static_cast<float>(key.mTime / ticksPerSecond),
+						{ key.mValue.x, key.mValue.y, key.mValue.z },
+					});
+				}
+				clip.tracks.push_back(std::move(track));
+			}
+			const std::string baseName = clip.name;
+			uint32_t duplicateIndex = 1;
+			while (model->rig->animationIndices.contains(clip.name)) {
+				clip.name = std::format("{}#{}", baseName, duplicateIndex++);
+			}
+			model->rig->animationIndices.emplace(clip.name, model->rig->animations.size());
+			model->rig->animations.push_back(std::move(clip));
+		}
 	}
 
 	if (model->meshes.empty()) {
