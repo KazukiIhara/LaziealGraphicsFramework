@@ -14,6 +14,7 @@
 #include "LGF/Graphics/Skybox.h"
 #include "LGF/Graphics/SphericalCap3D.h"
 #include "LGF/Graphics/SphericalShellCap3D.h"
+#include "LGF/Graphics/UIPanel3D.h"
 
 namespace {
 	LGF::DirectXCore* g_directX = nullptr;
@@ -223,6 +224,18 @@ void LGF::Graphics3D::Draw(const Plane3D& plane, const Matrix4x4& worldMatrix, c
 		plane,
 		worldMatrix,
 		Material3D{ .color = color }
+	);
+}
+
+void LGF::Graphics3D::Draw(const UIPanel3D& panel, const Matrix4x4& worldMatrix, const Vector4& color) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->AddUIPanel(
+		panel,
+		worldMatrix,
+		Material3D{
+			.color = color,
+			.unlit = true,
+		}
 	);
 }
 

@@ -54,6 +54,10 @@ namespace LGF {
 		void SetCullingScene() const;
 		void SetShadowScene() const;
 		void DrawDebug(const Camera3DDebugDraw& debugDraw = {}) const;
+		/// <summary>
+		/// スクリーン座標と0.0から1.0の深度を3D空間の座標へ変換
+		/// </summary>
+		Vector3 ScreenToWorld(const Vector2& screenPosition, float depth) const;
 
 	public:
 		Vector3 translation{};

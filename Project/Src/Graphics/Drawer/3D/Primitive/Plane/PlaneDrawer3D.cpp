@@ -1,6 +1,7 @@
 #include "PlaneDrawer3D.h"
 
 #include <cassert>
+#include <utility>
 
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
@@ -11,8 +12,9 @@
 
 using namespace LGF;
 
-PlaneDrawer3D::PlaneDrawer3D(Graphics3DContext context) :
-	BaseDrawer3D(context) {
+PlaneDrawer3D::PlaneDrawer3D(Graphics3DContext context, std::string pipelineName) :
+	BaseDrawer3D(context),
+	pipelineName_(std::move(pipelineName)) {
 }
 
 PlaneDrawer3D::~PlaneDrawer3D() = default;
@@ -25,7 +27,7 @@ void PlaneDrawer3D::Initialize() {
 	};
 	BaseDrawer::Initialize(initParam);
 
-	SetPipeline(GetContext().pipelineMgr.GetPipeline("Plane3D"));
+	SetPipeline(GetContext().pipelineMgr.GetPipeline(pipelineName_));
 	assert(GetPipeline() != nullptr);
 }
 

@@ -45,6 +45,7 @@ namespace LGF {
 	class Model;
 	struct ModelDrawOptions;
 	class Plane3D;
+	class UIPanel3D;
 	class Sphere3D;
 	class SphericalCap3D;
 	class SphericalShellCap3D;
@@ -88,6 +89,7 @@ namespace LGF {
 		void AddCylinder(const Cylinder3D& cylinder, const Matrix4x4& worldMatrix, const Material3D& material);
 		void AddLine(const Line3D& line, const Matrix4x4& worldMatrix, const Material3D& material);
 		void AddPlane(const Plane3D& plane, const Matrix4x4& worldMatrix, const Material3D& material);
+		void AddUIPanel(const UIPanel3D& panel, const Matrix4x4& worldMatrix, const Material3D& material);
 		void AddGround(const Ground3D& ground, const Matrix4x4& worldMatrix, const Material3D& material);
 		void AddSphere(const Sphere3D& sphere, const Matrix4x4& worldMatrix, const Material3D& material);
 		void AddSphericalCap(const SphericalCap3D& sphericalCap, const Matrix4x4& worldMatrix, const Material3D& material);
@@ -111,6 +113,7 @@ namespace LGF {
 		std::unique_ptr<MeshletBoundsDrawer3D> meshletBoundsDrawer_;
 		std::unique_ptr<ModelDrawer3D> modelDrawer_;
 		std::unique_ptr<PlaneDrawer3D> planeDrawer_;
+		std::unique_ptr<PlaneDrawer3D> uiPanelDrawer_;
 		std::unique_ptr<ParticleDrawer3D> particleDrawer_;
 		std::unique_ptr<GpuParticleDrawer3D> gpuParticleDrawer_;
 		std::unique_ptr<FontDrawer3D> fontDrawer_;

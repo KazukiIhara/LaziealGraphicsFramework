@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "Graphics/Drawer/3D/Base/BaseDrawer3D.h"
 
 #include "LGF/Math/Vector3.h"
@@ -13,7 +15,7 @@ namespace LGF {
 
 	class PlaneDrawer3D :public BaseDrawer3D {
 	public:
-		PlaneDrawer3D(Graphics3DContext context);
+		PlaneDrawer3D(Graphics3DContext context, std::string pipelineName = "Plane3D");
 		~PlaneDrawer3D()override;
 
 		void Initialize()override;
@@ -23,6 +25,7 @@ namespace LGF {
 		void AddPlane(const Plane3DForGPU& data);
 
 	private:
+		std::string pipelineName_;
 		Plane3DForGPU* instanceData_ = nullptr;
 
 	};

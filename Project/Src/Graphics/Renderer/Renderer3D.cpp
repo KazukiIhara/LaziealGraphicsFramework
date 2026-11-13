@@ -39,6 +39,7 @@
 #include "LGF/Graphics/SphericalCap3D.h"
 #include "LGF/Graphics/SphericalShellCap3D.h"
 #include "LGF/Graphics/Triangle3D.h"
+#include "LGF/Graphics/UIPanel3D.h"
 
 #include "Graphics/Model/ModelResource.h"
 
@@ -84,6 +85,8 @@ bool Renderer3D::Initialize() {
 	modelDrawer_->Initialize();
 	planeDrawer_ = std::make_unique<PlaneDrawer3D>(context_);
 	planeDrawer_->Initialize();
+	uiPanelDrawer_ = std::make_unique<PlaneDrawer3D>(context_, "UIPanel3D");
+	uiPanelDrawer_->Initialize();
 	sphereDrawer_ = std::make_unique<SphereDrawer3D>(context_);
 	sphereDrawer_->Initialize();
 	sphericalCapDrawer_ = std::make_unique<SphericalCapDrawer3D>(context_);
@@ -102,6 +105,7 @@ bool Renderer3D::Initialize() {
 	drawerList_.push_back(modelDrawer_.get());
 	drawerList_.push_back(meshletBoundsDrawer_.get());
 	drawerList_.push_back(planeDrawer_.get());
+	drawerList_.push_back(uiPanelDrawer_.get());
 	drawerList_.push_back(sphereDrawer_.get());
 	drawerList_.push_back(sphericalCapDrawer_.get());
 	drawerList_.push_back(sphericalShellCapDrawer_.get());
@@ -363,6 +367,28 @@ void Renderer3D::AddPlane(const Plane3D& plane, const Matrix4x4& worldMatrix, co
 	data.vertexOffsets[3] = { halfWidth,  halfHeight, 0.0f };
 
 	planeDrawer_->AddPlane(data);
+}
+
+void Renderer3D::AddUIPanel(
+	const UIPanel3D& panel,
+	const Matrix4x4& worldMatrix,
+	const Material3D& material) {
+	Plane3DForGPU data{};
+
+	data.instance.worldMatrix = worldMatrix;
+	data.instance.worldInverseTranspose =
+		Math::Transpose(Math::Inverse(data.instance.worldMatrix));
+
+	ApplyMaterial(data.instance, material);
+
+	const float halfWidth = panel.width * 0.5f;
+	const float halfHeight = panel.height * 0.5f;
+	data.vertexOffsets[0] = { -halfWidth, -halfHeight, 0.0f };
+	data.vertexOffsets[1] = { halfWidth, -halfHeight, 0.0f };
+	data.vertexOffsets[2] = { -halfWidth, halfHeight, 0.0f };
+	data.vertexOffsets[3] = { halfWidth, halfHeight, 0.0f };
+
+	uiPanelDrawer_->AddPlane(data);
 }
 
 void Renderer3D::AddGround(const Ground3D& ground, const Matrix4x4& worldMatrix, const Material3D& material) {

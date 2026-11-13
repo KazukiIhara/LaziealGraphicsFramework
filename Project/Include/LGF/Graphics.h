@@ -32,6 +32,7 @@
 #include "LGF/Graphics/Ground3D.h"
 #include "LGF/Graphics/Line3D.h"
 #include "LGF/Graphics/Plane3D.h"
+#include "LGF/Graphics/UIPanel3D.h"
 #include "LGF/Graphics/Sphere3D.h"
 #include "LGF/Graphics/SphericalCap3D.h"
 #include "LGF/Graphics/SphericalShellCap3D.h"

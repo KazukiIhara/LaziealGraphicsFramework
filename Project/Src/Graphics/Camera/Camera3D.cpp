@@ -76,3 +76,36 @@ void Camera3D::DrawDebug(const Camera3DDebugDraw& debugDraw) const {
 		}
 	}
 }
+
+Vector3 Camera3D::ScreenToWorld(const Vector2& screenPosition, float depth) const {
+	const float windowWidth = static_cast<float>(Graphics3D::GetWindowWidth());
+	const float windowHeight = static_cast<float>(Graphics3D::GetWindowHeight());
+	if (windowWidth <= 0.0f || windowHeight <= 0.0f) {
+		return translation;
+	}
+
+	const Quaternion rotation =
+		Math::MakeQuaternion(Vector3{ pitch, yaw, 0.0f });
+	const Matrix4x4 worldMatrix = Math::MakeAffineMatrix(
+		{ 1.0f, 1.0f, 1.0f },
+		rotation,
+		translation);
+	const Matrix4x4 viewMatrix = Math::Inverse(worldMatrix);
+	const float aspectRatio = param.useWindowAspectRatio
+		? windowWidth / windowHeight
+		: param.aspectRatio;
+	const Matrix4x4 projectionMatrix = Math::MakePerspectiveFovMatrix(
+		param.fovY,
+		aspectRatio,
+		param.nearClip,
+		param.farClip);
+	const Matrix4x4 inverseViewProjection =
+		Math::Inverse(viewMatrix * projectionMatrix);
+
+	const Vector3 normalizedDeviceCoordinate{
+		screenPosition.x / windowWidth * 2.0f - 1.0f,
+		1.0f - screenPosition.y / windowHeight * 2.0f,
+		depth,
+	};
+	return Math::Transform(normalizedDeviceCoordinate, inverseViewProjection);
+}

@@ -25,6 +25,7 @@ namespace LGF {
 	class Model;
 	struct ModelDrawOptions;
 	class Plane3D;
+	class UIPanel3D;
 	class Sphere3D;
 	class SphericalCap3D;
 	class SphericalShellCap3D;
@@ -60,6 +61,7 @@ namespace LGF {
 		void Draw(const Cylinder3D& cylinder, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
 		void Draw(const Line3D& line, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
 		void Draw(const Plane3D& plane, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
+		void Draw(const UIPanel3D& panel, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
 		void Draw(const Ground3D& ground, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
 		void Draw(const Sphere3D& sphere, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
 		void Draw(const SphericalCap3D& sphericalCap, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
