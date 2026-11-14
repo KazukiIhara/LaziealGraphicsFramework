@@ -14,6 +14,7 @@ struct MeshletBoundsData
 };
 
 ConstantBuffer<CameraData3D> gCamera : register(b0);
+ConstantBuffer<DrawRangeData> gDrawRange : register(b4);
 StructuredBuffer<MeshletBoundsData> gMeshletBounds : register(t0);
 
 float3 MakeRingPosition(uint ringIndex, float angle)
@@ -39,9 +40,9 @@ void main(
     out vertices MSOutput3D outputVertices[kVertexCount],
     out indices uint2 outputLines[kLineCount])
 {
+    const MeshletBoundsData bounds =
+        gMeshletBounds[gDrawRange.instanceOffset + dispatchThreadId.x];
     SetMeshOutputCounts(kVertexCount, kLineCount);
-
-    const MeshletBoundsData bounds = gMeshletBounds[dispatchThreadId.x];
 
     [unroll]
     for (uint ringIndex = 0; ringIndex < kRingCount; ++ringIndex)

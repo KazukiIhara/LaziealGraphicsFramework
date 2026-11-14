@@ -48,6 +48,7 @@ namespace LGF {
 		ID3D12Resource* GetResource() const;
 		D3D12_CPU_DESCRIPTOR_HANDLE GetRTVHandleCPU() const;
 		D3D12_GPU_DESCRIPTOR_HANDLE GetSRVHandleGPU() const;
+		uint32_t GetSRVIndex() const;
 
 		uint32_t GetWidth() const;
 		uint32_t GetHeight() const;

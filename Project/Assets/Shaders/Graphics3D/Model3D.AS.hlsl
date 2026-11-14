@@ -64,7 +64,8 @@ void main(
         {
             StructuredBuffer<MeshletCullData> cullDataBuffer =
                 ResourceDescriptorHeap[gCullingModel.meshletCullDataBufferIndex];
-            isVisible = IsVisible(cullDataBuffer[meshletIndex], instanceBuffer[instanceIndex]);
+            isVisible = isVisible &&
+                IsVisible(cullDataBuffer[meshletIndex], instanceBuffer[instanceIndex]);
         }
         if (isVisible)
         {

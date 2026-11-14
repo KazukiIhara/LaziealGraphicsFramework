@@ -1,6 +1,7 @@
 #include "LGF/Graphics/Graphics3D.h"
 
 #include <cassert>
+#include <stdexcept>
 
 #include "Graphics3DInternal.h"
 #include "Graphics/DirectX/Core/DirectXCore.h"
@@ -15,6 +16,7 @@
 #include "LGF/Graphics/SphericalCap3D.h"
 #include "LGF/Graphics/SphericalShellCap3D.h"
 #include "LGF/Graphics/UIPanel3D.h"
+#include "LGF/Graphics/RenderTargetTexture.h"
 
 namespace {
 	LGF::DirectXCore* g_directX = nullptr;
@@ -77,6 +79,30 @@ void LGF::Graphics3D::Internal::SetRenderer3D(Renderer3D* renderer) {
 
 void LGF::Graphics3D::Internal::ResetRenderer3D() {
 	g_renderer3D = nullptr;
+}
+
+std::shared_ptr<LGF::RenderPassTargetResource> LGF::Graphics3D::Internal::CreateRenderTarget(
+	const RenderTargetTextureDesc& desc,
+	Texture& texture) {
+	if (!g_renderer3D) {
+		throw std::runtime_error("RenderTargetTexture must be created after framework initialization.");
+	}
+	return g_renderer3D->CreateRenderTarget(desc, texture);
+}
+
+void LGF::Graphics3D::BeginRenderPass(RenderTargetTexture& renderTarget) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->BeginRenderPass(renderTarget, nullptr);
+}
+
+void LGF::Graphics3D::BeginRenderPass(RenderTargetTexture& renderTarget, const Camera3D& camera) {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->BeginRenderPass(renderTarget, &camera);
+}
+
+void LGF::Graphics3D::EndRenderPass() {
+	assert(g_renderer3D != nullptr);
+	g_renderer3D->EndRenderPass();
 }
 
 void LGF::Graphics3D::Internal::DrawFont(

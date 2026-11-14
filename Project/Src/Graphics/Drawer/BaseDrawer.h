@@ -3,12 +3,15 @@
 #include <array>
 #include <cstdint>
 #include <d3d12.h>
+#include <vector>
+#include <cstddef>
 
 #include "Graphics/DirectX/FrameContext/FrameContext.h"
 
 #include "Graphics/DirectX/ComPtr/ComPtr.h"
 
 #include "IDrawer.h"
+#include "Graphics/RenderPass/RenderPassTypes.h"
 
 namespace LGF {
 
@@ -67,6 +70,11 @@ namespace LGF {
 		/// </summary>
 		void CreateInstanceResources(unsigned long long resSize, void** data);
 
+		void AddInstance(const void* data, uint32_t renderPassIndex);
+		void PrepareRenderPassInstances();
+		RenderPassInstanceRange GetRenderPassInstanceRange(uint32_t renderPassIndex) const;
+		D3D12_GPU_VIRTUAL_ADDRESS GetDrawRangeAddress(uint32_t renderPassIndex) const;
+
 	protected:
 		// インスタンシング描画用のリソース
 		FrameBufferedUploadBuffer instanceResources_;
@@ -83,6 +91,11 @@ namespace LGF {
 
 		// インスタンス最大数
 		uint32_t numMaxInstance_{};
+		uint32_t instanceStride_{};
+		std::vector<uint32_t> instanceRenderPassIndices_;
+		std::vector<std::byte> sortedInstanceData_;
+		std::array<RenderPassInstanceRange, kMaxRenderPassCount> renderPassRanges_{};
+		FrameBufferedUploadBuffer drawRangeResources_;
 
 	private:
 		DirectXCore& directX_;

@@ -2,6 +2,7 @@
 
 struct BoxData { InstanceData3D instData; float3 halfSize; float padding; };
 ConstantBuffer<CameraData3D> gCamera : register(b0);
+ConstantBuffer<DrawRangeData> gDrawRange : register(b4);
 StructuredBuffer<BoxData> gBox : register(t0);
 
 [outputtopology("triangle")]
@@ -9,8 +10,8 @@ StructuredBuffer<BoxData> gBox : register(t0);
 void main(uint3 id : SV_DispatchThreadID,
     out vertices MSOutput3D vertices[24], out indices uint3 triangles[12])
 {
+    BoxData box = gBox[gDrawRange.instanceOffset + id.x];
     SetMeshOutputCounts(24, 12);
-    BoxData box = gBox[id.x];
     float3 corners[8] = {
         float3(-1,-1,-1), float3(1,-1,-1), float3(-1,1,-1), float3(1,1,-1),
         float3(-1,-1,1), float3(1,-1,1), float3(-1,1,1), float3(1,1,1)

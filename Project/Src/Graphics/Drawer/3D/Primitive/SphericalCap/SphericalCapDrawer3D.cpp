@@ -33,7 +33,8 @@ void SphericalCapDrawer3D::Initialize() {
 }
 
 void SphericalCapDrawer3D::EndFrame() {
-	if (CheckIntstanceCount() == 0) {
+	const RenderPassInstanceRange range = GetCurrentRenderPassRange();
+	if (range.count == 0u) {
 		return;
 	}
 
@@ -42,15 +43,14 @@ void SphericalCapDrawer3D::EndFrame() {
 	commandList->SetPipelineState(GetPipeline()->GetPipelineState());
 
 	GetContext().cameraSys.Bind(commandList, GetPipeline()->GetRootIndex("gCamera"));
+	BindDrawRange(GetPipeline());
 	commandList->SetGraphicsRootDescriptorTable(
 		GetPipeline()->GetRootIndex("gSphericalCap"),
 		GetContext().directX.GetResMgr().srvuav->GetGPUDescriptorHandle(instanceSrvIndex_));
 
-	commandList->DispatchMesh(instanceCount_ * GetMeshletCountPerInstance(), 1, 1);
+	commandList->DispatchMesh(range.count * GetMeshletCountPerInstance(), 1, 1);
 }
 
 void SphericalCapDrawer3D::AddSphericalCap(const SphericalCap3DForGPU& data) {
-	assert(currentIndex_ < numMaxInstance_);
-	instanceData_[currentIndex_] = data;
-	++currentIndex_;
+	AddInstance(&data);
 }

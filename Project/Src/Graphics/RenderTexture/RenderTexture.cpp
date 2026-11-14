@@ -88,6 +88,10 @@ D3D12_GPU_DESCRIPTOR_HANDLE RenderTexture::GetSRVHandleGPU() const {
 	return srvUavManager_.GetGPUDescriptorHandle(srvIndex_);
 }
 
+uint32_t RenderTexture::GetSRVIndex() const {
+	return srvIndex_;
+}
+
 uint32_t RenderTexture::GetWidth() const {
 	return desc_.width;
 }

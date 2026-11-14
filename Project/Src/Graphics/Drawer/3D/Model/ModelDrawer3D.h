@@ -23,6 +23,7 @@ namespace LGF {
 
 		void Initialize() override;
 		void BeginFrame() override;
+		void PrepareRenderPasses() override;
 		void EndFrame() override;
 		void DrawShadow(ShadowMapSystem& shadowMap);
 
@@ -40,7 +41,8 @@ namespace LGF {
 			float metallicScale,
 			float roughnessScale,
 			float occlusionStrength,
-			bool unlit
+			bool unlit,
+			uint32_t renderPassIndex
 		);
 
 	private:
@@ -62,11 +64,14 @@ namespace LGF {
 		struct ModelBatch {
 			std::shared_ptr<ModelResource> resource;
 			std::shared_ptr<ModelAnimatorResource> animator;
+			uint32_t renderPassIndex = 0u;
+			uint32_t instanceOffset = 0u;
 			std::vector<ModelInstanceData> instances;
 		};
 		struct ModelBatchKey {
 			const ModelResource* resource = nullptr;
 			const ModelAnimatorResource* animator = nullptr;
+			uint32_t renderPassIndex = 0u;
 			bool operator==(const ModelBatchKey&) const = default;
 		};
 		struct ModelBatchKeyHash {
@@ -83,6 +88,7 @@ namespace LGF {
 		std::vector<ModelBatch> batches_;
 		std::unordered_map<ModelBatchKey, size_t, ModelBatchKeyHash> batchIndices_;
 		uint32_t queuedInstanceCount_ = 0;
+		uint32_t drawDispatchIndex_ = 0u;
 		bool skinningPrepared_ = false;
 
 		void PrepareSkinning();

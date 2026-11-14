@@ -15,6 +15,7 @@ namespace LGF {
 	class DirectionalLight;
 	class PointLight;
 	class Skybox;
+	class RenderTargetTexture;
 
 	class Box3D;
 	class Capsule3D;
@@ -33,6 +34,12 @@ namespace LGF {
 	class Triangle3D;
 
 	namespace Graphics3D {
+		/// <summary>以降の3D描画を指定したレンダーターゲットへ記録する</summary>
+		void BeginRenderPass(RenderTargetTexture& renderTarget);
+		/// <summary>指定カメラを使用して3D描画をレンダーターゲットへ記録する</summary>
+		void BeginRenderPass(RenderTargetTexture& renderTarget, const Camera3D& camera);
+		/// <summary>カスタムRenderPassを終了し、通常の画面描画へ戻す</summary>
+		void EndRenderPass();
 
 		void DrawBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture);
 

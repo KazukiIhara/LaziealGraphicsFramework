@@ -32,7 +32,8 @@ void PlaneDrawer3D::Initialize() {
 }
 
 void PlaneDrawer3D::EndFrame() {
-	if (CheckIntstanceCount() == 0) {
+	const RenderPassInstanceRange range = GetCurrentRenderPassRange();
+	if (range.count == 0u) {
 		return;
 	}
 
@@ -42,14 +43,13 @@ void PlaneDrawer3D::EndFrame() {
 	commandList->SetPipelineState(GetPipeline()->GetPipelineState());
 
 	GetContext().cameraSys.Bind(commandList, GetPipeline()->GetRootIndex("gCamera"));
+	BindDrawRange(GetPipeline());
 
 	commandList->SetGraphicsRootDescriptorTable(GetPipeline()->GetRootIndex("gPlane"), GetContext().directX.GetResMgr().srvuav->GetGPUDescriptorHandle(instanceSrvIndex_));
 
-	commandList->DispatchMesh(instanceCount_, 1, 1);
+	commandList->DispatchMesh(range.count, 1, 1);
 }
 
 void PlaneDrawer3D::AddPlane(const Plane3DForGPU& data) {
-	assert(currentIndex_ < numMaxInstance_);
-	instanceData_[currentIndex_] = data;
-	++currentIndex_;
+	AddInstance(&data);
 }

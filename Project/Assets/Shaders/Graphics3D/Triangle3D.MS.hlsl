@@ -7,6 +7,7 @@ struct TriangleData
 };
 
 ConstantBuffer<CameraData3D> gCamera : register(b0);
+ConstantBuffer<DrawRangeData> gDrawRange : register(b4);
 StructuredBuffer<TriangleData> gTriangle : register(t0);
 
 [outputtopology("triangle")]
@@ -16,11 +17,10 @@ void main(
     out vertices MSOutput3D vertices[3],
     out indices uint3 triangles[1])
 {
+    // インデックスから三角形データを取得
+    TriangleData tri = gTriangle[gDrawRange.instanceOffset + DTid.x];
     // 三角形1枚分を出力
     SetMeshOutputCounts(3, 1);
-
-    // インデックスから三角形データを取得
-    TriangleData tri = gTriangle[DTid.x];
     float3 localNormal = normalize(cross(
         tri.vertexOffsets[1] - tri.vertexOffsets[0],
         tri.vertexOffsets[2] - tri.vertexOffsets[0]));

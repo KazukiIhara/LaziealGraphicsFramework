@@ -73,7 +73,8 @@ namespace {
 
 size_t ModelDrawer3D::ModelBatchKeyHash::operator()(const ModelBatchKey& key) const {
 	return std::hash<const void*>{}(key.resource) ^
-		(std::hash<const void*>{}(key.animator) << 1);
+		(std::hash<const void*>{}(key.animator) << 1) ^
+		(std::hash<uint32_t>{}(key.renderPassIndex) << 2);
 }
 
 ModelDrawer3D::ModelDrawer3D(Graphics3DContext context) :
@@ -111,6 +112,23 @@ void ModelDrawer3D::Initialize() {
 void ModelDrawer3D::BeginFrame() {
 	BaseDrawer::BeginFrame();
 	skinningPrepared_ = false;
+	batches_.clear();
+	batchIndices_.clear();
+	queuedInstanceCount_ = 0u;
+	drawDispatchIndex_ = 0u;
+}
+
+void ModelDrawer3D::PrepareRenderPasses() {
+	uint32_t instanceOffset = 0u;
+	for (ModelBatch& batch : batches_) {
+		batch.instanceOffset = instanceOffset;
+		std::memcpy(
+			instanceData_ + instanceOffset,
+			batch.instances.data(),
+			batch.instances.size() * sizeof(ModelInstanceData));
+		instanceOffset += static_cast<uint32_t>(batch.instances.size());
+	}
+	instanceCount_ = instanceOffset;
 }
 
 void ModelDrawer3D::EndFrame() {
@@ -120,9 +138,6 @@ void ModelDrawer3D::EndFrame() {
 	PrepareSkinning();
 	DrawBatches(GetPipeline(), nullptr);
 
-	batches_.clear();
-	batchIndices_.clear();
-	queuedInstanceCount_ = 0;
 }
 
 void ModelDrawer3D::DrawShadow(ShadowMapSystem& shadowMap) {
@@ -242,14 +257,12 @@ void ModelDrawer3D::DrawBatches(Pipeline* pipeline, ShadowMapSystem* shadowMap) 
 		GetContext().cameraSys.BindCulling(commandList, pipeline->GetRootIndex("gCullingCamera"));
 	}
 
-	uint32_t instanceOffset = 0;
-	uint32_t dispatchIndex = 0;
+	const uint32_t activeRenderPass = GetContext().cameraSys.GetActiveRenderPass();
 	for (const ModelBatch& batch : batches_) {
+		if (batch.renderPassIndex != activeRenderPass) {
+			continue;
+		}
 		const uint32_t instanceCount = static_cast<uint32_t>(batch.instances.size());
-		std::memcpy(
-			instanceData_ + instanceOffset,
-			batch.instances.data(),
-			batch.instances.size() * sizeof(ModelInstanceData));
 
 		for (size_t meshIndex = 0; meshIndex < batch.resource->meshes.size(); ++meshIndex) {
 			const ModelMeshResource& mesh = batch.resource->meshes[meshIndex];
@@ -258,7 +271,7 @@ void ModelDrawer3D::DrawBatches(Pipeline* pipeline, ShadowMapSystem* shadowMap) 
 			uint64_t baseWorkIndex = 0;
 
 			while (baseWorkIndex < workCount) {
-				if (dispatchIndex >= kMaxDispatchCount) {
+				if (drawDispatchIndex_ >= kMaxDispatchCount) {
 					throw std::runtime_error("Too many model mesh dispatches were submitted in one frame.");
 				}
 
@@ -287,7 +300,7 @@ void ModelDrawer3D::DrawBatches(Pipeline* pipeline, ShadowMapSystem* shadowMap) 
 				constants.roughnessFactor = mesh.roughnessFactor;
 				constants.occlusionStrength = mesh.occlusionStrength;
 				constants.instanceBufferIndex = instanceSrvIndex_;
-				constants.instanceOffset = instanceOffset;
+				constants.instanceOffset = batch.instanceOffset;
 				constants.instanceCount = instanceCount;
 				constants.meshletCount = mesh.meshletCount;
 				constants.meshletIndexOffset = mesh.meshletIndexOffset;
@@ -295,7 +308,7 @@ void ModelDrawer3D::DrawBatches(Pipeline* pipeline, ShadowMapSystem* shadowMap) 
 				constants.baseWorkIndexHigh = static_cast<uint32_t>(baseWorkIndex >> 32);
 
 				const size_t constantOffset =
-					static_cast<size_t>(dispatchIndex) * kConstantBufferStride;
+					static_cast<size_t>(drawDispatchIndex_) * kConstantBufferStride;
 				std::memcpy(
 					drawConstantData + constantOffset,
 					&constants,
@@ -313,10 +326,9 @@ void ModelDrawer3D::DrawBatches(Pipeline* pipeline, ShadowMapSystem* shadowMap) 
 				baseWorkIndex +=
 					static_cast<uint64_t>(amplificationGroupCount) *
 					kMeshletsPerAmplificationGroup;
-				++dispatchIndex;
+				++drawDispatchIndex_;
 			}
 		}
-		instanceOffset += instanceCount;
 	}
 
 }
@@ -335,7 +347,8 @@ void ModelDrawer3D::AddModel(
 	float metallicScale,
 	float roughnessScale,
 	float occlusionStrength,
-	bool unlit) {
+	bool unlit,
+	uint32_t renderPassIndex) {
 
 	if (!resource) {
 		throw std::invalid_argument("Model resource must not be null.");
@@ -347,12 +360,15 @@ void ModelDrawer3D::AddModel(
 	if (animator && animator->model.get() != resource.get()) {
 		throw std::invalid_argument("Model animator belongs to a different resource.");
 	}
-	const ModelBatchKey resourceKey{ resource.get(), animator.get() };
+	const ModelBatchKey resourceKey{ resource.get(), animator.get(), renderPassIndex };
 	const auto [batchIt, inserted] = batchIndices_.try_emplace(
 		resourceKey,
 		batches_.size());
 	if (inserted) {
-		batches_.push_back({ .resource = resource, .animator = animator });
+		batches_.push_back({
+			.resource = resource,
+			.animator = animator,
+			.renderPassIndex = renderPassIndex });
 	}
 
 	ModelBatch& batch = batches_[batchIt->second];

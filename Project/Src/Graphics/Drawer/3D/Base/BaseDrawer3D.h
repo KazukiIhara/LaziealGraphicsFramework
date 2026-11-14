@@ -60,6 +60,8 @@ namespace LGF {
 		virtual void EndFrame()override = 0;
 
 		void DrawShadow(Pipeline* pipeline, ShadowMapSystem& shadowMap, const char* instanceBufferName);
+		void SetRecordingRenderPass(uint32_t renderPassIndex);
+		virtual void PrepareRenderPasses();
 
 	protected:
 		/// <summary>
@@ -68,10 +70,14 @@ namespace LGF {
 		Graphics3DContext GetContext() const;
 
 		uint32_t GetMeshletCountPerInstance() const;
+		void AddInstance(const void* data);
+		RenderPassInstanceRange GetCurrentRenderPassRange() const;
+		void BindDrawRange(Pipeline* pipeline);
 
 	private:
 		Graphics3DContext context_;
 		uint32_t meshletCountPerInstance_ = 1u;
+		uint32_t recordingRenderPassIndex_ = 0u;
 	};
 
 }

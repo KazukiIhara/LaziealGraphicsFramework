@@ -1,6 +1,7 @@
 #include "GraphicsSystem.h"
 
 #include <filesystem>
+#include <stdexcept>
 
 #include "Core/Logger/Logger.h"
 #include "Graphics/DirectX/Core/DirectXCore.h"
@@ -26,6 +27,7 @@
 #include "Graphics/Graphics3DInternal.h"
 #include "Graphics/Graphics2DContext.h"
 #include "Graphics/Graphics2DInternal.h"
+#include "Graphics/RenderPass/RenderPassTargetResource.h"
 
 using namespace LGF;
 
@@ -252,6 +254,9 @@ void GraphicsSystem::EndFrame() {
 	if (!isFrameRenderable_) {
 		return;
 	}
+	if (renderer3D_->IsRenderPassActive()) {
+		throw std::logic_error("Graphics3D::EndRenderPass must be called before EndFrame.");
+	}
 
 	// ディスクリプターヒープセット
 	ID3D12GraphicsCommandList* commandList = directX_->GetCommandList();
@@ -261,10 +266,13 @@ void GraphicsSystem::EndFrame() {
 		directX_->GetResMgr().srvuav->GetDescriptorHeap()
 	};
 	commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	renderer3D_->InitializePendingRenderTargets();
 
 	camera3DSystem_->EndFrame();
+	camera3DSystem_->PrepareRenderPass(0u, camera3DSystem_->GetCamera());
 	directionalLightSystem_->EndFrame();
 	pointLightSystem_->EndFrame();
+	renderer3D_->PrepareRenderPasses();
 	shadowMapSystem_->Update(
 		camera3DSystem_->GetShadowCamera(),
 		directionalLightSystem_->GetLight());
@@ -275,6 +283,28 @@ void GraphicsSystem::EndFrame() {
 		renderer3D_->DrawShadow(*shadowMapSystem_);
 		shadowMapSystem_->EndShadowPass();
 	}
+	for (uint32_t renderPassIndex = 1u;
+		renderPassIndex <= renderer3D_->GetRenderPassCount();
+		++renderPassIndex) {
+		camera3DSystem_->PrepareRenderPass(
+			renderPassIndex,
+			renderer3D_->GetRenderPassCamera(renderPassIndex));
+		renderer3D_->BeginRenderPassExecution(renderPassIndex);
+		const RenderPassTargetResource& target =
+			renderer3D_->GetRenderPassTarget(renderPassIndex);
+		directX_->BeginRenderPass(target);
+		renderer3D_->EndFrame();
+		directX_->DrawLightingToRenderTarget(
+			target,
+			*pipelineManager_,
+			*directionalLightSystem_,
+			*pointLightSystem_,
+			*camera3DSystem_,
+			*skyboxSystem_,
+			*shadowMapSystem_);
+	}
+	renderer3D_->BeginRenderPassExecution(0u);
+	directX_->RestoreGBufferRenderTargets();
 	renderer3D_->EndFrame();
 	skyboxSystem_->EndFrame();
 

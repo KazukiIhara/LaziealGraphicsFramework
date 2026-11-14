@@ -17,6 +17,7 @@ struct SphericalCapData
 };
 
 ConstantBuffer<CameraData3D> gCamera : register(b0);
+ConstantBuffer<DrawRangeData> gDrawRange : register(b4);
 StructuredBuffer<SphericalCapData> gSphericalCap : register(t0);
 
 uint GetVertexIndex(uint lat, uint lon)
@@ -31,13 +32,12 @@ void main(
     out vertices MSOutput3D vertices[kMeshletVertexCount],
     out indices uint3 triangles[kMeshletTriangleCount])
 {
-    SetMeshOutputCounts(kMeshletVertexCount, kMeshletTriangleCount);
-
-    uint capIndex = DTid.x / kMeshletCount;
+    uint capIndex = gDrawRange.instanceOffset + DTid.x / kMeshletCount;
     uint meshletIndex = DTid.x % kMeshletCount;
     uint latitudeOffset = meshletIndex * kMeshletLatitudeSegments;
 
     SphericalCapData cap = gSphericalCap[capIndex];
+    SetMeshOutputCounts(kMeshletVertexCount, kMeshletTriangleCount);
     float baseRadius = max(abs(cap.baseRadius), 0.0001f);
     float height = max(abs(cap.height), 0.0001f);
     float sphereRadius = (baseRadius * baseRadius + height * height) / (2.0f * height);

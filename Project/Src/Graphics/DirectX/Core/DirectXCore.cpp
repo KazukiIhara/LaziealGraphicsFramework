@@ -26,6 +26,7 @@
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Skybox/System/SkyboxSystem.h"
 #include "Graphics/Shadow/System/ShadowMapSystem.h"
+#include "Graphics/RenderPass/RenderPassTargetResource.h"
 
 using namespace LGF;
 
@@ -227,6 +228,96 @@ void DirectXCore::ClearRenderTargets(std::span<RenderTexture* const> renderTextu
 		assert(renderTexture);
 		renderTexture->Clear(command_->GetList());
 	}
+}
+
+void DirectXCore::BeginRenderPass(const RenderPassTargetResource& target) {
+	RenderTexture* renderTargets[] = {
+		target.gBufferAlbedo.get(),
+		target.gBufferNormal.get(),
+		target.gBufferMaterial.get() };
+	for (RenderTexture* renderTarget : renderTargets) {
+		renderTarget->Transition(command_->GetList(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+		renderTarget->Clear(command_->GetList());
+	}
+	target.depthStencil->Transition(command_->GetList(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvs[] = {
+		renderTargets[0]->GetRTVHandleCPU(),
+		renderTargets[1]->GetRTVHandleCPU(),
+		renderTargets[2]->GetRTVHandleCPU() };
+	const D3D12_CPU_DESCRIPTOR_HANDLE dsv = target.depthStencil->GetDSVHandleCPU();
+	command_->GetList()->OMSetRenderTargets(_countof(rtvs), rtvs, false, &dsv);
+	command_->GetList()->ClearDepthStencilView(
+		dsv,
+		D3D12_CLEAR_FLAG_DEPTH,
+		1.0f,
+		0u,
+		0u,
+		nullptr);
+	viewport_->BeginFrame(target.width, target.height);
+	scissorRect_->BeginFrame(target.width, target.height);
+}
+
+void DirectXCore::DrawLightingToRenderTarget(
+	const RenderPassTargetResource& target,
+	PipelineManager& pipelineManager,
+	DirectionalLightSystem& lightSystem,
+	PointLightSystem& pointLightSystem,
+	Camera3DSystem& cameraSystem,
+	SkyboxSystem& skyboxSystem,
+	ShadowMapSystem& shadowMapSystem) {
+
+	Pipeline* pipeline = pipelineManager.GetPipeline(kFullscreenLightingPipelineName);
+	assert(pipeline && pipeline->IsValid());
+	ID3D12GraphicsCommandList* commandList = command_->GetList();
+	ID3D12GraphicsCommandList6* commandList6 = command_->GetList6();
+
+	target.gBufferAlbedo->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	target.gBufferNormal->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	target.gBufferMaterial->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	target.depthStencil->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	target.sceneColor->Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	target.sceneColor->Clear(commandList);
+
+	const D3D12_CPU_DESCRIPTOR_HANDLE rtv = target.sceneColor->GetRTVHandleCPU();
+	commandList->OMSetRenderTargets(1u, &rtv, false, nullptr);
+	commandList->SetPipelineState(pipeline->GetPipelineState());
+	commandList->SetGraphicsRootSignature(pipeline->GetRootSignature());
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kGBufferAlbedoShaderName), target.gBufferAlbedo->GetSRVHandleGPU());
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kGBufferNormalShaderName), target.gBufferNormal->GetSRVHandleGPU());
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kGBufferMaterialShaderName), target.gBufferMaterial->GetSRVHandleGPU());
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kDepthTextureShaderName), target.depthStencil->GetSRVHandleGPU());
+	lightSystem.Bind(commandList, pipeline->GetRootIndex(kDirectionalLightShaderName));
+	pointLightSystem.Bind(
+		commandList,
+		pipeline->GetRootIndex(kPointLightsShaderName),
+		pipeline->GetRootIndex(kPointLightCountShaderName));
+	cameraSystem.Bind(commandList, pipeline->GetRootIndex(kCameraShaderName));
+	skyboxSystem.Bind(commandList, pipeline->GetRootIndex(kSkyboxShaderName));
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kShadowMapShaderName), shadowMapSystem.GetShadowMapHandleGPU());
+	shadowMapSystem.BindCascadeData(commandList, pipeline->GetRootIndex(kShadowCameraShaderName));
+	commandList6->DispatchMesh(1u, 1u, 1u);
+	target.sceneColor->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+	pipeline = pipelineManager.GetPipeline(kFullscreenToneMappingPipelineName);
+	assert(pipeline && pipeline->IsValid());
+	target.output->Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	target.output->Clear(commandList);
+	const D3D12_CPU_DESCRIPTOR_HANDLE outputRtv = target.output->GetRTVHandleCPU();
+	commandList->OMSetRenderTargets(1u, &outputRtv, false, nullptr);
+	commandList->SetPipelineState(pipeline->GetPipelineState());
+	commandList->SetGraphicsRootSignature(pipeline->GetRootSignature());
+	commandList->SetGraphicsRootDescriptorTable(
+		pipeline->GetRootIndex(kSceneColorShaderName), target.sceneColor->GetSRVHandleGPU());
+	commandList->SetGraphicsRootConstantBufferView(
+		pipeline->GetRootIndex(kToneMappingShaderName),
+		toneMappingResources_.GetGPUVirtualAddress(currentFrameContextIndex_));
+	commandList6->DispatchMesh(1u, 1u, 1u);
+	target.output->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
 void DirectXCore::DrawLightingToSceneColor(

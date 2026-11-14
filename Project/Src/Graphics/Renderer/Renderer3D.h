@@ -10,6 +10,7 @@
 #include "LGF/Math/MathTypes.h"
 #include "LGF/Graphics/Material.h"
 #include "LGF/Graphics/GpuParticle3D.h"
+#include "LGF/Graphics/Camera3D.h"
 
 #include "Graphics/Graphics3DContext.h"
 
@@ -17,6 +18,7 @@ namespace LGF {
 
 	struct InstanceData3D;
 	class IDrawer;
+	class BaseDrawer3D;
 	class BoxDrawer3D;
 	class CapsuleDrawer3D;
 	class ConeDrawer3D;
@@ -52,6 +54,10 @@ namespace LGF {
 	class SphericalShellCap3D;
 	class Triangle3D;
 	class ShadowMapSystem;
+	class RenderTargetTexture;
+	class Texture;
+	struct RenderTargetTextureDesc;
+	struct RenderPassTargetResource;
 
 	/// <summary>
 	/// 全3D描画をするクラス
@@ -79,6 +85,18 @@ namespace LGF {
 		bool DrawGpuParticleWorld(GpuParticleWorldHandle handle);
 		GpuParticleStatistics3D GetGpuParticleStatistics(GpuParticleWorldHandle handle) const;
 		void Finalize()override;
+		std::shared_ptr<RenderPassTargetResource> CreateRenderTarget(
+			const RenderTargetTextureDesc& desc,
+			Texture& texture);
+		void BeginRenderPass(RenderTargetTexture& renderTarget, const Camera3D* camera);
+		void EndRenderPass();
+		void BeginRenderPassExecution(uint32_t renderPassIndex);
+		void PrepareRenderPasses();
+		void InitializePendingRenderTargets();
+		uint32_t GetRenderPassCount() const;
+		const RenderPassTargetResource& GetRenderPassTarget(uint32_t renderPassIndex) const;
+		const Camera3D& GetRenderPassCamera(uint32_t renderPassIndex) const;
+		bool IsRenderPassActive() const;
 
 		// 各Drawerに描画コマンドを積む関数群
 
@@ -104,11 +122,18 @@ namespace LGF {
 			const ModelDrawOptions& options);
 
 	private:
-		static void ApplyMaterial(InstanceData3D& instance, const Material3D& material);
+		void ApplyMaterial(InstanceData3D& instance, const Material3D& material);
+		struct RenderPassCommand {
+			std::shared_ptr<RenderPassTargetResource> target;
+			Camera3D camera;
+		};
 		// 参照
 		Graphics3DContext context_;
 		// 全更新用リスト
-		std::vector<IDrawer*> drawerList_;
+		std::vector<BaseDrawer3D*> drawerList_;
+		std::vector<RenderPassCommand> renderPassCommands_;
+		std::vector<std::weak_ptr<RenderPassTargetResource>> renderTargets_;
+		uint32_t activeRenderPassIndex_ = 0u;
 
 		// 描画クラス
 		std::unique_ptr<BoxDrawer3D> boxDrawer_;

@@ -17,6 +17,7 @@ struct CapsuleData
 };
 
 ConstantBuffer<CameraData3D> gCamera : register(b0);
+ConstantBuffer<DrawRangeData> gDrawRange : register(b4);
 StructuredBuffer<CapsuleData> gCapsule : register(t0);
 
 uint GetVertexIndex(uint lat, uint lon)
@@ -31,13 +32,12 @@ void main(
     out vertices MSOutput3D vertices[kMeshletVertexCount],
     out indices uint3 triangles[kMeshletTriangleCount])
 {
-    SetMeshOutputCounts(kMeshletVertexCount, kMeshletTriangleCount);
-
-    uint capsuleIndex = DTid.x / kMeshletCount;
+    uint capsuleIndex = gDrawRange.instanceOffset + DTid.x / kMeshletCount;
     uint meshletIndex = DTid.x % kMeshletCount;
     uint latitudeOffset = meshletIndex * kMeshletLatitudeSegments;
 
     CapsuleData capsule = gCapsule[capsuleIndex];
+    SetMeshOutputCounts(kMeshletVertexCount, kMeshletTriangleCount);
 
     float radius = min(capsule.radius, capsule.height * 0.5f);
     float halfCylinderHeight = max(capsule.height * 0.5f - radius, 0.0f);

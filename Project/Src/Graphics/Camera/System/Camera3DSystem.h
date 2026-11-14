@@ -3,12 +3,14 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <array>
 
 #include <d3d12.h>
 
 #include "LGF/Graphics/Camera3D.h"
 
 #include "Graphics/System/IGraphicsSubsystem.h"
+#include "Graphics/RenderPass/RenderPassTypes.h"
 
 namespace LGF {
 
@@ -36,6 +38,10 @@ namespace LGF {
 
 		void Bind(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
 		void BindCulling(ID3D12GraphicsCommandList* commandList, uint32_t rootParamIdx);
+		void PrepareRenderPass(uint32_t renderPassIndex, const Camera3D& camera);
+		void SetActiveRenderPass(uint32_t renderPassIndex);
+		uint32_t GetActiveRenderPass() const;
+		const Camera3D& GetCamera() const;
 
 	private:
 		// シーンで使用するカメラ
@@ -45,5 +51,7 @@ namespace LGF {
 		// GPUに送るカメラリソース
 		std::unique_ptr<Camera3DResource> resource_;
 		std::unique_ptr<Camera3DResource> cullingResource_;
+		std::array<std::unique_ptr<Camera3DResource>, kMaxRenderPassCount - 1u> renderPassResources_;
+		uint32_t activeRenderPassIndex_ = 0u;
 	};
 }

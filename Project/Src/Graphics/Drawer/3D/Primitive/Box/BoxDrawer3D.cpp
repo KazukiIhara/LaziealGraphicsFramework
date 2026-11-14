@@ -30,7 +30,8 @@ void BoxDrawer3D::Initialize() {
 }
 
 void BoxDrawer3D::EndFrame() {
-	if (CheckIntstanceCount() == 0) {
+	const RenderPassInstanceRange range = GetCurrentRenderPassRange();
+	if (range.count == 0u) {
 		return;
 	}
 
@@ -40,14 +41,13 @@ void BoxDrawer3D::EndFrame() {
 	commandList->SetPipelineState(GetPipeline()->GetPipelineState());
 
 	GetContext().cameraSys.Bind(commandList, GetPipeline()->GetRootIndex("gCamera"));
+	BindDrawRange(GetPipeline());
 
 	commandList->SetGraphicsRootDescriptorTable(GetPipeline()->GetRootIndex("gBox"), GetContext().directX.GetResMgr().srvuav->GetGPUDescriptorHandle(instanceSrvIndex_));
 
-	commandList->DispatchMesh(instanceCount_, 1, 1);
+	commandList->DispatchMesh(range.count, 1, 1);
 }
 
 void BoxDrawer3D::AddBox(const Box3DForGPU& data) {
-	assert(currentIndex_ < numMaxInstance_);
-	instanceData_[currentIndex_] = data;
-	++currentIndex_;
+	AddInstance(&data);
 }

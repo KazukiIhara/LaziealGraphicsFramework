@@ -7,6 +7,7 @@ struct GroundData
 };
 
 ConstantBuffer<CameraData3D> gCamera : register(b0);
+ConstantBuffer<DrawRangeData> gDrawRange : register(b4);
 StructuredBuffer<GroundData> gGround : register(t0);
 
 [outputtopology("triangle")]
@@ -16,9 +17,8 @@ void main(
     out vertices MSOutput3D vertices[4],
     out indices uint3 triangles[2])
 {
+    GroundData ground = gGround[gDrawRange.instanceOffset + DTid.x];
     SetMeshOutputCounts(4, 2);
-
-    GroundData ground = gGround[DTid.x];
     float3 worldNormal = ToWorldNormal(ground.instData, float3(0.0f, 1.0f, 0.0f));
 
     for (uint i = 0; i < 4; ++i)

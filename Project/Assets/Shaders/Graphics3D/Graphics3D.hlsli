@@ -21,6 +21,11 @@ struct InstanceData3D
     float3 padding;
 };
 
+struct DrawRangeData
+{
+    uint instanceOffset;
+};
+
 // カメラデータ
 struct CameraData3D
 {

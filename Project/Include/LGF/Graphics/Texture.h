@@ -7,6 +7,7 @@ struct ID3D12Resource;
 
 namespace LGF {
 	class SkyboxSystem;
+	class Renderer3D;
 
 	enum class TextureDimension : uint8_t {
 		Auto,

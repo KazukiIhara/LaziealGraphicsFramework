@@ -6,6 +6,7 @@ static const uint kBottomRing = kRing + kSegments;
 static const uint kBottomCenter = kBottomRing + kRing;
 struct ConeData { InstanceData3D instData; float radius; float height; float2 padding; };
 ConstantBuffer<CameraData3D> gCamera : register(b0);
+ConstantBuffer<DrawRangeData> gDrawRange : register(b4);
 StructuredBuffer<ConeData> gCone : register(t0);
 
 [outputtopology("triangle")]
@@ -14,8 +15,8 @@ void main(uint3 id : SV_DispatchThreadID,
     out vertices MSOutput3D vertices[kBottomCenter + 1],
     out indices uint3 triangles[kSegments * 2])
 {
+    ConeData cone = gCone[gDrawRange.instanceOffset + id.x];
     SetMeshOutputCounts(kBottomCenter + 1, kSegments * 2);
-    ConeData cone = gCone[id.x];
     float h = cone.height * 0.5f;
     for (uint i = 0; i <= kSegments; ++i)
     {

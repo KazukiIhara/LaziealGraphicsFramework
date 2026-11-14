@@ -16,6 +16,7 @@ struct SphereData
 };
 
 ConstantBuffer<CameraData3D> gCamera : register(b0);
+ConstantBuffer<DrawRangeData> gDrawRange : register(b4);
 StructuredBuffer<SphereData> gSphere : register(t0);
 
 uint GetVertexIndex(uint lat, uint lon)
@@ -30,13 +31,12 @@ void main(
     out vertices MSOutput3D vertices[kMeshletVertexCount],
     out indices uint3 triangles[kMeshletTriangleCount])
 {
-    SetMeshOutputCounts(kMeshletVertexCount, kMeshletTriangleCount);
-
-    uint sphereIndex = DTid.x / kMeshletCount;
+    uint sphereIndex = gDrawRange.instanceOffset + DTid.x / kMeshletCount;
     uint meshletIndex = DTid.x % kMeshletCount;
     uint latitudeOffset = meshletIndex * kMeshletLatitudeSegments;
 
     SphereData sphere = gSphere[sphereIndex];
+    SetMeshOutputCounts(kMeshletVertexCount, kMeshletTriangleCount);
 
     for (uint lat = 0; lat <= kMeshletLatitudeSegments; ++lat)
     {

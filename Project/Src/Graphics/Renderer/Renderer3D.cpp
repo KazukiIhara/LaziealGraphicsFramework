@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "Graphics/Drawer/IDrawer.h"
+#include "Graphics/Drawer/3D/Base/BaseDrawer3D.h"
 #include "Graphics/Drawer/3D/Particle/ParticleDrawer3D.h"
 #include "Graphics/Drawer/3D/Particle/GpuParticleDrawer3D.h"
 #include "Graphics/Drawer/3D/Font/FontDrawer3D.h"
@@ -13,6 +14,14 @@
 #include "LGF/Graphics/Font3D.h"
 #include "Graphics/Pipeline/Manager/PipelineManager.h"
 #include "Graphics/Shadow/System/ShadowMapSystem.h"
+#include "Graphics/RenderPass/RenderPassTargetResource.h"
+#include "Graphics/RenderTexture/RenderTexture.h"
+#include "Graphics/DirectX/DepthStencil/DepthStencil.h"
+#include "Graphics/DirectX/ResourceFactory/ResourceFactory.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
+#include "Graphics/Camera/System/Camera3DSystem.h"
+#include "LGF/Graphics/RenderTargetTexture.h"
+#include "LGF/Graphics/Texture.h"
 
 #include "Graphics/Drawer/3D/Primitive/Box/BoxDrawer3D.h"
 #include "Graphics/Drawer/3D/Primitive/Capsule/CapsuleDrawer3D.h"
@@ -115,12 +124,182 @@ bool Renderer3D::Initialize() {
 }
 
 void Renderer3D::BeginFrame() {
+	renderPassCommands_.clear();
+	activeRenderPassIndex_ = 0u;
 	particleDrawer_->BeginFrame();
 	fontDrawer_->BeginFrame();
 	gpuParticleDrawer_->BeginFrame();
 	for (const auto& drawer : drawerList_) {
+		drawer->SetRecordingRenderPass(0u);
 		drawer->BeginFrame();
 	}
+}
+
+std::shared_ptr<RenderPassTargetResource> Renderer3D::CreateRenderTarget(
+	const RenderTargetTextureDesc& desc,
+	Texture& texture) {
+
+	const uint32_t width = desc.width == 0u ? context_.directX.GetRenderWidth() : desc.width;
+	const uint32_t height = desc.height == 0u ? context_.directX.GetRenderHeight() : desc.height;
+	if (width == 0u || height == 0u) {
+		return nullptr;
+	}
+
+	auto target = std::make_shared<RenderPassTargetResource>();
+	target->width = width;
+	target->height = height;
+	auto managers = context_.directX.GetResMgr();
+	auto makeTexture = [&]() {
+		return std::make_unique<RenderTexture>(
+			*context_.directX.GetResourceFactory(),
+			*managers.rtv,
+			*managers.srvuav);
+	};
+
+	RenderTextureDesc sceneDesc{};
+	sceneDesc.width = width;
+	sceneDesc.height = height;
+	sceneDesc.resourceFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	sceneDesc.rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	sceneDesc.srvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	sceneDesc.clearColor = desc.clearColor;
+	target->sceneColor = makeTexture();
+	if (!target->sceneColor->Initialize(sceneDesc)) {
+		return nullptr;
+	}
+	RenderTextureDesc outputDesc{};
+	outputDesc.width = width;
+	outputDesc.height = height;
+	outputDesc.clearColor = desc.clearColor;
+	target->output = makeTexture();
+	if (!target->output->Initialize(outputDesc)) {
+		return nullptr;
+	}
+
+	RenderTextureDesc albedoDesc{};
+	albedoDesc.width = width;
+	albedoDesc.height = height;
+	albedoDesc.clearColor = desc.clearColor;
+	target->gBufferAlbedo = makeTexture();
+	if (!target->gBufferAlbedo->Initialize(albedoDesc)) {
+		return nullptr;
+	}
+
+	RenderTextureDesc normalDesc{};
+	normalDesc.width = width;
+	normalDesc.height = height;
+	normalDesc.resourceFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	normalDesc.rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	normalDesc.srvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	normalDesc.clearColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+	target->gBufferNormal = makeTexture();
+	if (!target->gBufferNormal->Initialize(normalDesc)) {
+		return nullptr;
+	}
+
+	RenderTextureDesc materialDesc{};
+	materialDesc.width = width;
+	materialDesc.height = height;
+	materialDesc.resourceFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	materialDesc.rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	materialDesc.srvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	materialDesc.clearColor = { 1.0f, 1.0f, 0.0f, 1.0f };
+	target->gBufferMaterial = makeTexture();
+	if (!target->gBufferMaterial->Initialize(materialDesc)) {
+		return nullptr;
+	}
+
+	target->depthStencil = std::make_unique<DepthStencil>(
+		*context_.directX.GetResourceFactory(),
+		*managers.dsv,
+		*managers.srvuav);
+	target->depthStencil->Initialize(width, height);
+
+	texture.srvIndex_ = target->output->GetSRVIndex();
+	texture.resource_ = target->output->GetResource();
+	texture.isCubeMap_ = false;
+	renderTargets_.push_back(target);
+	return target;
+}
+
+void Renderer3D::BeginRenderPass(RenderTargetTexture& renderTarget, const Camera3D* camera) {
+	if (activeRenderPassIndex_ != 0u) {
+		throw std::logic_error("RenderPass cannot be nested.");
+	}
+	if (!renderTarget.resource_) {
+		throw std::invalid_argument("RenderTargetTexture is not initialized.");
+	}
+	if (renderPassCommands_.size() + 1u >= kMaxRenderPassCount) {
+		throw std::runtime_error("Too many RenderPasses were submitted in one frame.");
+	}
+	Camera3D renderPassCamera = camera ? *camera : context_.cameraSys.GetCamera();
+	if (renderPassCamera.param.useWindowAspectRatio) {
+		renderPassCamera.param.useWindowAspectRatio = false;
+		renderPassCamera.param.aspectRatio =
+			static_cast<float>(renderTarget.resource_->width) /
+			static_cast<float>(renderTarget.resource_->height);
+	}
+	renderPassCommands_.push_back({
+		.target = renderTarget.resource_,
+		.camera = renderPassCamera });
+	activeRenderPassIndex_ = static_cast<uint32_t>(renderPassCommands_.size());
+	for (BaseDrawer3D* drawer : drawerList_) {
+		drawer->SetRecordingRenderPass(activeRenderPassIndex_);
+	}
+}
+
+void Renderer3D::EndRenderPass() {
+	if (activeRenderPassIndex_ == 0u) {
+		throw std::logic_error("RenderPass has not begun.");
+	}
+	activeRenderPassIndex_ = 0u;
+	for (BaseDrawer3D* drawer : drawerList_) {
+		drawer->SetRecordingRenderPass(0u);
+	}
+}
+
+void Renderer3D::BeginRenderPassExecution(uint32_t renderPassIndex) {
+	context_.cameraSys.SetActiveRenderPass(renderPassIndex);
+}
+
+void Renderer3D::PrepareRenderPasses() {
+	for (BaseDrawer3D* drawer : drawerList_) {
+		drawer->PrepareRenderPasses();
+	}
+}
+
+void Renderer3D::InitializePendingRenderTargets() {
+	ID3D12GraphicsCommandList* commandList = context_.directX.GetCommandList();
+	for (auto it = renderTargets_.begin(); it != renderTargets_.end();) {
+		const std::shared_ptr<RenderPassTargetResource> target = it->lock();
+		if (!target) {
+			it = renderTargets_.erase(it);
+			continue;
+		}
+		if (!target->isOutputInitialized) {
+			target->output->Transition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+			target->output->Clear(commandList);
+			target->output->Transition(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			target->isOutputInitialized = true;
+		}
+		++it;
+	}
+}
+
+uint32_t Renderer3D::GetRenderPassCount() const {
+	return static_cast<uint32_t>(renderPassCommands_.size());
+}
+
+const RenderPassTargetResource& Renderer3D::GetRenderPassTarget(uint32_t renderPassIndex) const {
+	return *renderPassCommands_.at(renderPassIndex - 1u).target;
+}
+
+const Camera3D& Renderer3D::GetRenderPassCamera(uint32_t renderPassIndex) const {
+	return renderPassCommands_.at(renderPassIndex - 1u).camera;
+}
+
+bool Renderer3D::IsRenderPassActive() const {
+	return activeRenderPassIndex_ != 0u;
 }
 
 void Renderer3D::EndFrame() {
@@ -158,6 +337,9 @@ void Renderer3D::DrawTransparent() {
 }
 
 void Renderer3D::AddBillboard(const Billboard3D& billboard, const Vector4& color, const Texture& texture) {
+	if (activeRenderPassIndex_ != 0u) {
+		throw std::logic_error("Billboard3D is not supported in a custom RenderPass.");
+	}
 	if (texture.isCubeMap_) {
 		throw std::invalid_argument("Billboard3D requires a 2D texture.");
 	}
@@ -175,6 +357,9 @@ void Renderer3D::AddFont(
 	std::string_view text,
 	const Vector3& position,
 	const Font3DDrawOptions& options) {
+	if (activeRenderPassIndex_ != 0u) {
+		throw std::logic_error("Font3D is not supported in a custom RenderPass.");
+	}
 
 	if (!font.resource_ || font.resource_->atlasSrvIndex == UINT32_MAX) {
 		throw std::invalid_argument("Font3D resource is not ready for drawing.");
@@ -221,6 +406,9 @@ bool Renderer3D::UpdateGpuParticleWorld(GpuParticleWorldHandle handle, float del
 }
 
 bool Renderer3D::DrawGpuParticleWorld(GpuParticleWorldHandle handle) {
+	if (activeRenderPassIndex_ != 0u) {
+		throw std::logic_error("GpuParticle3D is not supported in a custom RenderPass.");
+	}
 	return gpuParticleDrawer_->DrawWorld(handle);
 }
 
@@ -229,6 +417,7 @@ GpuParticleStatistics3D Renderer3D::GetGpuParticleStatistics(GpuParticleWorldHan
 }
 
 void Renderer3D::Finalize() {
+	renderTargets_.clear();
 	if (gpuParticleDrawer_) {
 		gpuParticleDrawer_->Finalize();
 	}
@@ -477,7 +666,8 @@ void Renderer3D::AddModel(const Model& model, const Matrix4x4& worldMatrix, cons
 		options.metallicScale,
 		options.roughnessScale,
 		options.occlusionStrength,
-		options.unlit);
+		options.unlit,
+		activeRenderPassIndex_);
 
 	if (!options.debugDraw.showMeshletBoundingSpheres) {
 		return;
@@ -517,7 +707,8 @@ void Renderer3D::AddModel(
 		Math::Transpose(Math::Inverse(worldMatrix)), color, worldMaximumScale,
 		Math::Determinant(worldMatrix) < 0.0f ? -1.0f : 1.0f,
 		options.debugDraw.showMeshletColors, options.enableNormalMap, options.normalScale,
-		options.metallicScale, options.roughnessScale, options.occlusionStrength, options.unlit);
+		options.metallicScale, options.roughnessScale, options.occlusionStrength, options.unlit,
+		activeRenderPassIndex_);
 }
 
 void Renderer3D::ApplyMaterial(InstanceData3D& instance, const Material3D& material) {

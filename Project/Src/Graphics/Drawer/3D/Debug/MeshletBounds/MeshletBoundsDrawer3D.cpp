@@ -30,7 +30,8 @@ void MeshletBoundsDrawer3D::Initialize() {
 }
 
 void MeshletBoundsDrawer3D::EndFrame() {
-	if (CheckIntstanceCount() == 0) {
+	const RenderPassInstanceRange range = GetCurrentRenderPassRange();
+	if (range.count == 0u) {
 		return;
 	}
 
@@ -39,11 +40,12 @@ void MeshletBoundsDrawer3D::EndFrame() {
 	commandList->SetPipelineState(GetPipeline()->GetPipelineState());
 
 	GetContext().cameraSys.Bind(commandList, GetPipeline()->GetRootIndex("gCamera"));
+	BindDrawRange(GetPipeline());
 	commandList->SetGraphicsRootDescriptorTable(
 		GetPipeline()->GetRootIndex("gMeshletBounds"),
 		GetContext().directX.GetResMgr().srvuav->GetGPUDescriptorHandle(instanceSrvIndex_));
 
-	commandList->DispatchMesh(instanceCount_, 1, 1);
+	commandList->DispatchMesh(range.count, 1, 1);
 }
 
 void MeshletBoundsDrawer3D::AddBounds(const MeshletBounds3DForGPU& data) {
@@ -51,6 +53,5 @@ void MeshletBoundsDrawer3D::AddBounds(const MeshletBounds3DForGPU& data) {
 		throw std::runtime_error("Too many meshlet bounding spheres were submitted in one frame.");
 	}
 
-	instanceData_[currentIndex_] = data;
-	++currentIndex_;
+	AddInstance(&data);
 }
