@@ -22,6 +22,7 @@ namespace LGF {
 	class FontManager;
 	class ModelManager;
 	class ImGuiSystem;
+	class GpuPhysicsParticleBackend;
 
 	struct GraphicsInitDesc {
 		void* windowHandle = nullptr;
@@ -67,6 +68,7 @@ namespace LGF {
 		std::unique_ptr<PointLightSystem> pointLightSystem_;
 		std::unique_ptr<SkyboxSystem> skyboxSystem_;
 		std::unique_ptr<ShadowMapSystem> shadowMapSystem_;
+		std::unique_ptr<GpuPhysicsParticleBackend> gpuPhysicsParticleBackend_;
 		std::unique_ptr<Renderer3D> renderer3D_;
 		std::unique_ptr<Camera2DSystem> camera2DSystem_;
 		std::unique_ptr<Renderer2D> renderer2D_;

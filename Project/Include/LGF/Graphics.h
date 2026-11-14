@@ -39,3 +39,4 @@
 #include "LGF/Graphics/SphericalShellCap3D.h"
 #include "LGF/Graphics/Triangle3D.h"
 #include "LGF/Graphics/Graphics3D.h"
+#include "LGF/Graphics/GpuCompute.h"

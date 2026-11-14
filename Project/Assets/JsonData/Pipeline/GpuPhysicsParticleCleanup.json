@@ -1,0 +1,5 @@
+{
+  "Name": "GpuPhysicsParticleCleanup",
+  "PipelineKind": "Compute",
+  "Shaders": { "CS": "Compute/GpuPhysicsParticleCleanup.CS.hlsl" }
+}

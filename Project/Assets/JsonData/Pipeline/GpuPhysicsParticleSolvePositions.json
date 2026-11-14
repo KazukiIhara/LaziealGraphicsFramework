@@ -1,0 +1,5 @@
+{
+  "Name": "GpuPhysicsParticleSolvePositions",
+  "PipelineKind": "Compute",
+  "Shaders": { "CS": "Compute/GpuPhysicsParticleSolvePositions.CS.hlsl" }
+}

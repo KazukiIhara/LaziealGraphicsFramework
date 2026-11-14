@@ -1,0 +1,5 @@
+{
+  "Name": "GpuPhysicsParticleApplyVelocities",
+  "PipelineKind": "Compute",
+  "Shaders": { "CS": "Compute/GpuPhysicsParticleApplyVelocities.CS.hlsl" }
+}

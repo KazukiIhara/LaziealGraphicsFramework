@@ -22,6 +22,8 @@
 #include "Graphics/Font/FontSystemInternal.h"
 #include "Graphics/Model/ModelManager.h"
 #include "Graphics/Model/ModelSystemInternal.h"
+#include "Graphics/Compute/GpuComputeInternal.h"
+#include "Graphics/Compute/PhysicsParticle/GpuPhysicsParticleBackend.h"
 
 #include "Graphics/Graphics3DContext.h"
 #include "Graphics/Graphics3DInternal.h"
@@ -122,6 +124,17 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 		return failInitialization();
 	}
 
+	// GPU物理粒子はRendererより先にDispatchし、同一フレームの描画から参照できるようにする。
+	gpuPhysicsParticleBackend_ = std::make_unique<GpuPhysicsParticleBackend>(
+		*directX_,
+		*pipelineManager_,
+		*camera3DSystem_);
+	if (!gpuPhysicsParticleBackend_->Initialize()) {
+		return failInitialization();
+	}
+	GpuCompute::Internal::SetPhysicsParticleBackend(gpuPhysicsParticleBackend_.get());
+	subsystems_.push_back(gpuPhysicsParticleBackend_.get());
+
 	// Skyboxシステム初期化
 	skyboxSystem_ = std::make_unique<SkyboxSystem>(*directX_, *pipelineManager_);
 	if (!skyboxSystem_->Initialize()) {
@@ -183,6 +196,7 @@ bool GraphicsSystem::Finalize() {
 	ModelSystem::Internal::ResetModelManager();
 	FontSystem::Internal::ResetFontManager();
 	TextureSystem::Internal::ResetTextureManager();
+	GpuCompute::Internal::ResetPhysicsParticleBackend();
 
 	Graphics3D::Internal::ResetRenderer3D();
 	Graphics3D::Internal::ResetCamera3DSystem();
@@ -218,6 +232,7 @@ bool GraphicsSystem::Finalize() {
 	renderer2D_.reset();
 	camera2DSystem_.reset();
 	renderer3D_.reset();
+	gpuPhysicsParticleBackend_.reset();
 	shadowMapSystem_.reset();
 	directionalLightSystem_.reset();
 	pointLightSystem_.reset();
@@ -266,6 +281,7 @@ void GraphicsSystem::EndFrame() {
 		directX_->GetResMgr().srvuav->GetDescriptorHeap()
 	};
 	commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	gpuPhysicsParticleBackend_->EndFrame();
 	renderer3D_->InitializePendingRenderTargets();
 
 	camera3DSystem_->EndFrame();
@@ -305,6 +321,7 @@ void GraphicsSystem::EndFrame() {
 	}
 	renderer3D_->BeginRenderPassExecution(0u);
 	directX_->RestoreGBufferRenderTargets();
+	gpuPhysicsParticleBackend_->DrawQueued();
 	renderer3D_->EndFrame();
 	skyboxSystem_->EndFrame();
 

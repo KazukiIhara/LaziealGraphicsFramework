@@ -1,0 +1,5 @@
+{
+  "Name": "GpuPhysicsParticleIntegrate",
+  "PipelineKind": "Compute",
+  "Shaders": { "CS": "Compute/GpuPhysicsParticleIntegrate.CS.hlsl" }
+}

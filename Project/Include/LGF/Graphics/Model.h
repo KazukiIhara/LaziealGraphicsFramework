@@ -77,6 +77,7 @@ namespace LGF {
 	private:
 		friend class Renderer3D;
 		friend class ModelAnimator;
+		friend class GpuPhysicsParticleBackend;
 
 		std::shared_ptr<ModelResource> resource_;
 		std::filesystem::path filePath_;

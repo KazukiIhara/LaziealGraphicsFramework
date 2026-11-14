@@ -1,0 +1,5 @@
+{
+  "Name": "GpuPhysicsParticleBuildGrid",
+  "PipelineKind": "Compute",
+  "Shaders": { "CS": "Compute/GpuPhysicsParticleBuildGrid.CS.hlsl" }
+}
