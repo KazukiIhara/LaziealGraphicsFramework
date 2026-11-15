@@ -7,8 +7,8 @@
 
 using namespace LGF;
 
-Device::Device() {
-
+Device::Device(bool gpuBasedValidationEnabled) :
+	gpuBasedValidationEnabled_(gpuBasedValidationEnabled) {
 }
 
 Device::InitializeResult Device::Initialize() {
@@ -59,8 +59,9 @@ void Device::EnableDebugLayer() {
 	if (SUCCEEDED(hr)) {
 		// デバッグレイヤーを有効化
 		debugController->EnableDebugLayer();
-		// GPUベース検証を有効化
-		debugController->SetEnableGPUBasedValidation(TRUE);
+		if (gpuBasedValidationEnabled_) {
+			debugController->SetEnableGPUBasedValidation(TRUE);
+		}
 	}
 #endif // _DEBUG
 }

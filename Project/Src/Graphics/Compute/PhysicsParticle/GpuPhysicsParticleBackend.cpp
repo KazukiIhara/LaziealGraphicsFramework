@@ -342,6 +342,19 @@ namespace LGF {
 		if (!world) {
 			return false;
 		}
+		if (!world->stateReadbackResources[0]) {
+			auto* factory = directX_.GetResourceFactory();
+			const std::size_t size = sizeof(ParticleForGPU) * world->desc.maximumParticleCount;
+			for (ComPtr<ID3D12Resource>& resource : world->stateReadbackResources) {
+				resource = factory->CreateReadbackBufferResource(size);
+				if (!resource) {
+					for (ComPtr<ID3D12Resource>& allocated : world->stateReadbackResources) {
+						allocated.Reset();
+					}
+					return false;
+				}
+			}
+		}
 		world->stateReadbackRequested = true;
 		return true;
 	}
@@ -387,6 +400,16 @@ namespace LGF {
 			!std::isfinite(color.z) || !std::isfinite(color.w)) {
 			return false;
 		}
+		if (!world->drawConstantResources.GetResource(0u)) {
+			const std::size_t drawChunkCount =
+				(world->desc.maximumParticleCount + kMaximumParticlesPerSphereDispatch - 1u) /
+				kMaximumParticlesPerSphereDispatch;
+			const std::size_t size = kConstantStride *
+				kMaximumSphereDrawRequestCount * drawChunkCount;
+			if (!world->drawConstantResources.Initialize(*directX_.GetResourceFactory(), size)) {
+				return false;
+			}
+		}
 		world->sphereDrawRequests.push_back({ renderGroupIndex, color });
 		return true;
 	}
@@ -405,6 +428,12 @@ namespace LGF {
 			scale.x <= 0.0f || scale.y <= 0.0f || scale.z <= 0.0f ||
 			!std::isfinite(color.x) || !std::isfinite(color.y) ||
 			!std::isfinite(color.z) || !std::isfinite(color.w)) {
+			return false;
+		}
+		if (!world->modelDrawConstantResources.GetResource(0u) &&
+			!world->modelDrawConstantResources.Initialize(
+				*directX_.GetResourceFactory(),
+				kConstantStride * kMaximumModelDrawDispatchCount)) {
 			return false;
 		}
 		world->modelDrawRequests.push_back({
@@ -471,19 +500,10 @@ namespace LGF {
 		const std::size_t commandRangeBytes = sizeof(CommandRangeForGPU) * world.desc.maximumParticleCount;
 		const std::size_t colliderBytes = sizeof(GpuPhysicsCollider) * world.desc.maximumColliderCount * world.desc.substepCount;
 		const std::size_t constantBytes = kConstantStride * world.desc.substepCount;
-		const std::size_t drawChunkCount =
-			(world.desc.maximumParticleCount + kMaximumParticlesPerSphereDispatch - 1u) /
-			kMaximumParticlesPerSphereDispatch;
-		const std::size_t drawConstantBytes = kConstantStride *
-			kMaximumSphereDrawRequestCount * drawChunkCount;
 		if (!world.commandResources.Initialize(*factory, commandBytes) ||
 			!world.commandRangeResources.Initialize(*factory, commandRangeBytes) ||
 			!world.colliderResources.Initialize(*factory, colliderBytes) ||
-			!world.constantResources.Initialize(*factory, constantBytes) ||
-			!world.drawConstantResources.Initialize(*factory, drawConstantBytes) ||
-			!world.modelDrawConstantResources.Initialize(
-				*factory,
-				kConstantStride * kMaximumModelDrawDispatchCount)) {
+			!world.constantResources.Initialize(*factory, constantBytes)) {
 			return false;
 		}
 		for (uint32_t i = 0u; i < kFrameContextCount; ++i) {
@@ -507,9 +527,7 @@ namespace LGF {
 				sizeof(GpuPhysicsCollider));
 			const std::size_t readbackBytes = sizeof(CountersForGPU) + sizeof(GpuRetiredPhysicsParticle) * particleCount;
 			world.readbackResources[i] = factory->CreateReadbackBufferResource(readbackBytes);
-			world.stateReadbackResources[i] = factory->CreateReadbackBufferResource(
-				sizeof(ParticleForGPU) * particleCount);
-			if (!world.readbackResources[i] || !world.stateReadbackResources[i]) {
+			if (!world.readbackResources[i]) {
 				return false;
 			}
 		}

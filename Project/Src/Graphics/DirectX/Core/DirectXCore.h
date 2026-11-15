@@ -51,7 +51,8 @@ namespace LGF {
 			uint32_t width,
 			uint32_t height,
 			bool multiFrameContextEnabled = true,
-			bool vsyncEnabled = true);
+			bool vsyncEnabled = true,
+			bool gpuBasedValidationEnabled = false);
 		~DirectXCore();
 
 		bool Initialize();
@@ -133,6 +134,7 @@ namespace LGF {
 		uint32_t currentFrameContextIndex_ = 0u;
 		bool multiFrameContextEnabled_ = true;
 		bool vsyncEnabled_ = true;
+		bool gpuBasedValidationEnabled_{};
 
 		void* windowHandle_ = nullptr;
 	};

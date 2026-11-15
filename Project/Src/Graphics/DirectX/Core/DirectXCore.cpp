@@ -59,18 +59,20 @@ DirectXCore::DirectXCore(
 	uint32_t width,
 	uint32_t height,
 	bool multiFrameContextEnabled,
-	bool vsyncEnabled) :
+	bool vsyncEnabled,
+	bool gpuBasedValidationEnabled) :
 	renderWidth_(width),
 	renderHeight_(height),
 	multiFrameContextEnabled_(multiFrameContextEnabled),
 	vsyncEnabled_(vsyncEnabled),
+	gpuBasedValidationEnabled_(gpuBasedValidationEnabled),
 	windowHandle_(windowHandle) {
 }
 
 DirectXCore::~DirectXCore() = default;
 
 bool DirectXCore::Initialize() {
-	device_ = std::make_unique<Device>();
+	device_ = std::make_unique<Device>(gpuBasedValidationEnabled_);
 	command_ = std::make_unique<Command>(*device_);
 	descriptorHeapFactory_ = std::make_unique<DescriptorHeapFactory>(*device_);
 	rtvManager_ = std::make_unique<RTVManager>(*device_, *descriptorHeapFactory_);

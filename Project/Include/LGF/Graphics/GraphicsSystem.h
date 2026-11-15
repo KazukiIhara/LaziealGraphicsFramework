@@ -32,6 +32,8 @@ namespace LGF {
 		// falseの場合はContext 0のみを使い、毎フレームGPUの完了を待つ。
 		bool multiFrameContextEnabled = true;
 		bool vsyncEnabled = true;
+		// 非常に重いため通常のDebug実行では無効。GPU検証が必要な場合だけ有効化する。
+		bool gpuBasedValidationEnabled = false;
 	};
 
 	/// <summary>

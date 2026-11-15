@@ -30,7 +30,7 @@ namespace LGF {
 
 	public:
 		// コンストラクタ
-		Device();
+		explicit Device(bool gpuBasedValidationEnabled = false);
 		// デストラクタ
 		~Device() = default;
 
@@ -76,5 +76,6 @@ namespace LGF {
 		ComPtr<ID3D12Device10> device10_ = nullptr;
 		// デバイスの対応機能
 		DeviceCaps deviceCaps_{};
+		bool gpuBasedValidationEnabled_{};
 	};
 }
