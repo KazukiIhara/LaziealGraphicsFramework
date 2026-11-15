@@ -22,8 +22,8 @@ void main(uint3 id : SV_DispatchThreadID)
         return;
     }
 
-    float3 correction = 0.0f;
-    uint correctionCount = 0u;
+    float3 particleCorrection = 0.0f;
+    uint particleCorrectionCount = 0u;
     const int3 centerCell = gParticleCells[id.x].xyz;
     [unroll]
     for (int z = -1; z <= 1; ++z)
@@ -63,8 +63,8 @@ void main(uint3 id : SV_DispatchThreadID)
                                 const float distance = sqrt(max(distanceSq, 0.0f));
                                 const float penetration = max(minimumDistance - distance - gPenetrationSlop, 0.0f);
                                 const float depth = min(penetration * gPositionCorrectionRate, gMaximumCorrection);
-                                correction -= normal * depth * particle.inverseMass / inverseMassSum;
-                                ++correctionCount;
+                                particleCorrection -= normal * depth * particle.inverseMass / inverseMassSum;
+                                ++particleCorrectionCount;
                             }
                         }
                     }
@@ -74,6 +74,13 @@ void main(uint3 id : SV_DispatchThreadID)
         }
     }
 
+    if (particleCorrectionCount > 1u)
+    {
+        particleCorrection /= (float)particleCorrectionCount;
+    }
+
+    float3 colliderCorrection = 0.0f;
+    float colliderCorrectionDepth = 0.0f;
     const uint colliderOffset = gSubstepIndex * gColliderCount;
     for (uint colliderIndex = 0u; colliderIndex < gColliderCount; ++colliderIndex)
     {
@@ -89,15 +96,15 @@ void main(uint3 id : SV_DispatchThreadID)
             penetration))
         {
             const float depth = min(max(penetration - gPenetrationSlop, 0.0f) * gPositionCorrectionRate, gMaximumCorrection);
-            correction += normal * depth;
-            ++correctionCount;
+            if (depth > colliderCorrectionDepth)
+            {
+                colliderCorrection = normal * depth;
+                colliderCorrectionDepth = depth;
+            }
         }
     }
 
-    if (correctionCount > 1u)
-    {
-        correction /= (float)correctionCount;
-    }
+    float3 correction = particleCorrection + colliderCorrection;
     const float correctionLength = length(correction);
     if (correctionLength > gMaximumCorrection && correctionLength > 0.0f)
     {
