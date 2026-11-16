@@ -21,9 +21,9 @@ using namespace LGF;
 namespace {
 
 	constexpr size_t kConstantBufferAlignment = 256u;
-	constexpr char kToneMappingExecutor[] = "ToneMapping";
 	constexpr char kFullscreenExecutor[] = "Fullscreen";
 	constexpr char kBloomExecutor[] = "Bloom";
+	constexpr char kFallbackToneMappingMethod[] = "ACES";
 	constexpr char kPresentPipeline[] = "PostProcessPresent";
 	constexpr char kInputColorShaderName[] = "gInputColor";
 	constexpr char kSceneColorShaderName[] = "gSceneColorHDR";
@@ -92,6 +92,15 @@ bool PostProcessSystem::Initialize() {
 	try {
 		PostProcessJsonLoader loader;
 		definitions_ = loader.LoadEffectDefinitions(assetRoot_ / "JsonData" / "PostEffect");
+		toneMappingDefinitions_ = loader.LoadToneMappingDefinitions(assetRoot_ / "JsonData" / "ToneMapping");
+		const auto fallbackToneMapping = toneMappingDefinitions_.find(kFallbackToneMappingMethod);
+		if (fallbackToneMapping == toneMappingDefinitions_.end()) {
+			throw std::runtime_error("Fallback Tone Mapping method was not found: " + std::string(kFallbackToneMappingMethod));
+		}
+		for (const auto& [name, parameter] : fallbackToneMapping->second.parameters) {
+			(void)name;
+			WriteParameter(fallbackParameters_, parameter, GetComponents(parameter.defaultValue));
+		}
 	} catch (const std::exception& error) {
 		Logger::Log(error.what());
 		return false;
@@ -113,6 +122,7 @@ void PostProcessSystem::Finalize() {
 	profiles_.clear();
 	freeProfileIndices_.clear();
 	definitions_.clear();
+	toneMappingDefinitions_.clear();
 	activeProfile_ = {};
 	hdrPing_.reset();
 	hdrPong_.reset();
@@ -191,7 +201,7 @@ PostProcessProfileHandle PostProcessSystem::CreateProfile(const std::filesystem:
 	PostProcessProfileData data{};
 	try {
 		PostProcessJsonLoader loader;
-		data = loader.LoadProfile(resolvedPath.lexically_normal(), definitions_);
+		data = loader.LoadProfile(resolvedPath.lexically_normal(), definitions_, toneMappingDefinitions_);
 	} catch (const std::exception& error) {
 		Logger::Log(error.what());
 		return {};
@@ -199,6 +209,28 @@ PostProcessProfileHandle PostProcessSystem::CreateProfile(const std::filesystem:
 
 	auto profile = std::make_unique<ProfileInstance>();
 	profile->name = std::move(data.name);
+	const auto toneMappingDefinitionIterator = toneMappingDefinitions_.find(data.toneMapping.method);
+	assert(toneMappingDefinitionIterator != toneMappingDefinitions_.end());
+	profile->toneMapping.definition = &toneMappingDefinitionIterator->second;
+	for (const auto& [name, parameter] : profile->toneMapping.definition->parameters) {
+		(void)name;
+		WriteParameter(profile->toneMapping.baseParameters, parameter, GetComponents(parameter.defaultValue));
+	}
+	for (const auto& [name, value] : data.toneMapping.parameters) {
+		const PostProcessParameterDefinition& parameter = profile->toneMapping.definition->parameters.at(name);
+		Vector4 storage{};
+		const auto [values, valueCount] = GetParameterValue(value, storage);
+		if (valueCount != parameter.componentCount) {
+			Logger::Log("Tone Mapping parameter type mismatch: " + name);
+			return {};
+		}
+		WriteParameter(profile->toneMapping.baseParameters, parameter, values);
+	}
+	profile->toneMapping.parameters = profile->toneMapping.baseParameters;
+	profile->toneMapping.parameterResources = std::make_unique<FrameBufferedUploadBuffer>();
+	if (!profile->toneMapping.parameterResources->Initialize(*directX_.GetResourceFactory(), kConstantBufferAlignment)) {
+		return {};
+	}
 	profile->effects.reserve(data.effects.size());
 	for (const PostProcessProfileEffectData& effectData : data.effects) {
 		const auto definitionIterator = definitions_.find(effectData.effect);
@@ -306,7 +338,7 @@ PostProcessSystem::EffectInstance* PostProcessSystem::FindEffect(PostProcessProf
 
 bool PostProcessSystem::SetEffectEnabled(PostProcessProfileHandle handle, std::string_view effectId, bool enabled) {
 	EffectInstance* effect = FindEffect(handle, effectId);
-	if (!effect || (!enabled && effect->definition->stage == PostProcessStage::ToneMapping)) {
+	if (!effect) {
 		return false;
 	}
 	effect->enabled = enabled;
@@ -327,6 +359,22 @@ bool PostProcessSystem::SetParameter(PostProcessProfileHandle handle, std::strin
 
 bool PostProcessSystem::SetParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector4& value) {
 	return SetParameter(handle, effectId, parameterName, &value.x, 4u);
+}
+
+bool PostProcessSystem::SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, float value) {
+	return SetToneMappingParameter(handle, parameterName, &value, 1u);
+}
+
+bool PostProcessSystem::SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector2& value) {
+	return SetToneMappingParameter(handle, parameterName, &value.x, 2u);
+}
+
+bool PostProcessSystem::SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector3& value) {
+	return SetToneMappingParameter(handle, parameterName, &value.x, 3u);
+}
+
+bool PostProcessSystem::SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector4& value) {
+	return SetToneMappingParameter(handle, parameterName, &value.x, 4u);
 }
 
 bool PostProcessSystem::SetParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const float* values, uint32_t valueCount) {
@@ -354,6 +402,31 @@ bool PostProcessSystem::SetParameter(PostProcessProfileHandle handle, std::strin
 	return true;
 }
 
+bool PostProcessSystem::SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const float* values, uint32_t valueCount) {
+	ProfileInstance* profile = FindProfile(handle);
+	if (!profile || !values || !profile->toneMapping.definition) {
+		return false;
+	}
+	const auto parameterIterator = profile->toneMapping.definition->parameters.find(std::string(parameterName));
+	if (parameterIterator == profile->toneMapping.definition->parameters.end()) {
+		return false;
+	}
+	const PostProcessParameterDefinition& definition = parameterIterator->second;
+	if (definition.componentCount != valueCount) {
+		return false;
+	}
+	for (uint32_t index = 0u; index < valueCount; ++index) {
+		if (!std::isfinite(values[index]) ||
+			(definition.minimum && values[index] < *definition.minimum) ||
+			(definition.maximum && values[index] > *definition.maximum)) {
+			return false;
+		}
+	}
+	WriteParameter(profile->toneMapping.parameters, definition, values);
+	profile->toneMapping.overriddenParameters.emplace(parameterName);
+	return true;
+}
+
 bool PostProcessSystem::ClearParameterOverride(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName) {
 	EffectInstance* effect = FindEffect(handle, effectId);
 	if (!effect) {
@@ -368,6 +441,20 @@ bool PostProcessSystem::ClearParameterOverride(PostProcessProfileHandle handle, 
 	return true;
 }
 
+bool PostProcessSystem::ClearToneMappingParameterOverride(PostProcessProfileHandle handle, std::string_view parameterName) {
+	ProfileInstance* profile = FindProfile(handle);
+	if (!profile || !profile->toneMapping.definition) {
+		return false;
+	}
+	const auto parameterIterator = profile->toneMapping.definition->parameters.find(std::string(parameterName));
+	if (parameterIterator == profile->toneMapping.definition->parameters.end()) {
+		return false;
+	}
+	CopyParameter(profile->toneMapping.parameters, profile->toneMapping.baseParameters, parameterIterator->second);
+	profile->toneMapping.overriddenParameters.erase(std::string(parameterName));
+	return true;
+}
+
 bool PostProcessSystem::ClearOverrides(PostProcessProfileHandle handle) {
 	ProfileInstance* profile = FindProfile(handle);
 	if (!profile) {
@@ -378,26 +465,28 @@ bool PostProcessSystem::ClearOverrides(PostProcessProfileHandle handle) {
 		effect.enabled = effect.baseEnabled;
 		effect.overriddenParameters.clear();
 	}
+	profile->toneMapping.parameters = profile->toneMapping.baseParameters;
+	profile->toneMapping.overriddenParameters.clear();
 	return true;
 }
 
 void PostProcessSystem::SetExposure(float exposureEV) {
 	exposureEV_ = std::isfinite(exposureEV) ? exposureEV : 0.0f;
-	fallbackParameters_.parameters[0].x = exposureEV_;
+	const auto fallbackDefinition = toneMappingDefinitions_.find(kFallbackToneMappingMethod);
+	if (fallbackDefinition != toneMappingDefinitions_.end()) {
+		const auto parameter = fallbackDefinition->second.parameters.find("ExposureEV");
+		if (parameter != fallbackDefinition->second.parameters.end()) {
+			WriteParameter(fallbackParameters_, parameter->second, &exposureEV_);
+		}
+	}
 	ProfileInstance* profile = FindProfile(activeProfile_);
-	if (!profile) {
+	if (!profile || !profile->toneMapping.definition) {
 		return;
 	}
-	for (EffectInstance& effect : profile->effects) {
-		if (effect.definition->stage != PostProcessStage::ToneMapping) {
-			continue;
-		}
-		const auto parameter = effect.definition->parameters.find("ExposureEV");
-		if (parameter != effect.definition->parameters.end()) {
-			WriteParameter(effect.parameters, parameter->second, &exposureEV_);
-			effect.overriddenParameters.emplace("ExposureEV");
-		}
-		return;
+	const auto parameter = profile->toneMapping.definition->parameters.find("ExposureEV");
+	if (parameter != profile->toneMapping.definition->parameters.end()) {
+		WriteParameter(profile->toneMapping.parameters, parameter->second, &exposureEV_);
+		profile->toneMapping.overriddenParameters.emplace("ExposureEV");
 	}
 }
 
@@ -411,61 +500,62 @@ bool PostProcessSystem::Execute() {
 
 bool PostProcessSystem::ExecuteProfile(ProfileInstance& profile) {
 	RenderTexture* hdrCurrent = directX_.GetSceneColor();
-	RenderTexture* ldrCurrent = nullptr;
-	if (!hdrCurrent) {
+	if (!hdrCurrent || !profile.toneMapping.definition || !profile.toneMapping.parameterResources) {
 		return false;
 	}
 
 	const uint32_t frameIndex = directX_.GetCurrentFrameContextIndex();
-	for (EffectInstance& effect : profile.effects) {
-		if (!effect.enabled) {
-			continue;
-		}
-		std::memcpy(
-			effect.parameterResources->GetMappedData(frameIndex),
-			&effect.parameters,
-			sizeof(effect.parameters));
+	const auto executeEffects = [this, frameIndex, &profile](PostProcessStage stage, RenderTexture*& current) {
+		RenderTexture* ping = stage == PostProcessStage::BeforeToneMapping ? hdrPing_.get() : ldrPing_.get();
+		RenderTexture* pong = stage == PostProcessStage::BeforeToneMapping ? hdrPong_.get() : ldrPong_.get();
+		for (EffectInstance& effect : profile.effects) {
+			if (!effect.enabled || effect.definition->stage != stage) {
+				continue;
+			}
+			std::memcpy(effect.parameterResources->GetMappedData(frameIndex), &effect.parameters, sizeof(effect.parameters));
+			RenderTexture* output = current == ping ? pong : ping;
 
-		if (effect.definition->executor == kBloomExecutor) {
-			RenderTexture* output = hdrCurrent == hdrPing_.get() ? hdrPong_.get() : hdrPing_.get();
-			if (!ExecuteBloom(effect, *hdrCurrent, *output)) {
-				return false;
-			}
-			hdrCurrent = output;
-		} else if (effect.definition->executor == kToneMappingExecutor) {
-			if (!ExecuteToneMapping(effect, *hdrCurrent, *ldrPing_)) {
-				return false;
-			}
-			ldrCurrent = ldrPing_.get();
-		} else if (effect.definition->executor == kFullscreenExecutor) {
-			if (effect.definition->stage == PostProcessStage::BeforeToneMapping) {
-				RenderTexture* output = hdrCurrent == hdrPing_.get() ? hdrPong_.get() : hdrPing_.get();
-				if (!ExecuteFullscreenEffect(effect, *hdrCurrent, *output)) {
-					return false;
-				}
-				hdrCurrent = output;
-			} else if (effect.definition->stage == PostProcessStage::AfterToneMapping && ldrCurrent) {
-				RenderTexture* output = ldrCurrent == ldrPing_.get() ? ldrPong_.get() : ldrPing_.get();
-				if (!ExecuteFullscreenEffect(effect, *ldrCurrent, *output)) {
-					return false;
-				}
-				ldrCurrent = output;
+			bool succeeded = false;
+			if (effect.definition->executor == kBloomExecutor && stage == PostProcessStage::BeforeToneMapping) {
+				succeeded = ExecuteBloom(effect, *current, *output);
+			} else if (effect.definition->executor == kFullscreenExecutor) {
+				succeeded = ExecuteFullscreenEffect(effect, *current, *output);
 			} else {
+				Logger::Log("Unknown Post Process Executor: " + effect.definition->executor);
+			}
+			if (!succeeded) {
 				return false;
 			}
-		} else {
-			Logger::Log("Unknown Post Process Executor: " + effect.definition->executor);
-			return false;
+			current = output;
 		}
-	}
+		return true;
+	};
 
-	return ldrCurrent && Present(*ldrCurrent);
+	if (!executeEffects(PostProcessStage::BeforeToneMapping, hdrCurrent)) {
+		return false;
+	}
+	std::memcpy(
+		profile.toneMapping.parameterResources->GetMappedData(frameIndex),
+		&profile.toneMapping.parameters,
+		sizeof(profile.toneMapping.parameters));
+	if (!ExecuteToneMapping(profile.toneMapping, *hdrCurrent, *ldrPing_)) {
+		return false;
+	}
+	RenderTexture* ldrCurrent = ldrPing_.get();
+	if (!executeEffects(PostProcessStage::AfterToneMapping, ldrCurrent)) {
+		return false;
+	}
+	return Present(*ldrCurrent);
 }
 
 bool PostProcessSystem::ExecuteFallback() {
 	RenderTexture* sceneColor = directX_.GetSceneColor();
-	Pipeline* toneMapping = FindPipeline("PostProcessToneMapping");
-	if (!sceneColor || !toneMapping) {
+	const auto definition = toneMappingDefinitions_.find(kFallbackToneMappingMethod);
+	if (!sceneColor || definition == toneMappingDefinitions_.end()) {
+		return false;
+	}
+	Pipeline* toneMapping = FindPipeline(definition->second.pipeline);
+	if (!toneMapping) {
 		return false;
 	}
 	const uint32_t frameIndex = directX_.GetCurrentFrameContextIndex();
@@ -495,8 +585,16 @@ bool PostProcessSystem::ExecuteFullscreenEffect(EffectInstance& effect, RenderTe
 		effect.parameterResources->GetGPUVirtualAddress(directX_.GetCurrentFrameContextIndex()));
 }
 
-bool PostProcessSystem::ExecuteToneMapping(EffectInstance& effect, RenderTexture& input, RenderTexture& output) {
-	return ExecuteFullscreenEffect(effect, input, output);
+bool PostProcessSystem::ExecuteToneMapping(ToneMappingInstance& toneMapping, RenderTexture& input, RenderTexture& output) {
+	Pipeline* pipeline = FindPipeline(toneMapping.definition->pipeline);
+	if (!pipeline) {
+		return false;
+	}
+	return DrawFullscreen(
+		*pipeline,
+		input,
+		output,
+		toneMapping.parameterResources->GetGPUVirtualAddress(directX_.GetCurrentFrameContextIndex()));
 }
 
 bool PostProcessSystem::ExecuteBloom(EffectInstance& effect, RenderTexture& input, RenderTexture& output) {

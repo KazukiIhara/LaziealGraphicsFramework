@@ -38,7 +38,12 @@ namespace LGF {
 		bool SetParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector2& value);
 		bool SetParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector3& value);
 		bool SetParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector4& value);
+		bool SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, float value);
+		bool SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector2& value);
+		bool SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector3& value);
+		bool SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector4& value);
 		bool ClearParameterOverride(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName);
+		bool ClearToneMappingParameterOverride(PostProcessProfileHandle handle, std::string_view parameterName);
 		bool ClearOverrides(PostProcessProfileHandle handle);
 		void SetExposure(float exposureEV);
 
@@ -54,8 +59,17 @@ namespace LGF {
 			bool enabled = true;
 		};
 
+		struct ToneMappingInstance {
+			const ToneMappingDefinition* definition = nullptr;
+			PostProcessParametersForGPU baseParameters{};
+			PostProcessParametersForGPU parameters{};
+			std::unique_ptr<FrameBufferedUploadBuffer> parameterResources;
+			std::unordered_set<std::string> overriddenParameters;
+		};
+
 		struct ProfileInstance {
 			std::string name;
+			ToneMappingInstance toneMapping;
 			std::vector<EffectInstance> effects;
 		};
 
@@ -70,11 +84,12 @@ namespace LGF {
 		const ProfileInstance* FindProfile(PostProcessProfileHandle handle) const;
 		EffectInstance* FindEffect(PostProcessProfileHandle handle, std::string_view effectId);
 		bool SetParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const float* values, uint32_t valueCount);
+		bool SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const float* values, uint32_t valueCount);
 		bool ExecuteProfile(ProfileInstance& profile);
 		bool ExecuteFallback();
 		bool ExecuteFullscreenEffect(EffectInstance& effect, RenderTexture& input, RenderTexture& output);
 		bool ExecuteBloom(EffectInstance& effect, RenderTexture& input, RenderTexture& output);
-		bool ExecuteToneMapping(EffectInstance& effect, RenderTexture& input, RenderTexture& output);
+		bool ExecuteToneMapping(ToneMappingInstance& toneMapping, RenderTexture& input, RenderTexture& output);
 		bool DrawFullscreen(Pipeline& pipeline, RenderTexture& input, RenderTexture& output, D3D12_GPU_VIRTUAL_ADDRESS parameterAddress);
 		bool Present(RenderTexture& input);
 		void BindSceneInputs(Pipeline& pipeline, RenderTexture& input);
@@ -86,6 +101,7 @@ namespace LGF {
 		PipelineManager& pipelineManager_;
 		std::filesystem::path assetRoot_;
 		std::unordered_map<std::string, PostEffectDefinition> definitions_;
+		std::unordered_map<std::string, ToneMappingDefinition> toneMappingDefinitions_;
 		std::vector<ProfileSlot> profiles_;
 		std::vector<uint32_t> freeProfileIndices_;
 		PostProcessProfileHandle activeProfile_{};

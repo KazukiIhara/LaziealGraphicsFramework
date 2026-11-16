@@ -11,7 +11,7 @@ Profileを読み込むと実行時インスタンスを指す世代付きハン�
 ```text
 SceneColor HDR
   -> BeforeToneMapping
-  -> ToneMapping（必須かつ1つ）
+  -> ToneMapping（必須の出力変換）
   -> AfterToneMapping
   -> SwapChain
   -> 2D / ImGui
@@ -42,23 +42,52 @@ SceneColor HDR
 ```
 
 - `Executor`: 汎用Effectは`Fullscreen`を使う。複数Passなど固有処理が必要なEffectは専用Executorを実装する。
-- `Stage`: `BeforeToneMapping`、`ToneMapping`、`AfterToneMapping`のいずれか。
+- `Stage`: `BeforeToneMapping`または`AfterToneMapping`。Tone Mapping自体は通常Effectとして定義しない。
 - `Pipeline`: Pipeline Jsonの`Name`。Shaderパスではない。
 - `Slot`: `0`から`7`までの固定`float4`スロット。
 - `Components`: `X`、`XY`、`XYZ`、`XYZW`など、連続した成分を指定する。
 - 同一スロット内でParameterの成分を重複させてはならない。
 
+## Tone Mapping定義
+
+`Assets/JsonData/ToneMapping`以下のJsonを起動時に読み込む。Tone Mappingは自由に
+追加・無効化するEffectではなく、HDRとLDRの間に必ず実行する出力変換として扱う。
+
+```json
+{
+  "Name": "ACES",
+  "Pipeline": "PostProcessToneMapping",
+  "Parameters": {
+    "ExposureEV": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 0.0,
+      "Minimum": -10.0,
+      "Maximum": 10.0
+    }
+  }
+}
+```
+
+Profileは`Method`で使用するTone Mapping定義を選択する。将来ReinhardやNeutralなどを
+追加する場合も、通常Effect一覧へ混ぜずにこの定義を追加する。
+
 ## Profile定義
 
-`Assets/JsonData/PostProcess`以下へ配置する。EffectはStage順に並べ、ToneMappingを
-有効な状態でちょうど1つ含める。
+`Assets/JsonData/PostProcess`以下へ配置する。Profileは必須の`ToneMapping`設定と、
+任意の`Effects`から構成する。EffectはStage順に並べる。
 
 ```json
 {
   "Name": "Default",
+  "ToneMapping": {
+    "Method": "ACES",
+    "Parameters": {
+      "ExposureEV": 0.0
+    }
+  },
   "Effects": [
     { "Id": "Bloom", "Effect": "Bloom", "Enabled": true },
-    { "Id": "Output", "Effect": "ToneMapping" },
     { "Id": "Color", "Effect": "ColorAdjustment", "Enabled": true }
   ]
 }
@@ -113,10 +142,12 @@ const auto profile = Graphics3D::CreatePostProcessProfile("Default.json");
 Graphics3D::SetPostProcessProfile(profile);
 Graphics3D::SetPostProcessEffectEnabled(profile, "MainBloom", true);
 Graphics3D::SetPostProcessParameter(profile, "MainBloom", "Intensity", 0.25f);
+Graphics3D::SetToneMappingParameter(profile, "ExposureEV", 1.0f);
 ```
 
 Profileからの相対パスを含まないファイル名は`Assets/JsonData/PostProcess`から解決する。
 上書き値はEffect定義の型と範囲を満たす必要があり、不正な指定では`false`を返す。
+`ClearPostProcessOverrides`は通常EffectとTone Mappingの上書きをまとめてProfile初期値へ戻す。
 Profile破棄時は`RemovePostProcessProfile`を呼ぶ。
 
 ## 初期実装
@@ -124,5 +155,5 @@ Profile破棄時は`RemovePostProcessProfile`を呼ぶ。
 - Bloom: ToneMapping前。抽出、半解像度の水平・垂直Blur、HDR合成を行う専用Executor。
 - Color Adjustment: ToneMapping後。Brightness、Contrast、Saturation、Tintを調整する。
 - Vignette: ToneMapping後。画面周辺を指定色へ寄せる。
-- Tone Mapping: HDRとLDRの境界として常に実行する。
+- Tone Mapping: 通常Effectとは分離し、Profileが選択した方式をHDRとLDRの境界で常に実行する。
 

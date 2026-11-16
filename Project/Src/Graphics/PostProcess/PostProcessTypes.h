@@ -19,7 +19,6 @@ namespace LGF {
 
 	enum class PostProcessStage : uint8_t {
 		BeforeToneMapping,
-		ToneMapping,
 		AfterToneMapping,
 	};
 
@@ -44,6 +43,12 @@ namespace LGF {
 		std::unordered_map<std::string, PostProcessParameterDefinition> parameters;
 	};
 
+	struct ToneMappingDefinition {
+		std::string name;
+		std::string pipeline;
+		std::unordered_map<std::string, PostProcessParameterDefinition> parameters;
+	};
+
 	struct PostProcessProfileEffectData {
 		std::string id;
 		std::string effect;
@@ -52,7 +57,13 @@ namespace LGF {
 	};
 
 	struct PostProcessProfileData {
+		struct ToneMappingData {
+			std::string method;
+			std::unordered_map<std::string, PostProcessParameterValue> parameters;
+		};
+
 		std::string name;
+		ToneMappingData toneMapping;
 		std::vector<PostProcessProfileEffectData> effects;
 	};
 

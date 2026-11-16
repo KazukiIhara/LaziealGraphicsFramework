@@ -247,8 +247,28 @@ bool LGF::Graphics3D::SetPostProcessParameter(PostProcessProfileHandle handle, s
 	return g_postProcessSystem && g_postProcessSystem->SetParameter(handle, effectId, parameterName, value);
 }
 
+bool LGF::Graphics3D::SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, float value) {
+	return g_postProcessSystem && g_postProcessSystem->SetToneMappingParameter(handle, parameterName, value);
+}
+
+bool LGF::Graphics3D::SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector2& value) {
+	return g_postProcessSystem && g_postProcessSystem->SetToneMappingParameter(handle, parameterName, value);
+}
+
+bool LGF::Graphics3D::SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector3& value) {
+	return g_postProcessSystem && g_postProcessSystem->SetToneMappingParameter(handle, parameterName, value);
+}
+
+bool LGF::Graphics3D::SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector4& value) {
+	return g_postProcessSystem && g_postProcessSystem->SetToneMappingParameter(handle, parameterName, value);
+}
+
 bool LGF::Graphics3D::ClearPostProcessParameterOverride(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName) {
 	return g_postProcessSystem && g_postProcessSystem->ClearParameterOverride(handle, effectId, parameterName);
+}
+
+bool LGF::Graphics3D::ClearToneMappingParameterOverride(PostProcessProfileHandle handle, std::string_view parameterName) {
+	return g_postProcessSystem && g_postProcessSystem->ClearToneMappingParameterOverride(handle, parameterName);
 }
 
 bool LGF::Graphics3D::ClearPostProcessOverrides(PostProcessProfileHandle handle) {

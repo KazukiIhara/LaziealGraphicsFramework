@@ -76,7 +76,13 @@ namespace LGF {
 		bool SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector2& value);
 		bool SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector3& value);
 		bool SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector4& value);
+		/// <summary>Profileが使用する必須Tone Mappingのパラメータを上書きする</summary>
+		bool SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, float value);
+		bool SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector2& value);
+		bool SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector3& value);
+		bool SetToneMappingParameter(PostProcessProfileHandle handle, std::string_view parameterName, const Vector4& value);
 		bool ClearPostProcessParameterOverride(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName);
+		bool ClearToneMappingParameterOverride(PostProcessProfileHandle handle, std::string_view parameterName);
 		bool ClearPostProcessOverrides(PostProcessProfileHandle handle);
 
 		void Draw(const Triangle3D& triangle, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);

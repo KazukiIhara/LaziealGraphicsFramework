@@ -10,7 +10,8 @@ namespace LGF {
 	class PostProcessJsonLoader {
 	public:
 		std::unordered_map<std::string, PostEffectDefinition> LoadEffectDefinitions(const std::filesystem::path& directory) const;
-		PostProcessProfileData LoadProfile(const std::filesystem::path& filePath, const std::unordered_map<std::string, PostEffectDefinition>& definitions) const;
+		std::unordered_map<std::string, ToneMappingDefinition> LoadToneMappingDefinitions(const std::filesystem::path& directory) const;
+		PostProcessProfileData LoadProfile(const std::filesystem::path& filePath, const std::unordered_map<std::string, PostEffectDefinition>& effectDefinitions, const std::unordered_map<std::string, ToneMappingDefinition>& toneMappingDefinitions) const;
 	};
 
 }

@@ -1,17 +1,16 @@
 {
   "Name": "Default",
+  "ToneMapping": {
+    "Method": "ACES",
+    "Parameters": {
+      "ExposureEV": 0.0
+    }
+  },
   "Effects": [
     {
       "Id": "MainBloom",
       "Effect": "Bloom",
       "Enabled": true
-    },
-    {
-      "Id": "Output",
-      "Effect": "ToneMapping",
-      "Parameters": {
-        "ExposureEV": 0.0
-      }
     },
     {
       "Id": "SceneColor",
