@@ -29,6 +29,15 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 - モデルのインスタンスバッチ
 - メッシュレット境界、カメラ視錐台、CSM分割のデバッグ描画
 
+### Post Process
+
+- Post EffectとProfileをJSONで定義し、Profileの実行時インスタンスを世代付きハンドルで管理
+- `BeforeToneMapping`、必須Tone Mapping、`AfterToneMapping`の順にHDR / LDR RenderTextureをピンポンして実行
+- Tone Mapping方式と初期パラメータをProfileから選択し、現在はACES FilmicとEV露出補正に対応
+- Shader Reflectionと予約名により、直前のColor、HDR SceneColor、Depth、各G-Bufferを必要なShaderへ自動バインド
+- Effectごとに8個の`Vector4`パラメータスロットを持ち、C++からEffectの有効状態とパラメータを上書き可能
+- 標準EffectとしてBloom、Color Adjustment、Vignetteを提供
+
 ### プリミティブとUI
 
 - 3D: `Triangle3D`、`Box3D`、`Sphere3D`、`Capsule3D`、`Cone3D`、
