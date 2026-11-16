@@ -1,12 +1,15 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 #include <span>
+#include <string_view>
 
 #include "LGF/Math/Matrix4x4.h"
 #include "LGF/Graphics/Color.h"
 #include "LGF/Graphics/Material.h"
 #include "LGF/Graphics/GpuParticle3D.h"
+#include "LGF/Graphics/PostProcess.h"
 
 namespace LGF {
 
@@ -61,6 +64,20 @@ namespace LGF {
 		void SetSkybox(const Skybox& skybox);
 		/// <summary>トーンマッピング前の露出をEV単位で設定する。+1で2倍、-1で半分。</summary>
 		void SetExposure(float exposureEV);
+
+		/// <summary>JsonからPost Process Profileの実行時インスタンスを作成する</summary>
+		PostProcessProfileHandle CreatePostProcessProfile(const std::filesystem::path& filePath);
+		bool RemovePostProcessProfile(PostProcessProfileHandle handle);
+		bool IsValid(PostProcessProfileHandle handle);
+		bool SetPostProcessProfile(PostProcessProfileHandle handle);
+		void ResetPostProcessProfile();
+		bool SetPostProcessEffectEnabled(PostProcessProfileHandle handle, std::string_view effectId, bool enabled);
+		bool SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, float value);
+		bool SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector2& value);
+		bool SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector3& value);
+		bool SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector4& value);
+		bool ClearPostProcessParameterOverride(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName);
+		bool ClearPostProcessOverrides(PostProcessProfileHandle handle);
 
 		void Draw(const Triangle3D& triangle, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);
 		void Draw(const Box3D& box, const Matrix4x4& worldMatrix, const Vector4& color = Color::White);

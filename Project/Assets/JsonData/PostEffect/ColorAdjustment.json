@@ -1,0 +1,43 @@
+{
+  "Name": "ColorAdjustment",
+  "Executor": "Fullscreen",
+  "Pipeline": "PostProcessColorAdjustment",
+  "Stage": "AfterToneMapping",
+  "Parameters": {
+    "Brightness": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 0.0,
+      "Minimum": -1.0,
+      "Maximum": 1.0
+    },
+    "Contrast": {
+      "Slot": 0,
+      "Components": "Y",
+      "Default": 1.0,
+      "Minimum": 0.0,
+      "Maximum": 2.0
+    },
+    "Saturation": {
+      "Slot": 0,
+      "Components": "Z",
+      "Default": 1.0,
+      "Minimum": 0.0,
+      "Maximum": 2.0
+    },
+    "Intensity": {
+      "Slot": 0,
+      "Components": "W",
+      "Default": 1.0,
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    },
+    "Tint": {
+      "Slot": 1,
+      "Components": "XYZW",
+      "Default": [1.0, 1.0, 1.0, 1.0],
+      "Minimum": 0.0,
+      "Maximum": 2.0
+    }
+  }
+}

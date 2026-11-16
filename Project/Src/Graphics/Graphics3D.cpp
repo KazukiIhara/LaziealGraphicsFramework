@@ -9,6 +9,7 @@
 #include "Graphics/Light/System/DirectionalLightSystem.h"
 #include "Graphics/Light/System/PointLightSystem.h"
 #include "Graphics/Skybox/System/SkyboxSystem.h"
+#include "Graphics/PostProcess/System/PostProcessSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
 #include "LGF/Graphics/Model.h"
 #include "LGF/Graphics/Font3D.h"
@@ -17,6 +18,7 @@
 #include "LGF/Graphics/SphericalShellCap3D.h"
 #include "LGF/Graphics/UIPanel3D.h"
 #include "LGF/Graphics/RenderTargetTexture.h"
+#include "LGF/Graphics/PostProcess.h"
 
 namespace {
 	LGF::DirectXCore* g_directX = nullptr;
@@ -24,6 +26,7 @@ namespace {
 	LGF::DirectionalLightSystem* g_directionalLightSystem = nullptr;
 	LGF::PointLightSystem* g_pointLightSystem = nullptr;
 	LGF::SkyboxSystem* g_skyboxSystem = nullptr;
+	LGF::PostProcessSystem* g_postProcessSystem = nullptr;
 	LGF::Renderer3D* g_renderer3D = nullptr;
 }
 
@@ -70,6 +73,15 @@ void LGF::Graphics3D::Internal::SetSkyboxSystem(SkyboxSystem* skyboxSystem) {
 
 void LGF::Graphics3D::Internal::ResetSkyboxSystem() {
 	g_skyboxSystem = nullptr;
+}
+
+void LGF::Graphics3D::Internal::SetPostProcessSystem(PostProcessSystem* postProcessSystem) {
+	assert(postProcessSystem != nullptr);
+	g_postProcessSystem = postProcessSystem;
+}
+
+void LGF::Graphics3D::Internal::ResetPostProcessSystem() {
+	g_postProcessSystem = nullptr;
 }
 
 void LGF::Graphics3D::Internal::SetRenderer3D(Renderer3D* renderer) {
@@ -188,6 +200,59 @@ void LGF::Graphics3D::SetSkybox(const Skybox& skybox) {
 void LGF::Graphics3D::SetExposure(float exposureEV) {
 	assert(g_directX != nullptr);
 	g_directX->SetExposure(exposureEV);
+	if (g_postProcessSystem) {
+		g_postProcessSystem->SetExposure(exposureEV);
+	}
+}
+
+LGF::PostProcessProfileHandle LGF::Graphics3D::CreatePostProcessProfile(const std::filesystem::path& filePath) {
+	return g_postProcessSystem ? g_postProcessSystem->CreateProfile(filePath) : PostProcessProfileHandle{};
+}
+
+bool LGF::Graphics3D::RemovePostProcessProfile(PostProcessProfileHandle handle) {
+	return g_postProcessSystem && g_postProcessSystem->RemoveProfile(handle);
+}
+
+bool LGF::Graphics3D::IsValid(PostProcessProfileHandle handle) {
+	return g_postProcessSystem && g_postProcessSystem->IsValid(handle);
+}
+
+bool LGF::Graphics3D::SetPostProcessProfile(PostProcessProfileHandle handle) {
+	return g_postProcessSystem && g_postProcessSystem->SetActiveProfile(handle);
+}
+
+void LGF::Graphics3D::ResetPostProcessProfile() {
+	if (g_postProcessSystem) {
+		g_postProcessSystem->ResetActiveProfile();
+	}
+}
+
+bool LGF::Graphics3D::SetPostProcessEffectEnabled(PostProcessProfileHandle handle, std::string_view effectId, bool enabled) {
+	return g_postProcessSystem && g_postProcessSystem->SetEffectEnabled(handle, effectId, enabled);
+}
+
+bool LGF::Graphics3D::SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, float value) {
+	return g_postProcessSystem && g_postProcessSystem->SetParameter(handle, effectId, parameterName, value);
+}
+
+bool LGF::Graphics3D::SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector2& value) {
+	return g_postProcessSystem && g_postProcessSystem->SetParameter(handle, effectId, parameterName, value);
+}
+
+bool LGF::Graphics3D::SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector3& value) {
+	return g_postProcessSystem && g_postProcessSystem->SetParameter(handle, effectId, parameterName, value);
+}
+
+bool LGF::Graphics3D::SetPostProcessParameter(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName, const Vector4& value) {
+	return g_postProcessSystem && g_postProcessSystem->SetParameter(handle, effectId, parameterName, value);
+}
+
+bool LGF::Graphics3D::ClearPostProcessParameterOverride(PostProcessProfileHandle handle, std::string_view effectId, std::string_view parameterName) {
+	return g_postProcessSystem && g_postProcessSystem->ClearParameterOverride(handle, effectId, parameterName);
+}
+
+bool LGF::Graphics3D::ClearPostProcessOverrides(PostProcessProfileHandle handle) {
+	return g_postProcessSystem && g_postProcessSystem->ClearOverrides(handle);
 }
 
 void LGF::Graphics3D::Draw(const Triangle3D& triangle, const Matrix4x4& worldMatrix, const Vector4& color) {

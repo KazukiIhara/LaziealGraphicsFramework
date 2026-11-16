@@ -1,0 +1,41 @@
+{
+  "Name": "Bloom",
+  "Executor": "Bloom",
+  "Stage": "BeforeToneMapping",
+  "Pipelines": {
+    "Extract": "PostProcessBloomExtract",
+    "BlurHorizontal": "PostProcessBloomBlurHorizontal",
+    "BlurVertical": "PostProcessBloomBlurVertical",
+    "Composite": "PostProcessBloomComposite"
+  },
+  "Parameters": {
+    "Threshold": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 1.0,
+      "Minimum": 0.0,
+      "Maximum": 10.0
+    },
+    "SoftKnee": {
+      "Slot": 0,
+      "Components": "Y",
+      "Default": 0.5,
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    },
+    "Intensity": {
+      "Slot": 0,
+      "Components": "Z",
+      "Default": 0.15,
+      "Minimum": 0.0,
+      "Maximum": 5.0
+    },
+    "Radius": {
+      "Slot": 0,
+      "Components": "W",
+      "Default": 0.7,
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    }
+  }
+}

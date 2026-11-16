@@ -1,0 +1,29 @@
+{
+  "Name": "PostProcessBloomBlurHorizontal",
+  "PipelineKind": "MeshGraphics",
+  "Shaders": {
+    "MS": "Fullscreen/FullscreenCopy.MS.hlsl",
+    "PS": "PostProcess/BloomBlurHorizontal.PS.hlsl"
+  },
+  "Rasterizer": {
+    "CullMode": "None",
+    "FillMode": "Solid"
+  },
+  "Blend": {
+    "Mode": "None"
+  },
+  "Depth": {
+    "Enable": false,
+    "Write": false,
+    "Func": "Always"
+  },
+  "RenderTarget": {
+    "Formats": [
+      "R16G16B16A16_FLOAT"
+    ]
+  },
+  "DepthStencil": {
+    "Format": "D24_UNORM_S8_UINT"
+  },
+  "PrimitiveTopology": "Triangle"
+}

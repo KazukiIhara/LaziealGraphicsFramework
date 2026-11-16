@@ -77,6 +77,8 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 
 - [レンダリング機能のパス分類規約](Docs/RenderingFeatureClassification.md)
   - Lighting、Scene Composition、Post Processの責務と、新しい描画機能を追加するときの判断基準を定義します。
+- [Post Processシステム仕様](Docs/PostProcessSystem.md)
+  - ProfileとEffectのJson形式、Shader予約名、C++ API、標準Effectを定義します。
 
 ## 主な依存ライブラリ
 

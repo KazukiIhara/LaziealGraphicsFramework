@@ -38,14 +38,23 @@ ID3DBlob* Pipeline::GetShaderBlob(const std::string& shaderName) const {
 }
 
 uint32_t Pipeline::GetRootIndex(const std::string& name) const {
+	const std::optional<uint32_t> rootIndex = FindRootIndex(name);
+	if (rootIndex) {
+		return *rootIndex;
+	}
+
+	assert(false);
+	return 0;
+}
+
+std::optional<uint32_t> Pipeline::FindRootIndex(std::string_view name) const {
 	for (const RootParameterInfo& info : rootParamInfos_) {
 		if (info.name == name) {
 			return info.rootIndex;
 		}
 	}
 
-	assert(false);
-	return 0;
+	return std::nullopt;
 }
 
 bool Pipeline::IsValid() const {

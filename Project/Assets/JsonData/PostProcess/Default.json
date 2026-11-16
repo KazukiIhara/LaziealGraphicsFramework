@@ -1,0 +1,27 @@
+{
+  "Name": "Default",
+  "Effects": [
+    {
+      "Id": "MainBloom",
+      "Effect": "Bloom",
+      "Enabled": true
+    },
+    {
+      "Id": "Output",
+      "Effect": "ToneMapping",
+      "Parameters": {
+        "ExposureEV": 0.0
+      }
+    },
+    {
+      "Id": "SceneColor",
+      "Effect": "ColorAdjustment",
+      "Enabled": true
+    },
+    {
+      "Id": "Vignette",
+      "Effect": "Vignette",
+      "Enabled": true
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "Name": "Vignette",
+  "Executor": "Fullscreen",
+  "Pipeline": "PostProcessVignette",
+  "Stage": "AfterToneMapping",
+  "Parameters": {
+    "Intensity": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 0.25,
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    },
+    "Smoothness": {
+      "Slot": 0,
+      "Components": "Y",
+      "Default": 0.5,
+      "Minimum": 0.001,
+      "Maximum": 1.0
+    },
+    "Roundness": {
+      "Slot": 0,
+      "Components": "Z",
+      "Default": 1.0,
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    },
+    "Color": {
+      "Slot": 1,
+      "Components": "XYZW",
+      "Default": [0.0, 0.0, 0.0, 1.0],
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    }
+  }
+}

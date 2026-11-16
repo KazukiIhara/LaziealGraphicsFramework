@@ -1,7 +1,9 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <unordered_map>
+#include <optional>
 
 #include <d3d12.h>
 #include <d3dcommon.h>
@@ -38,6 +40,7 @@ namespace LGF {
 
 		ID3DBlob* GetShaderBlob(const std::string& shaderName) const;
 		uint32_t GetRootIndex(const std::string& name) const;
+		std::optional<uint32_t> FindRootIndex(std::string_view name) const;
 
 		bool IsValid() const;
 

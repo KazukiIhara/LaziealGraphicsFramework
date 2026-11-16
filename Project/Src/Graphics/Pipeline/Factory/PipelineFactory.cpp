@@ -408,8 +408,14 @@ PipelineFactory::RootSignatureBuildResult PipelineFactory::CreateRootSignature(c
 		D3D12_ROOT_PARAMETER rootParam{};
 		if (resource.type == D3D_SIT_SAMPLER) {
 			D3D12_STATIC_SAMPLER_DESC sampler{};
-			sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-			sampler.AddressU = sampler.AddressV = sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+			const bool usePointFilter = resource.name.find("Point") != std::string::npos;
+			const bool useClampAddress = resource.name.find("Clamp") != std::string::npos;
+			sampler.Filter = usePointFilter
+				? D3D12_FILTER_MIN_MAG_MIP_POINT
+				: D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+			sampler.AddressU = sampler.AddressV = sampler.AddressW = useClampAddress
+				? D3D12_TEXTURE_ADDRESS_MODE_CLAMP
+				: D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 			sampler.MaxAnisotropy = 1;
 			sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 			sampler.MaxLOD = D3D12_FLOAT32_MAX;

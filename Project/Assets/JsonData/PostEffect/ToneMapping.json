@@ -1,0 +1,15 @@
+{
+  "Name": "ToneMapping",
+  "Executor": "ToneMapping",
+  "Pipeline": "PostProcessToneMapping",
+  "Stage": "ToneMapping",
+  "Parameters": {
+    "ExposureEV": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 0.0,
+      "Minimum": -10.0,
+      "Maximum": 10.0
+    }
+  }
+}

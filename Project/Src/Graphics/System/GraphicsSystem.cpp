@@ -24,6 +24,7 @@
 #include "Graphics/Model/ModelSystemInternal.h"
 #include "Graphics/Compute/GpuComputeInternal.h"
 #include "Graphics/Compute/PhysicsParticle/GpuPhysicsParticleBackend.h"
+#include "Graphics/PostProcess/System/PostProcessSystem.h"
 
 #include "Graphics/Graphics3DContext.h"
 #include "Graphics/Graphics3DInternal.h"
@@ -95,6 +96,16 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 	// パイプラインマネージャ初期化
 	pipelineManager_ = std::make_unique<PipelineManager>(*directX_, desc.assetRoot);
 	pipelineManager_->Initialize();
+
+	// Post Processシステム初期化
+	postProcessSystem_ = std::make_unique<PostProcessSystem>(
+		*directX_,
+		*pipelineManager_,
+		desc.assetRoot);
+	if (!postProcessSystem_->Initialize()) {
+		return failInitialization();
+	}
+	Graphics3D::Internal::SetPostProcessSystem(postProcessSystem_.get());
 
 	// 3Dカメラシステム初期化
 	Graphics3D::Internal::SetDirectXCore(directX_.get());
@@ -204,6 +215,7 @@ bool GraphicsSystem::Finalize() {
 	Graphics3D::Internal::ResetDirectionalLightSystem();
 	Graphics3D::Internal::ResetPointLightSystem();
 	Graphics3D::Internal::ResetSkyboxSystem();
+	Graphics3D::Internal::ResetPostProcessSystem();
 	Graphics3D::Internal::ResetDirectXCore();
 
 	Graphics2D::Internal::ResetDirectXCore();
@@ -214,6 +226,9 @@ bool GraphicsSystem::Finalize() {
 		subSys->Finalize();
 	}
 	subsystems_.clear();
+	if (postProcessSystem_) {
+		postProcessSystem_->Finalize();
+	}
 	if (pipelineManager_) {
 		pipelineManager_->Finalize();
 	}
@@ -239,6 +254,7 @@ bool GraphicsSystem::Finalize() {
 	pointLightSystem_.reset();
 	skyboxSystem_.reset();
 	camera3DSystem_.reset();
+	postProcessSystem_.reset();
 	pipelineManager_.reset();
 	modelManager_.reset();
 	fontManager_.reset();
@@ -253,7 +269,10 @@ bool GraphicsSystem::Finalize() {
 }
 
 bool GraphicsSystem::Resize(uint32_t width, uint32_t height) {
-	return directX_ && directX_->Resize(width, height);
+	if (!directX_ || !directX_->Resize(width, height)) {
+		return false;
+	}
+	return postProcessSystem_ && postProcessSystem_->Resize(width, height);
 }
 
 void GraphicsSystem::BeginFrame() {
@@ -335,7 +354,9 @@ void GraphicsSystem::EndFrame() {
 		*shadowMapSystem_);
 	directX_->BeginTransparentPass();
 	renderer3D_->DrawTransparent();
-	directX_->DrawSceneToSwapChain(*pipelineManager_);
+	if (!postProcessSystem_->Execute()) {
+		throw std::runtime_error("Post Process execution failed.");
+	}
 
 	// 2DとImGuiはトーンマッピング後のSwapChainへ描画する。
 	camera2DSystem_->EndFrame();

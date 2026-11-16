@@ -572,3 +572,32 @@ ShaderCompiler* DirectXCore::GetShaderCompiler() {
 RenderTextureManager* DirectXCore::GetRenderTextureManager() {
 	return renderTextureManager_.get();
 }
+
+RenderTexture* DirectXCore::GetSceneColor() {
+	return sceneColor_;
+}
+
+RenderTexture* DirectXCore::GetGBufferAlbedo() {
+	return gBufferAlbedo_;
+}
+
+RenderTexture* DirectXCore::GetGBufferNormal() {
+	return gBufferNormal_;
+}
+
+RenderTexture* DirectXCore::GetGBufferMaterial() {
+	return gBufferMaterial_;
+}
+
+DepthStencil* DirectXCore::GetDepthStencil() {
+	return depthStencil_.get();
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE DirectXCore::GetCurrentBackBufferRTVHandle() {
+	return swapChain_->GetCurrentBackBufferRTVHandle();
+}
+
+void DirectXCore::SetViewportAndScissor(uint32_t width, uint32_t height) {
+	viewport_->BeginFrame(width, height);
+	scissorRect_->BeginFrame(width, height);
+}

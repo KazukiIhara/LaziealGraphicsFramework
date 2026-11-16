@@ -97,6 +97,13 @@ namespace LGF {
 		ResourceFactory* GetResourceFactory();
 		ShaderCompiler* GetShaderCompiler();
 		RenderTextureManager* GetRenderTextureManager();
+		RenderTexture* GetSceneColor();
+		RenderTexture* GetGBufferAlbedo();
+		RenderTexture* GetGBufferNormal();
+		RenderTexture* GetGBufferMaterial();
+		DepthStencil* GetDepthStencil();
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentBackBufferRTVHandle();
+		void SetViewportAndScissor(uint32_t width, uint32_t height);
 
 		ResMgr GetResMgr();
 
