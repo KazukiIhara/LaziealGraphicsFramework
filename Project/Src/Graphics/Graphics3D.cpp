@@ -327,7 +327,7 @@ void LGF::Graphics3D::Draw(const UIPanel3D& panel, const Matrix4x4& worldMatrix,
 			.color = color,
 			.unlit = true,
 		}
-	);
+		);
 }
 
 void LGF::Graphics3D::Draw(const Ground3D& ground, const Matrix4x4& worldMatrix, const Vector4& color) {
@@ -367,17 +367,11 @@ void LGF::Graphics3D::Draw(const SphericalShellCap3D& sphericalShellCap, const M
 }
 
 void LGF::Graphics3D::Draw(const Model& model, const Matrix4x4& worldMatrix, const Vector4& color, const ModelDrawOptions& options) {
-
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddModel(model, worldMatrix, color, options);
 }
 
-void LGF::Graphics3D::Draw(
-	const Model& model,
-	const ModelAnimator& animator,
-	const Matrix4x4& worldMatrix,
-	const Vector4& color,
-	const ModelDrawOptions& options) {
+void LGF::Graphics3D::Draw(const Model& model, const ModelAnimator& animator, const Matrix4x4& worldMatrix, const Vector4& color, const ModelDrawOptions& options) {
 	assert(g_renderer3D != nullptr);
 	g_renderer3D->AddModel(model, animator, worldMatrix, color, options);
 }
