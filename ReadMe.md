@@ -73,6 +73,11 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 - フレームごとにCamera、Light、Skyboxを`SetScene()`し、
   プリミティブやModelを`Draw()`します。
 
+## 設計資料
+
+- [レンダリング機能のパス分類規約](Docs/RenderingFeatureClassification.md)
+  - Lighting、Scene Composition、Post Processの責務と、新しい描画機能を追加するときの判断基準を定義します。
+
 ## 主な依存ライブラリ
 
 - DirectXTex
