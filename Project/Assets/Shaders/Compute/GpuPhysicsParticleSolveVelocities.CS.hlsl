@@ -31,7 +31,7 @@ void main(uint3 id : SV_DispatchThreadID)
         return;
     }
 
-    float3 velocity = particle.velocity * gDamping;
+    float3 velocity = (particle.position - particle.previousPosition) / gDeltaTime * gDamping;
     const int3 centerCell = gParticleCells[id.x].xyz;
     [unroll]
     for (int z = -1; z <= 1; ++z)
@@ -57,7 +57,7 @@ void main(uint3 id : SV_DispatchThreadID)
                             dot(delta, delta) <= minimumDistance * minimumDistance + 1.0e-6f)
                         {
                             const float3 normal = SafeNormal(delta, float3(1.0f, 0.0f, 0.0f));
-                            const float3 otherVelocity = other.velocity * gDamping;
+                            const float3 otherVelocity = (other.position - other.previousPosition) / gDeltaTime * gDamping;
                             const float3 relativeVelocity = otherVelocity - velocity;
                             const float normalSpeed = dot(relativeVelocity, normal);
                             if (normalSpeed < 0.0f)
