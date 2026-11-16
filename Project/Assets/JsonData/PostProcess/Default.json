@@ -18,8 +18,28 @@
       "Enabled": true
     },
     {
+      "Id": "Grayscale",
+      "Effect": "Grayscale",
+      "Enabled": false
+    },
+    {
+      "Id": "Pixelation",
+      "Effect": "Pixelation",
+      "Enabled": false
+    },
+    {
+      "Id": "ChromaticAberration",
+      "Effect": "ChromaticAberration",
+      "Enabled": false
+    },
+    {
       "Id": "Vignette",
       "Effect": "Vignette",
+      "Enabled": true
+    },
+    {
+      "Id": "FXAA",
+      "Effect": "FXAA",
       "Enabled": true
     }
   ]

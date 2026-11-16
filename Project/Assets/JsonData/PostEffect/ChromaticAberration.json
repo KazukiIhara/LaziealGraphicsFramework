@@ -1,0 +1,15 @@
+{
+  "Name": "ChromaticAberration",
+  "Executor": "Fullscreen",
+  "Pipeline": "PostProcessChromaticAberration",
+  "Stage": "AfterToneMapping",
+  "Parameters": {
+    "Intensity": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 2.0,
+      "Minimum": 0.0,
+      "Maximum": 32.0
+    }
+  }
+}

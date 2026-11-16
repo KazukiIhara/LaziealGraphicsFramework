@@ -1,0 +1,15 @@
+{
+  "Name": "Pixelation",
+  "Executor": "Fullscreen",
+  "Pipeline": "PostProcessPixelation",
+  "Stage": "AfterToneMapping",
+  "Parameters": {
+    "PixelSize": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 8.0,
+      "Minimum": 1.0,
+      "Maximum": 128.0
+    }
+  }
+}

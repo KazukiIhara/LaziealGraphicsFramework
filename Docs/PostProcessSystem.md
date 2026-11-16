@@ -154,6 +154,10 @@ Profile破棄時は`RemovePostProcessProfile`を呼ぶ。
 
 - Bloom: ToneMapping前。抽出、半解像度の水平・垂直Blur、HDR合成を行う専用Executor。
 - Color Adjustment: ToneMapping後。Brightness、Contrast、Saturation、Tintを調整する。
+- Grayscale: ToneMapping後。輝度色への変換量を調整する。
+- Pixelation: ToneMapping後。指定したピクセル幅のブロック単位で表示する。
+- Chromatic Aberration: ToneMapping後。画面中心からの距離に応じて色成分をずらす。
 - Vignette: ToneMapping後。画面周辺を指定色へ寄せる。
+- FXAA: ToneMapping後。輝度差からエッジを検出してアンチエイリアスを適用する。
 - Tone Mapping: 通常Effectとは分離し、Profileが選択した方式をHDRとLDRの境界で常に実行する。
 

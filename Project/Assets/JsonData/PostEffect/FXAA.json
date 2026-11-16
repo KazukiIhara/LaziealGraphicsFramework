@@ -1,0 +1,29 @@
+{
+  "Name": "FXAA",
+  "Executor": "Fullscreen",
+  "Pipeline": "PostProcessFXAA",
+  "Stage": "AfterToneMapping",
+  "Parameters": {
+    "EdgeThreshold": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 0.125,
+      "Minimum": 0.0312,
+      "Maximum": 0.333
+    },
+    "MinimumEdgeThreshold": {
+      "Slot": 0,
+      "Components": "Y",
+      "Default": 0.0312,
+      "Minimum": 0.0,
+      "Maximum": 0.0833
+    },
+    "BlendStrength": {
+      "Slot": 0,
+      "Components": "Z",
+      "Default": 0.75,
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    }
+  }
+}
