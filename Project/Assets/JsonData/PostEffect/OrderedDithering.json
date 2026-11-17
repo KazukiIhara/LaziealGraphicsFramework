@@ -1,0 +1,29 @@
+{
+  "Name": "OrderedDithering",
+  "Executor": "Fullscreen",
+  "Pipeline": "PostProcessOrderedDithering",
+  "Stage": "AfterToneMapping",
+  "Parameters": {
+    "ColorSteps": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 8.0,
+      "Minimum": 2.0,
+      "Maximum": 64.0
+    },
+    "Intensity": {
+      "Slot": 0,
+      "Components": "Y",
+      "Default": 1.0,
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    },
+    "Scale": {
+      "Slot": 0,
+      "Components": "Z",
+      "Default": 1.0,
+      "Minimum": 1.0,
+      "Maximum": 8.0
+    }
+  }
+}

@@ -10,6 +10,7 @@
 #include "LGF/Math/MathUtils.h"
 #include "LGF/Math/Vector4.h"
 #include "Color.h"
+#include "Material.h"
 
 namespace LGF {
 	struct ModelDebugDraw {
@@ -29,6 +30,8 @@ namespace LGF {
 		float roughnessScale = 1.0f;
 		float occlusionStrength = 1.0f;
 		bool unlit = false;
+		ShadingModel3D shadingModel = ShadingModel3D::SceneDefault;
+		ToonMaterial3D toonLighting{};
 		ModelDebugDraw debugDraw{};
 	};
 

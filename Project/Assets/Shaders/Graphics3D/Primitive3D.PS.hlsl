@@ -115,7 +115,7 @@ GBufferOutput main(MSOutput3D input)
         saturate(occlusion),
         saturate(roughness),
         saturate(metallic),
-        1.0f);
+        float(input.lightingMaterialId) / 255.0f);
 
     return output;
 }

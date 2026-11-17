@@ -23,8 +23,28 @@
       "Enabled": false
     },
     {
-      "Id": "Pixelation",
-      "Effect": "Pixelation",
+      "Id": "Posterization",
+      "Effect": "Posterization",
+      "Enabled": false
+    },
+    {
+      "Id": "Sepia",
+      "Effect": "Sepia",
+      "Enabled": false
+    },
+    {
+      "Id": "ColorInversion",
+      "Effect": "ColorInversion",
+      "Enabled": false
+    },
+    {
+      "Id": "LensDistortion",
+      "Effect": "LensDistortion",
+      "Enabled": false
+    },
+    {
+      "Id": "RadialBlur",
+      "Effect": "RadialBlur",
       "Enabled": false
     },
     {
@@ -38,9 +58,24 @@
       "Enabled": true
     },
     {
+      "Id": "Sharpen",
+      "Effect": "Sharpen",
+      "Enabled": false
+    },
+    {
       "Id": "FXAA",
       "Effect": "FXAA",
       "Enabled": true
+    },
+    {
+      "Id": "Pixelation",
+      "Effect": "Pixelation",
+      "Enabled": false
+    },
+    {
+      "Id": "OrderedDithering",
+      "Effect": "OrderedDithering",
+      "Enabled": false
     }
   ]
 }

@@ -35,7 +35,8 @@ namespace LGF {
 		float metallic = 0.0f;
 		float roughness = 1.0f;
 		float occlusionStrength = 1.0f;
-		float padding[3]{};
+		uint32_t lightingMaterialId = 0u;
+		float padding[2]{};
 	};
 	static_assert(sizeof(InstanceData3D) == 208);
 

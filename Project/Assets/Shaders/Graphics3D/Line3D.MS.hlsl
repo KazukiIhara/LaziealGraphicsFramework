@@ -41,6 +41,7 @@ void main(
         lineData.instData.metallic,
         lineData.instData.roughness,
         lineData.instData.occlusionStrength);
+    vertices[0].lightingMaterialId = lineData.instData.lightingMaterialId;
     vertices[0].normal = float4(
         ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f)),
         (lineData.instData.materialFlags & kMaterialUnlit) != 0 ? 1.0f : 0.0f);
@@ -60,6 +61,7 @@ void main(
         lineData.instData.metallic,
         lineData.instData.roughness,
         lineData.instData.occlusionStrength);
+    vertices[1].lightingMaterialId = lineData.instData.lightingMaterialId;
     vertices[1].normal = float4(
         ToWorldNormal(lineData.instData, float3(0.0f, 0.0f, 1.0f)),
         (lineData.instData.materialFlags & kMaterialUnlit) != 0 ? 1.0f : 0.0f);

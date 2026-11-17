@@ -23,6 +23,7 @@
 #include "Graphics/RenderTexture/RenderTextureManager.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
 #include "Graphics/Light/System/PointLightSystem.h"
+#include "Graphics/Light/System/ToonLightingSystem.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Skybox/System/SkyboxSystem.h"
 #include "Graphics/Shadow/System/ShadowMapSystem.h"
@@ -46,6 +47,8 @@ namespace {
 	constexpr char kDirectionalLightShaderName[] = "DirectionalLightData";
 	constexpr char kPointLightsShaderName[] = "gPointLights";
 	constexpr char kPointLightCountShaderName[] = "PointLightCountData";
+	constexpr char kToonLightingShaderName[] = "ToonLightingData";
+	constexpr char kToonMaterialsShaderName[] = "gToonMaterials";
 	constexpr char kCameraShaderName[] = "gCamera";
 	constexpr char kSkyboxShaderName[] = "SkyboxData";
 	constexpr char kShadowMapShaderName[] = "gShadowMap";
@@ -264,6 +267,7 @@ void DirectXCore::DrawLightingToRenderTarget(
 	PipelineManager& pipelineManager,
 	DirectionalLightSystem& lightSystem,
 	PointLightSystem& pointLightSystem,
+	ToonLightingSystem& toonLightingSystem,
 	Camera3DSystem& cameraSystem,
 	SkyboxSystem& skyboxSystem,
 	ShadowMapSystem& shadowMapSystem) {
@@ -297,6 +301,10 @@ void DirectXCore::DrawLightingToRenderTarget(
 		commandList,
 		pipeline->GetRootIndex(kPointLightsShaderName),
 		pipeline->GetRootIndex(kPointLightCountShaderName));
+	toonLightingSystem.Bind(
+		commandList,
+		pipeline->GetRootIndex(kToonLightingShaderName),
+		pipeline->GetRootIndex(kToonMaterialsShaderName));
 	cameraSystem.Bind(commandList, pipeline->GetRootIndex(kCameraShaderName));
 	skyboxSystem.Bind(commandList, pipeline->GetRootIndex(kSkyboxShaderName));
 	commandList->SetGraphicsRootDescriptorTable(
@@ -326,6 +334,7 @@ void DirectXCore::DrawLightingToSceneColor(
 	PipelineManager& pipelineManager,
 	DirectionalLightSystem& lightSystem,
 	PointLightSystem& pointLightSystem,
+	ToonLightingSystem& toonLightingSystem,
 	Camera3DSystem& cameraSystem,
 	SkyboxSystem& skyboxSystem,
 	ShadowMapSystem& shadowMapSystem) {
@@ -373,6 +382,10 @@ void DirectXCore::DrawLightingToSceneColor(
 		commandList,
 		pipeline->GetRootIndex(kPointLightsShaderName),
 		pipeline->GetRootIndex(kPointLightCountShaderName));
+	toonLightingSystem.Bind(
+		commandList,
+		pipeline->GetRootIndex(kToonLightingShaderName),
+		pipeline->GetRootIndex(kToonMaterialsShaderName));
 	cameraSystem.Bind(commandList, pipeline->GetRootIndex(kCameraShaderName));
 	skyboxSystem.Bind(commandList, pipeline->GetRootIndex(kSkyboxShaderName));
 	commandList->SetGraphicsRootDescriptorTable(

@@ -1,0 +1,22 @@
+{
+  "Name": "Posterization",
+  "Executor": "Fullscreen",
+  "Pipeline": "PostProcessPosterization",
+  "Stage": "AfterToneMapping",
+  "Parameters": {
+    "ColorSteps": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 8.0,
+      "Minimum": 2.0,
+      "Maximum": 64.0
+    },
+    "Intensity": {
+      "Slot": 0,
+      "Components": "Y",
+      "Default": 1.0,
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    }
+  }
+}

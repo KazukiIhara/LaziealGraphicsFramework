@@ -14,6 +14,7 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 - Mesh Shaderによる3Dプリミティブ描画とインスタンシング
 - Albedo / Normal / Material G-Bufferを利用したDeferred Rendering
 - Cook-Torrance BRDFによるMetallic-Roughness PBR
+- Shadow、Middle、Lightの3色と2つの閾値をランタイム指定できるToon Lighting（シーン共通 / マテリアル個別切り替え対応）
 - ベースカラー、法線、Metallic-Roughness、Ambient Occlusionテクスチャ
 - HDRシーンカラー、EV露出補正、ACES Filmic Tone Mapping
 - SkyboxとSplit-Sum IBL
@@ -36,7 +37,8 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 - Tone Mapping方式と初期パラメータをProfileから選択し、現在はACES FilmicとEV露出補正に対応
 - Shader Reflectionと予約名により、直前のColor、HDR SceneColor、Depth、各G-Bufferを必要なShaderへ自動バインド
 - Effectごとに8個の`Vector4`パラメータスロットを持ち、C++からEffectの有効状態とパラメータを上書き可能
-- 標準EffectとしてBloom、Color Adjustment、Grayscale、Pixelation、Chromatic Aberration、Vignette、FXAAを提供
+- 標準EffectとしてBloom、Color Adjustment、Grayscale、Posterization、Sepia、Color Inversion、
+  Lens Distortion、Radial Blur、Chromatic Aberration、Vignette、Sharpen、FXAA、Pixelation、Ordered Ditheringを提供
 
 ### プリミティブとUI
 

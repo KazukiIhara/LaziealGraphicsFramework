@@ -8,6 +8,7 @@
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
 #include "Graphics/Light/System/PointLightSystem.h"
+#include "Graphics/Light/System/ToonLightingSystem.h"
 #include "Graphics/Skybox/System/SkyboxSystem.h"
 #include "Graphics/PostProcess/System/PostProcessSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
@@ -25,6 +26,7 @@ namespace {
 	LGF::Camera3DSystem* g_camera3DSystem = nullptr;
 	LGF::DirectionalLightSystem* g_directionalLightSystem = nullptr;
 	LGF::PointLightSystem* g_pointLightSystem = nullptr;
+	LGF::ToonLightingSystem* g_toonLightingSystem = nullptr;
 	LGF::SkyboxSystem* g_skyboxSystem = nullptr;
 	LGF::PostProcessSystem* g_postProcessSystem = nullptr;
 	LGF::Renderer3D* g_renderer3D = nullptr;
@@ -64,6 +66,15 @@ void LGF::Graphics3D::Internal::SetPointLightSystem(PointLightSystem* lightSyste
 
 void LGF::Graphics3D::Internal::ResetPointLightSystem() {
 	g_pointLightSystem = nullptr;
+}
+
+void LGF::Graphics3D::Internal::SetToonLightingSystem(ToonLightingSystem* lightingSystem) {
+	assert(lightingSystem != nullptr);
+	g_toonLightingSystem = lightingSystem;
+}
+
+void LGF::Graphics3D::Internal::ResetToonLightingSystem() {
+	g_toonLightingSystem = nullptr;
 }
 
 void LGF::Graphics3D::Internal::SetSkyboxSystem(SkyboxSystem* skyboxSystem) {
@@ -190,6 +201,11 @@ void LGF::Graphics3D::SetDirectionalLight(const DirectionalLight& light) {
 void LGF::Graphics3D::SetPointLight(const PointLight& light) {
 	assert(g_pointLightSystem != nullptr);
 	g_pointLightSystem->SetLight(light);
+}
+
+void LGF::Graphics3D::SetToonLighting(const ToonLighting& lighting) {
+	assert(g_toonLightingSystem != nullptr);
+	g_toonLightingSystem->SetLighting(lighting);
 }
 
 void LGF::Graphics3D::SetSkybox(const Skybox& skybox) {

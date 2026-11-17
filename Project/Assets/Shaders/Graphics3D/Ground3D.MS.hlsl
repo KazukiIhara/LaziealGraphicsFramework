@@ -40,6 +40,7 @@ void main(
             ground.instData.metallic,
             ground.instData.roughness,
             ground.instData.occlusionStrength);
+        vertices[i].lightingMaterialId = ground.instData.lightingMaterialId;
         vertices[i].normal.xyz = worldNormal;
         vertices[i].normal.w = GetUnlitFlag(ground.instData);
     }

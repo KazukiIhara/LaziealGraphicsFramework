@@ -41,7 +41,7 @@ struct ModelInstanceData
     float metallicScale;
     float roughnessScale;
     float occlusionStrength;
-    float padding;
+    uint lightingMaterialId;
 };
 
 struct Meshlet

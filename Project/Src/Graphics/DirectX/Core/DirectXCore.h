@@ -30,6 +30,7 @@ namespace LGF {
 	class RenderTextureManager;
 	class DirectionalLightSystem;
 	class PointLightSystem;
+	class ToonLightingSystem;
 	class Camera3DSystem;
 	class SkyboxSystem;
 	class ShadowMapSystem;
@@ -66,6 +67,7 @@ namespace LGF {
 			PipelineManager& pipelineManager,
 			DirectionalLightSystem& lightSystem,
 			PointLightSystem& pointLightSystem,
+			ToonLightingSystem& toonLightingSystem,
 			Camera3DSystem& cameraSystem,
 			SkyboxSystem& skyboxSystem,
 			ShadowMapSystem& shadowMapSystem);
@@ -73,6 +75,7 @@ namespace LGF {
 			PipelineManager& pipelineManager,
 			DirectionalLightSystem& lightSystem,
 			PointLightSystem& pointLightSystem,
+			ToonLightingSystem& toonLightingSystem,
 			Camera3DSystem& cameraSystem,
 			SkyboxSystem& skyboxSystem,
 			ShadowMapSystem& shadowMapSystem);

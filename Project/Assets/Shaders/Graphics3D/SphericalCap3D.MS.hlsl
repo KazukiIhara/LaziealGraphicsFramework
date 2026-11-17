@@ -77,6 +77,7 @@ void main(
                 cap.instData.metallic,
                 cap.instData.roughness,
                 cap.instData.occlusionStrength);
+            vertices[vertexIndex].lightingMaterialId = cap.instData.lightingMaterialId;
             vertices[vertexIndex].normal.xyz = ToWorldNormal(cap.instData, localNormal);
             vertices[vertexIndex].normal.w = GetUnlitFlag(cap.instData);
         }

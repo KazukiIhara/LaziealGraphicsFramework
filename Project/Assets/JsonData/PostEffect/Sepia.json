@@ -1,0 +1,15 @@
+{
+  "Name": "Sepia",
+  "Executor": "Fullscreen",
+  "Pipeline": "PostProcessSepia",
+  "Stage": "AfterToneMapping",
+  "Parameters": {
+    "Intensity": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 1.0,
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    }
+  }
+}

@@ -17,6 +17,7 @@ namespace LGF {
 	struct Billboard3D;
 	class DirectionalLight;
 	class PointLight;
+	class ToonLighting;
 	class Skybox;
 	class RenderTargetTexture;
 
@@ -61,6 +62,7 @@ namespace LGF {
 		void SetShadowCamera(const Camera3D& camera);
 		void SetDirectionalLight(const DirectionalLight& light);
 		void SetPointLight(const PointLight& light);
+		void SetToonLighting(const ToonLighting& lighting);
 		void SetSkybox(const Skybox& skybox);
 		/// <summary>トーンマッピング前の露出をEV単位で設定する。+1で2倍、-1で半分。</summary>
 		void SetExposure(float exposureEV);

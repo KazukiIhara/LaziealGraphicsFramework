@@ -78,6 +78,7 @@ void main(
 			vertices[vertexIndex].tangent = 0.0f;
 			vertices[vertexIndex].pbrTextureIndices = 0xffffffffu;
 			vertices[vertexIndex].pbrFactors = float3(0.0f, 1.0f, 1.0f);
+			vertices[vertexIndex].lightingMaterialId = 0u;
 			vertices[vertexIndex].normal = float4(normal, 0.0f);
 		}
 	}

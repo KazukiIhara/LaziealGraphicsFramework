@@ -1,10 +1,27 @@
 #pragma once
 
+#include <cstdint>
+
 #include "LGF/Math/MathTypes.h"
 #include "Color.h"
 #include "Texture.h"
 
 namespace LGF {
+
+	enum class ShadingModel3D : uint8_t {
+		SceneDefault,
+		PBR,
+		Toon,
+	};
+
+	struct ToonMaterial3D {
+		Vector4 shadowColor = { 0.20f, 0.16f, 0.32f, 1.0f };
+		Vector4 middleColor = { 0.65f, 0.55f, 0.75f, 1.0f };
+		Vector4 lightColor = Color::White;
+		float shadowThreshold = 0.35f;
+		float lightThreshold = 0.70f;
+		float smoothness = 0.02f;
+	};
 
 	/// <summary>
 	/// 2Dマテリアルデータ
@@ -36,6 +53,9 @@ namespace LGF {
 		float metallic = 0.0f;
 		float roughness = 1.0f;
 		float occlusionStrength = 1.0f;
+		// SceneDefaultはシーン全体のLighting設定に従う
+		ShadingModel3D shadingModel = ShadingModel3D::SceneDefault;
+		ToonMaterial3D toonLighting{};
 		// trueならライト計算を行わず、ベースカラーをそのまま出力する
 		bool unlit = false;
 		// UVはscale / offset適用後、リピートと線形ミップフィルタでサンプリングする

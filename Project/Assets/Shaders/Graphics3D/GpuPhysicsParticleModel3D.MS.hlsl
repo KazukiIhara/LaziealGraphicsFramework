@@ -104,6 +104,7 @@ void main(
 			gMetallicRoughnessTextureIndex, gOcclusionTextureIndex);
 		outputVertices[localIndex].pbrFactors = float3(
 			gMetallicFactor, gRoughnessFactor, gOcclusionStrength);
+		outputVertices[localIndex].lightingMaterialId = 0u;
 		outputVertices[localIndex].normal = float4(worldNormal, 0.0f);
 	}
 	if (localIndex < gMeshlet.primitiveCount)

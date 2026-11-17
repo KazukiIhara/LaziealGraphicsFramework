@@ -11,6 +11,7 @@ namespace LGF {
 	class DirectXCore;
 	class DirectionalLightSystem;
 	class PointLightSystem;
+	class ToonLightingSystem;
 	class PostProcessSystem;
 	class Renderer3D;
 	class SkyboxSystem;
@@ -32,6 +33,9 @@ namespace LGF {
 
 		void SetPointLightSystem(PointLightSystem* lightSystem);
 		void ResetPointLightSystem();
+
+		void SetToonLightingSystem(ToonLightingSystem* lightingSystem);
+		void ResetToonLightingSystem();
 
 		void SetSkyboxSystem(SkyboxSystem* skyboxSystem);
 		void ResetSkyboxSystem();

@@ -1,0 +1,22 @@
+{
+  "Name": "Sharpen",
+  "Executor": "Fullscreen",
+  "Pipeline": "PostProcessSharpen",
+  "Stage": "AfterToneMapping",
+  "Parameters": {
+    "Intensity": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 0.5,
+      "Minimum": 0.0,
+      "Maximum": 2.0
+    },
+    "Threshold": {
+      "Slot": 0,
+      "Components": "Y",
+      "Default": 0.02,
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    }
+  }
+}

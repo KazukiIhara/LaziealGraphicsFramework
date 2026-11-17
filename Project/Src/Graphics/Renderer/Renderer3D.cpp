@@ -20,6 +20,7 @@
 #include "Graphics/DirectX/ResourceFactory/ResourceFactory.h"
 #include "Graphics/DirectX/Core/DirectXCore.h"
 #include "Graphics/Camera/System/Camera3DSystem.h"
+#include "Graphics/Light/System/ToonLightingSystem.h"
 #include "LGF/Graphics/RenderTargetTexture.h"
 #include "LGF/Graphics/Texture.h"
 
@@ -645,6 +646,11 @@ void Renderer3D::AddSphericalShellCap(const SphericalShellCap3D& sphericalShellC
 }
 
 void Renderer3D::AddModel(const Model& model, const Matrix4x4& worldMatrix, const Vector4& color, const ModelDrawOptions& options) {
+	const uint32_t lightingMaterialId = options.unlit
+		? 0u
+		: context_.toonLightingSystem.RegisterMaterial(
+			options.shadingModel,
+			options.toonLighting);
 
 	const float worldMaximumScale = std::max({
 		Math::Length(Vector3{ worldMatrix.m[0][0], worldMatrix.m[0][1], worldMatrix.m[0][2] }),
@@ -667,6 +673,7 @@ void Renderer3D::AddModel(const Model& model, const Matrix4x4& worldMatrix, cons
 		options.roughnessScale,
 		options.occlusionStrength,
 		options.unlit,
+		lightingMaterialId,
 		activeRenderPassIndex_);
 
 	if (!options.debugDraw.showMeshletBoundingSpheres) {
@@ -697,6 +704,11 @@ void Renderer3D::AddModel(
 	const Matrix4x4& worldMatrix,
 	const Vector4& color,
 	const ModelDrawOptions& options) {
+	const uint32_t lightingMaterialId = options.unlit
+		? 0u
+		: context_.toonLightingSystem.RegisterMaterial(
+			options.shadingModel,
+			options.toonLighting);
 	const float worldMaximumScale = std::max({
 		Math::Length(Vector3{ worldMatrix.m[0][0], worldMatrix.m[0][1], worldMatrix.m[0][2] }),
 		Math::Length(Vector3{ worldMatrix.m[1][0], worldMatrix.m[1][1], worldMatrix.m[1][2] }),
@@ -708,6 +720,7 @@ void Renderer3D::AddModel(
 		Math::Determinant(worldMatrix) < 0.0f ? -1.0f : 1.0f,
 		options.debugDraw.showMeshletColors, options.enableNormalMap, options.normalScale,
 		options.metallicScale, options.roughnessScale, options.occlusionStrength, options.unlit,
+		lightingMaterialId,
 		activeRenderPassIndex_);
 }
 
@@ -734,6 +747,11 @@ void Renderer3D::ApplyMaterial(InstanceData3D& instance, const Material3D& mater
 	instance.roughness = std::clamp(material.roughness, 0.0f, 1.0f);
 	instance.occlusionStrength = std::clamp(material.occlusionStrength, 0.0f, 1.0f);
 	instance.materialFlags = material.unlit ? kMaterialUnlit : 0;
+	instance.lightingMaterialId = material.unlit
+		? 0u
+		: context_.toonLightingSystem.RegisterMaterial(
+			material.shadingModel,
+			material.toonLighting);
 	instance.uvScale = material.uvScale;
 	instance.uvOffset = material.uvOffset;
 }

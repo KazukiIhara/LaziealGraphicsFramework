@@ -40,6 +40,7 @@ void main(
             plane.instData.metallic,
             plane.instData.roughness,
             plane.instData.occlusionStrength);
+        vertices[i].lightingMaterialId = plane.instData.lightingMaterialId;
         vertices[i].normal.xyz = worldNormal;
         vertices[i].normal.w = GetUnlitFlag(plane.instData);
     }

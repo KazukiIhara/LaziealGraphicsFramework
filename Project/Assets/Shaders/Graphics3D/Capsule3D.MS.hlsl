@@ -83,6 +83,7 @@ void main(
                 capsule.instData.metallic,
                 capsule.instData.roughness,
                 capsule.instData.occlusionStrength);
+            vertices[vertexIndex].lightingMaterialId = capsule.instData.lightingMaterialId;
             vertices[vertexIndex].normal.xyz = ToWorldNormal(capsule.instData, localNormal);
             vertices[vertexIndex].normal.w = GetUnlitFlag(capsule.instData);
         }

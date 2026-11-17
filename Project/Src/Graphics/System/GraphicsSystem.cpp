@@ -9,6 +9,7 @@
 #include "Graphics/Camera/System/Camera3DSystem.h"
 #include "Graphics/Light/System/DirectionalLightSystem.h"
 #include "Graphics/Light/System/PointLightSystem.h"
+#include "Graphics/Light/System/ToonLightingSystem.h"
 #include "Graphics/Skybox/System/SkyboxSystem.h"
 #include "Graphics/Shadow/System/ShadowMapSystem.h"
 #include "Graphics/Renderer/Renderer3D.h"
@@ -131,6 +132,14 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 	Graphics3D::Internal::SetPointLightSystem(pointLightSystem_.get());
 	subsystems_.push_back(pointLightSystem_.get());
 
+	// Toon Lightingシステム初期化
+	toonLightingSystem_ = std::make_unique<ToonLightingSystem>(*directX_);
+	if (!toonLightingSystem_->Initialize()) {
+		return failInitialization();
+	}
+	Graphics3D::Internal::SetToonLightingSystem(toonLightingSystem_.get());
+	subsystems_.push_back(toonLightingSystem_.get());
+
 	shadowMapSystem_ = std::make_unique<ShadowMapSystem>(*directX_);
 	if (!shadowMapSystem_->Initialize()) {
 		return failInitialization();
@@ -159,7 +168,8 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 	Graphics3DContext graphics3DContext{
 		*directX_,
 		*pipelineManager_,
-		*camera3DSystem_
+		*camera3DSystem_,
+		*toonLightingSystem_
 	};
 	renderer3D_ = std::make_unique<Renderer3D>(graphics3DContext);
 	if (!renderer3D_->Initialize()) {
@@ -214,6 +224,7 @@ bool GraphicsSystem::Finalize() {
 	Graphics3D::Internal::ResetCamera3DSystem();
 	Graphics3D::Internal::ResetDirectionalLightSystem();
 	Graphics3D::Internal::ResetPointLightSystem();
+	Graphics3D::Internal::ResetToonLightingSystem();
 	Graphics3D::Internal::ResetSkyboxSystem();
 	Graphics3D::Internal::ResetPostProcessSystem();
 	Graphics3D::Internal::ResetDirectXCore();
@@ -252,6 +263,7 @@ bool GraphicsSystem::Finalize() {
 	shadowMapSystem_.reset();
 	directionalLightSystem_.reset();
 	pointLightSystem_.reset();
+	toonLightingSystem_.reset();
 	skyboxSystem_.reset();
 	camera3DSystem_.reset();
 	postProcessSystem_.reset();
@@ -308,6 +320,7 @@ void GraphicsSystem::EndFrame() {
 	camera3DSystem_->PrepareRenderPass(0u, camera3DSystem_->GetCamera());
 	directionalLightSystem_->EndFrame();
 	pointLightSystem_->EndFrame();
+	toonLightingSystem_->EndFrame();
 	renderer3D_->PrepareRenderPasses();
 	shadowMapSystem_->Update(
 		camera3DSystem_->GetShadowCamera(),
@@ -335,6 +348,7 @@ void GraphicsSystem::EndFrame() {
 			*pipelineManager_,
 			*directionalLightSystem_,
 			*pointLightSystem_,
+			*toonLightingSystem_,
 			*camera3DSystem_,
 			*skyboxSystem_,
 			*shadowMapSystem_);
@@ -349,6 +363,7 @@ void GraphicsSystem::EndFrame() {
 		*pipelineManager_,
 		*directionalLightSystem_,
 		*pointLightSystem_,
+		*toonLightingSystem_,
 		*camera3DSystem_,
 		*skyboxSystem_,
 		*shadowMapSystem_);

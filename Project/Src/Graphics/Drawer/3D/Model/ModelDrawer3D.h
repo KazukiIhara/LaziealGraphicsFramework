@@ -42,6 +42,7 @@ namespace LGF {
 			float roughnessScale,
 			float occlusionStrength,
 			bool unlit,
+			uint32_t lightingMaterialId,
 			uint32_t renderPassIndex
 		);
 
@@ -57,7 +58,7 @@ namespace LGF {
 			float metallicScale = 1.0f;
 			float roughnessScale = 1.0f;
 			float occlusionStrength = 1.0f;
-			float padding = 0.0f;
+			uint32_t lightingMaterialId = 0u;
 		};
 		static_assert(sizeof(ModelInstanceData) == 176);
 

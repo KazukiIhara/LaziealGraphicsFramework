@@ -18,7 +18,8 @@ struct InstanceData3D
     float metallic;
     float roughness;
     float occlusionStrength;
-    float3 padding;
+    uint lightingMaterialId;
+    float2 padding;
 };
 
 struct DrawRangeData
@@ -55,6 +56,7 @@ struct MSOutput3D
     float4 tangent : TANGENT0;
     nointerpolation uint2 pbrTextureIndices : TEXCOORD5;
     nointerpolation float3 pbrFactors : TEXCOORD6;
+    nointerpolation uint lightingMaterialId : TEXCOORD7;
 };
 
 MSOutput3D MakeVertex(InstanceData3D instance, CameraData3D camera,
@@ -80,6 +82,7 @@ MSOutput3D MakeVertex(InstanceData3D instance, CameraData3D camera,
         instance.metallic,
         instance.roughness,
         instance.occlusionStrength);
+    output.lightingMaterialId = instance.lightingMaterialId;
     return output;
 }
 

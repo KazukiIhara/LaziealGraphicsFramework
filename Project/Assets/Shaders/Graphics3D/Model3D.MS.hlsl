@@ -91,7 +91,8 @@ void main(
             : saturate(gModel.roughnessFactor * modelInstance.roughnessScale);
         instance.occlusionStrength = saturate(
             gModel.occlusionStrength * modelInstance.occlusionStrength);
-        instance.padding = float3(0.0f, 0.0f, 0.0f);
+        instance.lightingMaterialId = modelInstance.lightingMaterialId;
+        instance.padding = float2(0.0f, 0.0f);
 
         outputVertices[localIndex] = MakeVertex(
             instance,

@@ -1,0 +1,29 @@
+{
+  "Name": "LensDistortion",
+  "Executor": "Fullscreen",
+  "Pipeline": "PostProcessLensDistortion",
+  "Stage": "AfterToneMapping",
+  "Parameters": {
+    "Distortion": {
+      "Slot": 0,
+      "Components": "X",
+      "Default": 0.15,
+      "Minimum": -1.0,
+      "Maximum": 1.0
+    },
+    "Scale": {
+      "Slot": 0,
+      "Components": "Y",
+      "Default": 1.0,
+      "Minimum": 0.5,
+      "Maximum": 2.0
+    },
+    "Center": {
+      "Slot": 0,
+      "Components": "ZW",
+      "Default": [0.5, 0.5],
+      "Minimum": 0.0,
+      "Maximum": 1.0
+    }
+  }
+}

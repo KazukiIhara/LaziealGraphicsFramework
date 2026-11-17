@@ -110,6 +110,7 @@ Lighting
 | 機能 | 配置 | 理由 |
 | --- | --- | --- |
 | Directional / Point Light | Lighting | 光源の寄与を計算する。 |
+| Toon Lighting | Lighting | 表面に対する光の寄与を段階化する。 |
 | Shadow Map | Lighting | 光源からのVisibilityを決定する。 |
 | IBL | Lighting | 表面の間接光と反射を計算する。 |
 | SSAO | Lighting Input | Ambient Lightへ適用する遮蔽率を生成する。 |
@@ -231,8 +232,15 @@ Tone MappingはHDR SceneColorから表示可能なLDR Colorへの必須変換と
 - Vignette
 - Color Adjustment
 - Grayscale
+- Posterization
+- Sepia
+- Color Inversion
+- Lens Distortion
+- Radial Blur
+- Sharpen
 - Film Grain
 - Pixelation
+- Ordered Dithering
 - Chromatic Aberration
 - FXAA
 

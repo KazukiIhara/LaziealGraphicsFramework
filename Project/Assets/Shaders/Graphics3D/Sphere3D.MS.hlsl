@@ -73,6 +73,7 @@ void main(
                 sphere.instData.metallic,
                 sphere.instData.roughness,
                 sphere.instData.occlusionStrength);
+            vertices[vertexIndex].lightingMaterialId = sphere.instData.lightingMaterialId;
             vertices[vertexIndex].normal.xyz = ToWorldNormal(sphere.instData, localNormal);
             vertices[vertexIndex].normal.w = GetUnlitFlag(sphere.instData);
         }

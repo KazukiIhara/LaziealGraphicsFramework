@@ -47,6 +47,7 @@ void main(
             tri.instData.metallic,
             tri.instData.roughness,
             tri.instData.occlusionStrength);
+        vertices[i].lightingMaterialId = tri.instData.lightingMaterialId;
         vertices[i].normal.xyz = worldNormal;
         vertices[i].normal.w = GetUnlitFlag(tri.instData);
     }

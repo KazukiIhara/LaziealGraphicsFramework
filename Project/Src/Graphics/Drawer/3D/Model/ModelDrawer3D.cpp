@@ -348,6 +348,7 @@ void ModelDrawer3D::AddModel(
 	float roughnessScale,
 	float occlusionStrength,
 	bool unlit,
+	uint32_t lightingMaterialId,
 	uint32_t renderPassIndex) {
 
 	if (!resource) {
@@ -390,6 +391,7 @@ void ModelDrawer3D::AddModel(
 		.metallicScale = std::max(metallicScale, 0.0f),
 		.roughnessScale = std::max(roughnessScale, 0.0f),
 		.occlusionStrength = std::clamp(occlusionStrength, 0.0f, 1.0f),
+		.lightingMaterialId = lightingMaterialId,
 	});
 	++queuedInstanceCount_;
 }

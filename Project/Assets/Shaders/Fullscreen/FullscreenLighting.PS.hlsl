@@ -61,6 +61,31 @@ cbuffer PointLightCountData : register(b4)
 	float3 gPointLightCountPadding;
 };
 
+cbuffer ToonLightingData : register(b5)
+{
+	float3 gToonShadowColor;
+	uint gToonLightingEnabled;
+	float3 gToonMiddleColor;
+	float gToonShadowThreshold;
+	float3 gToonLightColor;
+	float gToonLightThreshold;
+	float gToonSmoothness;
+	float3 gToonLightingPadding;
+};
+
+struct ToonMaterialData
+{
+	float3 shadowColor;
+	float shadowThreshold;
+	float3 middleColor;
+	float lightThreshold;
+	float3 lightColor;
+	float smoothness;
+	float4 padding;
+};
+
+StructuredBuffer<ToonMaterialData> gToonMaterials : register(t9);
+
 struct FullscreenVertex
 {
 	float4 position : SV_Position;
@@ -123,6 +148,51 @@ float3 CalculateDirectLighting(
 	const float3 diffuseWeight = (1.0f - fresnel) * (1.0f - metallic);
 	const float3 diffuse = diffuseWeight * albedo / kPi;
 	return (diffuse + specular) * radiance * normalDotLight;
+}
+
+float CalculateToonWeight(
+	float normalDotLight,
+	float threshold,
+	ToonMaterialData material)
+{
+	if (material.smoothness <= 1.0e-5f)
+	{
+		return normalDotLight >= threshold ? 1.0f : 0.0f;
+	}
+	return smoothstep(
+		threshold - material.smoothness,
+		threshold + material.smoothness,
+		normalDotLight);
+}
+
+float3 CalculateToonColor(float normalDotLight, ToonMaterialData material)
+{
+	const float shadowWeight = CalculateToonWeight(
+		normalDotLight,
+		material.shadowThreshold,
+		material);
+	const float lightWeight = CalculateToonWeight(
+		normalDotLight,
+		material.lightThreshold,
+		material);
+	const float3 middleColor = lerp(
+		material.shadowColor,
+		material.middleColor,
+		shadowWeight);
+	return lerp(middleColor, material.lightColor, lightWeight);
+}
+
+float3 CalculateToonDirectLighting(
+	float3 albedo,
+	float3 normal,
+	float3 lightDirection,
+	float3 radiance,
+	ToonMaterialData material)
+{
+	const float normalDotLight = saturate(dot(normal, lightDirection));
+	const float3 toonColor = CalculateToonColor(normalDotLight, material);
+	const float3 directColor = max(toonColor - material.shadowColor, 0.0f);
+	return albedo * directColor * radiance;
 }
 
 float3 ReconstructWorldPosition(int2 pixel, float depth)
@@ -283,7 +353,7 @@ float4 main(FullscreenVertex input) : SV_Target0
 	float4 albedo = gGBufferAlbedo.Load(int3(pixel, 0));
 	float4 normalData = gGBufferNormal.Load(int3(pixel, 0));
 	float3 normal = normalize(normalData.xyz);
-	float3 material = gGBufferMaterial.Load(int3(pixel, 0)).rgb;
+	float4 material = gGBufferMaterial.Load(int3(pixel, 0));
 	float depth = gDepthTexture.Load(int3(pixel, 0));
 
 	// 背景ピクセルの出力
@@ -303,6 +373,21 @@ float4 main(FullscreenVertex input) : SV_Target0
 	const float ambientOcclusion = saturate(material.r);
 	const float roughness = clamp(material.g, 0.045f, 1.0f);
 	const float metallic = saturate(material.b);
+	const uint lightingMaterialId = uint(round(material.a * 255.0f));
+	const bool useToonLighting = lightingMaterialId >= 2u ||
+		(lightingMaterialId == 0u && gToonLightingEnabled != 0u);
+	ToonMaterialData toonMaterial;
+	toonMaterial.shadowColor = gToonShadowColor;
+	toonMaterial.shadowThreshold = gToonShadowThreshold;
+	toonMaterial.middleColor = gToonMiddleColor;
+	toonMaterial.lightThreshold = gToonLightThreshold;
+	toonMaterial.lightColor = gToonLightColor;
+	toonMaterial.smoothness = gToonSmoothness;
+	toonMaterial.padding = 0.0f;
+	if (lightingMaterialId >= 2u)
+	{
+		toonMaterial = gToonMaterials[lightingMaterialId];
+	}
 	const float3 worldPosition = ReconstructWorldPosition(pixel, depth);
 	const float3 viewDirection = normalize(gCamera.worldPos - worldPosition);
 	const float normalDotView = saturate(dot(normal, viewDirection));
@@ -315,14 +400,21 @@ float4 main(FullscreenVertex input) : SV_Target0
 		worldPosition,
 		normal,
 		directionalLightDirection);
-	float3 directLighting = CalculateDirectLighting(
-		albedo.rgb,
-		normal,
-		viewDirection,
-		directionalLightDirection,
-		directionalRadiance,
-		roughness,
-		metallic) * directionalShadow;
+	float3 directLighting = useToonLighting
+		? CalculateToonDirectLighting(
+			albedo.rgb,
+			normal,
+			directionalLightDirection,
+			directionalRadiance,
+			toonMaterial) * directionalShadow
+		: CalculateDirectLighting(
+			albedo.rgb,
+			normal,
+			viewDirection,
+			directionalLightDirection,
+			directionalRadiance,
+			roughness,
+			metallic) * directionalShadow;
 
 	for (uint pointLightIndex = 0u;
 		pointLightIndex < gPointLightCount;
@@ -342,22 +434,31 @@ float4 main(FullscreenVertex input) : SV_Target0
 		pointLightAttenuation *= pointLightAttenuation;
 		const float3 pointLightRadiance =
 			pointLight.color * pointLight.intensity * pointLightAttenuation;
-		directLighting += CalculateDirectLighting(
-			albedo.rgb,
-			normal,
-			viewDirection,
-			pointLightDirection,
-			pointLightRadiance,
-			roughness,
-			metallic);
+		directLighting += useToonLighting
+			? CalculateToonDirectLighting(
+				albedo.rgb,
+				normal,
+				pointLightDirection,
+				pointLightRadiance,
+				toonMaterial)
+			: CalculateDirectLighting(
+				albedo.rgb,
+				normal,
+				viewDirection,
+				pointLightDirection,
+				pointLightRadiance,
+				roughness,
+				metallic);
 	}
-	float3 ambient = albedo.rgb * 0.03f * ambientOcclusion;
+	float3 ambient = useToonLighting
+		? albedo.rgb * toonMaterial.shadowColor * ambientOcclusion
+		: albedo.rgb * 0.03f * ambientOcclusion;
 	const bool hasIbl =
 		gIrradianceTextureIndex != 0xffffffffu &&
 		gPrefilteredTextureIndex != 0xffffffffu &&
 		gBrdfLutTextureIndex != 0xffffffffu &&
 		gPrefilteredMipCount > 0u;
-	if (hasIbl)
+	if (!useToonLighting && hasIbl)
 	{
 		TextureCube<float4> irradianceTexture = ResourceDescriptorHeap[gIrradianceTextureIndex];
 		TextureCube<float4> prefilteredTexture = ResourceDescriptorHeap[gPrefilteredTextureIndex];
