@@ -269,9 +269,21 @@ local function configureLaziealCppProject()
    filter {}
 end
 
+local effekseerInstall = "../Externals/Effekseer/install_" ..
+   ((_ACTION == "vs2022") and "msvc2022_x64" or "msvc2026_x64")
+local effekseerGenerator = (_ACTION == "vs2022") and
+   "Visual Studio 17 2022" or "Visual Studio 18 2026"
+local effekseerBuild = (_ACTION == "vs2022") and
+   "msvc2022_x64" or "msvc2026_x64"
+
 project "LaziealGraphicsFramework"
    kind "StaticLib"
    configureLaziealCppProject()
+
+   prebuildcommands {
+      'call "$(ProjectDir)Tools\\Effekseer\\Setup.bat" "' ..
+         effekseerGenerator .. '" "' .. effekseerBuild .. '"',
+   }
 
    files {
       "../Src/Graphics/**.cpp",
@@ -296,6 +308,28 @@ project "LaziealGraphicsFramework"
       "../Externals/imgui/backends",
       "../Externals/DirectXTex/DirectXTex",
    }
+   externalincludedirs { effekseerInstall .. "/include" }
 
    dependson { "DirectXTex", "DirectXMesh", "ImGui" }
    links { "DirectXTex", "DirectXMesh", "ImGui" }
+   libdirs { effekseerInstall .. "/lib" }
+
+   filter "configurations:Debug"
+      links {
+         "EffekseerRendererDX12d",
+         "EffekseerRendererLLGId",
+         "EffekseerRendererCommond",
+         "Effekseerd",
+         "LLGId",
+      }
+
+   filter "configurations:Develop or Release"
+      links {
+         "EffekseerRendererDX12",
+         "EffekseerRendererLLGI",
+         "EffekseerRendererCommon",
+         "Effekseer",
+         "LLGI",
+      }
+
+   filter {}

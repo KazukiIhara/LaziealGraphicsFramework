@@ -1,6 +1,13 @@
 @echo off
+setlocal
 cd /d "%~dp0" || exit /b 1
-cd /d ".\Premake\" || exit /b 1
-if exist "..\LaziealGraphicsFramework.sln" del /q "..\LaziealGraphicsFramework.sln"
-premake5  vs2026
-pause
+
+call "Tools\Effekseer\Setup.bat" "Visual Studio 18 2026" "msvc2026_x64"
+if errorlevel 1 exit /b 1
+
+pushd "Premake"
+premake5.exe vs2026
+set "result=%errorlevel%"
+popd
+
+exit /b %result%

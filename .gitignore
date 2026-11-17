@@ -23,3 +23,6 @@
 
 # DirectXTex：CompileShaders.cmd で再生成する埋め込みシェーダー
 /Project/Externals/DirectXTex/DirectXTex/Shaders/Compiled/
+
+# Effekseer：Setup.batで生成するインストール成果物
+/Project/Externals/Effekseer/install_msvc*/

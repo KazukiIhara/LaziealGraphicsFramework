@@ -26,6 +26,8 @@
 #include "Graphics/Compute/GpuComputeInternal.h"
 #include "Graphics/Compute/PhysicsParticle/GpuPhysicsParticleBackend.h"
 #include "Graphics/PostProcess/System/PostProcessSystem.h"
+#include "Graphics/Effect/EffekseerSystem.h"
+#include "Graphics/Effect/Effect3DInternal.h"
 
 #include "Graphics/Graphics3DContext.h"
 #include "Graphics/Graphics3DInternal.h"
@@ -115,6 +117,17 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 	Graphics3D::Internal::SetCamera3DSystem(camera3DSystem_.get());
 	// サブシステムリストに追加
 	subsystems_.push_back(camera3DSystem_.get());
+
+	// Effekseerはメイン3Dカメラを使用し、HDRの透明パスへ描画する。
+	effekseerSystem_ = std::make_unique<EffekseerSystem>(
+		*directX_,
+		*camera3DSystem_,
+		desc.assetRoot);
+	if (!effekseerSystem_->Initialize()) {
+		return failInitialization();
+	}
+	Effect3D::Internal::SetEffekseerSystem(effekseerSystem_.get());
+	subsystems_.push_back(effekseerSystem_.get());
 
 	// 平行光源システム初期化
 	directionalLightSystem_ = std::make_unique<DirectionalLightSystem>(*directX_);
@@ -219,6 +232,7 @@ bool GraphicsSystem::Finalize() {
 	FontSystem::Internal::ResetFontManager();
 	TextureSystem::Internal::ResetTextureManager();
 	GpuCompute::Internal::ResetPhysicsParticleBackend();
+	Effect3D::Internal::ResetEffekseerSystem();
 
 	Graphics3D::Internal::ResetRenderer3D();
 	Graphics3D::Internal::ResetCamera3DSystem();
@@ -266,6 +280,7 @@ bool GraphicsSystem::Finalize() {
 	toonLightingSystem_.reset();
 	skyboxSystem_.reset();
 	camera3DSystem_.reset();
+	effekseerSystem_.reset();
 	postProcessSystem_.reset();
 	pipelineManager_.reset();
 	modelManager_.reset();
@@ -369,6 +384,8 @@ void GraphicsSystem::EndFrame() {
 		*shadowMapSystem_);
 	directX_->BeginTransparentPass();
 	renderer3D_->DrawTransparent();
+	effekseerSystem_->Draw();
+	effekseerSystem_->EndFrame();
 	if (!postProcessSystem_->Execute()) {
 		throw std::runtime_error("Post Process execution failed.");
 	}

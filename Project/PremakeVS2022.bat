@@ -2,6 +2,9 @@
 setlocal
 cd /d "%~dp0"
 
+call "Tools\Effekseer\Setup.bat" "Visual Studio 17 2022" "msvc2022_x64"
+if errorlevel 1 exit /b 1
+
 pushd "Premake"
 premake5.exe vs2022
 set "result=%errorlevel%"

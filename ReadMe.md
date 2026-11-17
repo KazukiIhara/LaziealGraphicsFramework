@@ -28,6 +28,7 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 - DirectXMeshによるメッシュレット生成
 - Amplification Shaderによるメッシュレット単位の視錐台カリング
 - モデルのインスタンスバッチ
+- Effekseer 1.80.8によるメインパスのエフェクト描画
 - メッシュレット境界、カメラ視錐台、CSM分割のデバッグ描画
 
 ### Post Process
@@ -62,6 +63,7 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 - Windows 10以降
 - Visual Studio 2026とC++20対応MSVCツールセット
 - Windows SDKとDirectX Shader Compiler（DXC）
+- Visual StudioのC++ CMakeツール（初回のEffekseerライブラリ生成に使用）
 - 次の機能を満たすDirectX 12対応GPUとドライバー
   - Mesh Shader Tier 1以上
   - Shader Model 6.6以上
@@ -69,7 +71,7 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 
 ## プロジェクト生成とビルド
 
-1. `Project/Premake.bat`を実行します。
+1. `Project/Premake.bat`を実行します。初回のみEffekseerのDebug / Releaseライブラリも自動生成されます。
 2. 生成された`Project/LaziealGraphicsFramework.slnx`を開きます。
 3. x64の`Debug`、`Develop`、または`Release`構成をビルドします。
 
@@ -98,6 +100,7 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 - Dear ImGui
 - Assimp
 - nlohmann/json
+- Effekseer 1.80.8
 
 ## 現在の制限
 
@@ -109,3 +112,4 @@ DirectX 12とC++20で開発しているWindows向けリアルタイム描画フ�
 - プリミティブは形状ごとに1フレーム4096インスタンスの固定上限があります。
 - CSMの解像度、距離、分割数、Bias、PCFカーネルは公開設定になっていません。
 - Pipeline JSONとShaderのHot Reloadは未対応です。
+- Effekseerはメインパス、同期読み込みに限定し、歪み、深度テクスチャ連携、カスタムRenderPass、非同期読み込みは未対応です。

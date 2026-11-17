@@ -25,6 +25,7 @@ namespace LGF {
 	class ImGuiSystem;
 	class GpuPhysicsParticleBackend;
 	class PostProcessSystem;
+	class EffekseerSystem;
 
 	struct GraphicsInitDesc {
 		void* windowHandle = nullptr;
@@ -79,6 +80,7 @@ namespace LGF {
 		std::unique_ptr<Renderer2D> renderer2D_;
 		std::unique_ptr<ImGuiSystem> imguiSystem_;
 		std::unique_ptr<PostProcessSystem> postProcessSystem_;
+		std::unique_ptr<EffekseerSystem> effekseerSystem_;
 		bool isFrameRenderable_ = false;
 		bool isLoggerInitialized_ = false;
 	};
