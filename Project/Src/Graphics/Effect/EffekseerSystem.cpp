@@ -153,11 +153,9 @@ public:
 
 LGF::EffekseerSystem::EffekseerSystem(
 	DirectXCore& directX,
-	Camera3DSystem& cameraSystem,
-	std::filesystem::path assetRoot) :
+	Camera3DSystem& cameraSystem) :
 	directX_(directX),
 	cameraSystem_(cameraSystem),
-	assetRoot_(std::move(assetRoot)),
 	impl_(std::make_unique<Impl>()) {
 }
 
@@ -271,9 +269,8 @@ LGF::EffectResourceHandle3D LGF::EffekseerSystem::Load(
 		return {};
 	}
 
-	const std::filesystem::path resolvedPath = filePath.is_absolute()
-		? filePath.lexically_normal()
-		: (assetRoot_ / filePath).lexically_normal();
+	const std::filesystem::path resolvedPath =
+		std::filesystem::absolute(filePath).lexically_normal();
 	const std::u16string path = resolvedPath.u16string();
 	Effekseer::EffectRef effect = Effekseer::Effect::Create(
 		world->manager,

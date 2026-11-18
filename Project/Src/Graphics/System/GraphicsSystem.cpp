@@ -121,8 +121,7 @@ bool GraphicsSystem::Initialize(const GraphicsInitDesc& desc) {
 	// Effekseerはメイン3Dカメラを使用し、HDRの透明パスへ描画する。
 	effekseerSystem_ = std::make_unique<EffekseerSystem>(
 		*directX_,
-		*camera3DSystem_,
-		desc.assetRoot);
+		*camera3DSystem_);
 	if (!effekseerSystem_->Initialize()) {
 		return failInitialization();
 	}

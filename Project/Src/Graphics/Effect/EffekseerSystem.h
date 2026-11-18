@@ -16,8 +16,7 @@ namespace LGF {
 	public:
 		EffekseerSystem(
 			DirectXCore& directX,
-			Camera3DSystem& cameraSystem,
-			std::filesystem::path assetRoot);
+			Camera3DSystem& cameraSystem);
 		~EffekseerSystem() override;
 
 		bool Initialize() override;
@@ -49,7 +48,6 @@ namespace LGF {
 
 		DirectXCore& directX_;
 		Camera3DSystem& cameraSystem_;
-		std::filesystem::path assetRoot_;
 		std::unique_ptr<Impl> impl_;
 	};
 
