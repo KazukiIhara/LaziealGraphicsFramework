@@ -9,6 +9,7 @@
 #include "LGF/Graphics/Material.h"
 #include "LGF/Graphics/Font2D.h"
 #include "LGF/Graphics/Rect2D.h"
+#include "LGF/Graphics/SceneTransition.h"
 #include "LGF/Graphics/Sprite.h"
 
 namespace {
@@ -122,4 +123,9 @@ void LGF::Graphics2D::Draw(const Sprite& sprite, const Vector4& color) {
 		.uvScale = sprite.uvScale,
 		.uvOffset = sprite.uvOffset,
 	});
+}
+
+bool LGF::Graphics2D::DrawSceneTransition(const SceneTransitionDrawDesc& desc) {
+	assert(g_renderer2D != nullptr);
+	return g_renderer2D->AddSceneTransition(desc);
 }

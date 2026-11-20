@@ -5,8 +5,10 @@
 #include <vector>
 
 #include "Graphics/System/IGraphicsSubsystem.h"
+#include "Graphics/DirectX/FrameContext/FrameContext.h"
 
 #include "LGF/Math/MathTypes.h"
+#include "LGF/Graphics/SceneTransition.h"
 
 #include "Graphics/Graphics2DContext.h"
 
@@ -58,8 +60,11 @@ namespace LGF {
 			const Vector2& position,
 			const Font2DDrawOptions& options);
 
+		bool AddSceneTransition(const SceneTransitionDrawDesc& desc);
+
 	private:
 		static void ApplyMaterial(InstanceData2D& instance, const Material2D& material);
+		void DrawSceneTransition();
 
 		// 参照
 		Graphics2DContext context_;
@@ -71,6 +76,10 @@ namespace LGF {
 		std::unique_ptr<RectDrawer2D> rectDrawer_;
 		std::unique_ptr<CircleDrawer2D> circleDrawer_;
 		std::unique_ptr<RoundRectDrawer2D> roundRectDrawer_;
+
+		SceneTransitionDrawDesc sceneTransition_;
+		FrameBufferedUploadBuffer sceneTransitionResources_;
+		bool hasSceneTransition_ = false;
 	};
 
 }

@@ -1,0 +1,12 @@
+{
+  "Name": "HorizontalWipe",
+  "Pipeline": "SceneTransitionHorizontalWipe",
+  "FadeOutDuration": 0.35,
+  "FadeInDuration": 0.35,
+  "FadeOutEasing": "EaseInOutCubic",
+  "FadeInEasing": "EaseInOutCubic",
+  "Color": [0.0, 0.0, 0.0, 1.0],
+  "Parameters": [
+    [0.02, 0.0, 0.0, 0.0]
+  ]
+}

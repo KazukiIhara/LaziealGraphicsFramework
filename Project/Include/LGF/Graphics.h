@@ -4,6 +4,7 @@
 #include "LGF/Graphics/BlendMode.h"
 #include "LGF/Graphics/Texture.h"
 #include "LGF/Graphics/RenderTargetTexture.h"
+#include "LGF/Graphics/SceneTransition.h"
 #include "LGF/Graphics/PostProcess.h"
 #include "LGF/Graphics/Font2D.h"
 #include "LGF/Graphics/Font3D.h"

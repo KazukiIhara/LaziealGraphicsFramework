@@ -1,7 +1,9 @@
 #include "Renderer2D.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <cmath>
+#include <cstring>
 #include <stdexcept>
 
 #include "Graphics/Drawer/IDrawer.h"
@@ -11,6 +13,9 @@
 #include "Graphics/Drawer/2D/Primitive/Triangle/TriangleDrawer2D.h"
 #include "Graphics/Font/FontResource.h"
 #include "Graphics/Font/FontLayout.h"
+#include "Graphics/Pipeline/Manager/PipelineManager.h"
+#include "Graphics/Pipeline/Pipeline.h"
+#include "Graphics/DirectX/Core/DirectXCore.h"
 #include "LGF/Graphics/Circle2D.h"
 #include "LGF/Graphics/Graphics2D.h"
 #include "LGF/Graphics/Font2D.h"
@@ -23,6 +28,16 @@
 using namespace LGF;
 
 namespace {
+	constexpr size_t kConstantBufferAlignment = 256u;
+	constexpr char kSceneTransitionParameterName[] = "SceneTransitionParameters";
+
+	struct SceneTransitionParametersForGPU {
+		Vector4 color{};
+		std::array<Vector4, kSceneTransitionParameterCount> parameters{};
+		Vector4 context{};
+		Vector4 screen{};
+	};
+	static_assert(sizeof(SceneTransitionParametersForGPU) == 112u);
 
 	Vector2 ScreenToClipSpace(const Vector2& screenPosition) {
 		const float width = static_cast<float>(Graphics2D::GetWindowWidth());
@@ -59,10 +74,13 @@ bool Renderer2D::Initialize() {
 	drawerList_.push_back(circleDrawer_.get());
 	drawerList_.push_back(roundRectDrawer_.get());
 
-	return true;
+	return sceneTransitionResources_.Initialize(
+		*context_.directX.GetResourceFactory(),
+		kConstantBufferAlignment);
 }
 
 void Renderer2D::BeginFrame() {
+	hasSceneTransition_ = false;
 	for (const auto& drawer : drawerList_) {
 		drawer->BeginFrame();
 	}
@@ -72,6 +90,7 @@ void Renderer2D::EndFrame() {
 	for (const auto& drawer : drawerList_) {
 		drawer->EndFrame();
 	}
+	DrawSceneTransition();
 }
 
 void Renderer2D::Finalize() {
@@ -79,6 +98,7 @@ void Renderer2D::Finalize() {
 	rectDrawer_.reset();
 	circleDrawer_.reset();
 	roundRectDrawer_.reset();
+	sceneTransitionResources_.Finalize();
 }
 
 void Renderer2D::AddTriangle(const Triangle2D& triangle, const Material2D& material) {
@@ -204,6 +224,62 @@ void Renderer2D::AddText(
 		data.vertices[3] = ScreenToClipSpace(glyphLeftTop + glyph.size);
 		rectDrawer_->AddRect(data);
 	}
+}
+
+bool Renderer2D::AddSceneTransition(const SceneTransitionDrawDesc& desc) {
+	Pipeline* pipeline = desc.pipeline.empty()
+		? nullptr
+		: context_.pipelineMgr.GetPipeline(desc.pipeline);
+	if (!pipeline || !pipeline->IsValid() ||
+		!pipeline->FindRootIndex(kSceneTransitionParameterName)) {
+		return false;
+	}
+	sceneTransition_ = desc;
+	hasSceneTransition_ = true;
+	return true;
+}
+
+void Renderer2D::DrawSceneTransition() {
+	if (!hasSceneTransition_) {
+		return;
+	}
+
+	Pipeline* pipeline = context_.pipelineMgr.GetPipeline(sceneTransition_.pipeline);
+	if (!pipeline || !pipeline->IsValid()) {
+		return;
+	}
+
+	const uint32_t frameIndex = context_.directX.GetCurrentFrameContextIndex();
+	const float screenWidth = static_cast<float>(context_.directX.GetRenderWidth());
+	const float screenHeight = static_cast<float>(context_.directX.GetRenderHeight());
+	const SceneTransitionParametersForGPU parameters{
+		.color = sceneTransition_.color,
+		.parameters = sceneTransition_.parameters,
+		.context = {
+			std::clamp(sceneTransition_.progress, 0.0f, 1.0f),
+			std::clamp(sceneTransition_.phaseProgress, 0.0f, 1.0f),
+			std::clamp(sceneTransition_.opacity, 0.0f, 1.0f),
+			sceneTransition_.phase,
+		},
+		.screen = {
+			screenWidth,
+			screenHeight,
+			screenWidth > 0.0f ? 1.0f / screenWidth : 0.0f,
+			screenHeight > 0.0f ? 1.0f / screenHeight : 0.0f,
+		},
+	};
+	std::memcpy(
+		sceneTransitionResources_.GetMappedData(frameIndex),
+		&parameters,
+		sizeof(parameters));
+
+	ID3D12GraphicsCommandList6* commandList = context_.directX.GetCommandList6();
+	commandList->SetPipelineState(pipeline->GetPipelineState());
+	commandList->SetGraphicsRootSignature(pipeline->GetRootSignature());
+	commandList->SetGraphicsRootConstantBufferView(
+		pipeline->GetRootIndex(kSceneTransitionParameterName),
+		sceneTransitionResources_.GetGPUVirtualAddress(frameIndex));
+	commandList->DispatchMesh(1u, 1u, 1u);
 }
 
 void Renderer2D::ApplyMaterial(InstanceData2D& instance, const Material2D& material) {

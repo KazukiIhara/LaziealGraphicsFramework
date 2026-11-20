@@ -8,6 +8,7 @@ namespace LGF {
 
 	class Camera2D;
 	struct Material2D;
+	struct SceneTransitionDrawDesc;
 
 	class Triangle2D;
 	class Rect2D;
@@ -79,6 +80,11 @@ namespace LGF {
 		void Draw(
 			const Sprite& sprite,
 			const Vector4& color = Color::White);
+
+		/// <summary>
+		/// シーン描画の最前面に遷移用フルスクリーンエフェクトを描画する。
+		/// </summary>
+		bool DrawSceneTransition(const SceneTransitionDrawDesc& desc);
 
 	}
 }

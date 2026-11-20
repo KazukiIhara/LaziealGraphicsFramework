@@ -1,0 +1,10 @@
+{
+  "Name": "FadeBlack",
+  "Pipeline": "SceneTransitionFade",
+  "FadeOutDuration": 0.25,
+  "FadeInDuration": 0.25,
+  "FadeOutEasing": "EaseInCubic",
+  "FadeInEasing": "EaseOutCubic",
+  "Color": [0.0, 0.0, 0.0, 1.0],
+  "Parameters": []
+}
