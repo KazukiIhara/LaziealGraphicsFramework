@@ -7,21 +7,45 @@ if "%~2"=="" exit /b 1
 set "sourceDir=%~dp0..\..\Externals\Effekseer"
 set "buildDir=%sourceDir%\..\..\..\..\..\..\..\generated\effekseer\%~2"
 set "installDir=%sourceDir%\install_%~2"
-set "cmakeCommand=cmake"
+set "cmakeCommand="
+set "visualStudioVersion="
+set "vswhereResult=%~dp0LaziealEffekseerVswhere_%RANDOM%_%RANDOM%.txt"
 
-where cmake >nul 2>nul
-if errorlevel 1 (
+if /i "%~1"=="Visual Studio 17 2022" set "visualStudioVersion=[17.0,18.0)"
+if /i "%~1"=="Visual Studio 18 2026" set "visualStudioVersion=[18.0,19.0)"
+
+if defined visualStudioVersion (
     set "vswhere=!ProgramFiles(x86)!\Microsoft Visual Studio\Installer\vswhere.exe"
-    if not exist "!vswhere!" (
-        echo CMake was not found on PATH and vswhere.exe is unavailable.
-        exit /b 1
-    )
-    for /f "usebackq delims=" %%i in (`"!vswhere!" -latest -products * -requires Microsoft.VisualStudio.Component.VC.CMake.Project -find Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe`) do set "cmakeCommand=%%i"
-    if "!cmakeCommand!"=="cmake" (
-        echo Visual Studio CMake component was not found.
-        exit /b 1
+    if exist "!vswhere!" (
+        "!vswhere!" -latest -products * -version "!visualStudioVersion!" -requires Microsoft.VisualStudio.Component.VC.CMake.Project -find Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe >"!vswhereResult!" 2>nul
+        if not errorlevel 1 if exist "!vswhereResult!" set /p "cmakeCommand="<"!vswhereResult!"
+        if exist "!vswhereResult!" del /q "!vswhereResult!"
     )
 )
+
+if not defined cmakeCommand for /f "delims=" %%i in ('where cmake 2^>nul') do if not defined cmakeCommand set "cmakeCommand=%%i"
+
+if not defined cmakeCommand (
+    echo CMake was not found. Install the CMake component for %~1 or add a compatible CMake to PATH.
+    exit /b 1
+)
+
+setlocal DisableDelayedExpansion
+set "cmakeHelp=%~dp0LaziealEffekseerCMakeHelp_%RANDOM%_%RANDOM%.txt"
+"%cmakeCommand%" --help >"%cmakeHelp%" 2>nul
+if errorlevel 1 (
+    if exist "%cmakeHelp%" del /q "%cmakeHelp%"
+    echo Failed to run CMake: %cmakeCommand%
+    exit /b 1
+)
+
+findstr /l /c:"%~1" "%cmakeHelp%" >nul
+if errorlevel 1 (
+    del /q "%cmakeHelp%"
+    echo The selected CMake does not support the "%~1" generator: %cmakeCommand%
+    exit /b 1
+)
+del /q "%cmakeHelp%"
 
 if not exist "%installDir%\lib\Effekseer.lib" goto BUILD
 if not exist "%installDir%\lib\Effekseerd.lib" goto BUILD
